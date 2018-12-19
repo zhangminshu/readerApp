@@ -1,41 +1,59 @@
+
+const path = require('path');            //引入node的path模块
 const webpack = require("webpack");
-const srcDir = __dirname + "/src";
-const distDir = __dirname + "/dist";
-const HtmlWebpackPlugin = require("html-webpack-plugin");//生成新的html文件
-// const HtmlWebpackPlugin = require("html-webpack-plugin");//生成新的html文件
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CleanWebpackPlugin = require('clean-webpack-plugin');
+const UglifyjsWebpackPlugin = require('uglifyjs-webpack-plugin');
 module.exports = {
-    entry: [
-        srcDir + "/index.jsx" //入口
-    ],
-    output: {
-        path: distDir,//打包后的文件存放地方，会自动新建
+    entry: './src/index.jsx',//配置入口文件的地址
+    output: {//配置出口文件的地址
+        path: path.resolve(__dirname, './dist'),
         filename: 'index.[hash:7].js'//打包后输出的文件名，后面跟7位随机hash值
     },
-    devtool: 'source-map',
-    devServer: {
-        contentBase: './public',//本地服务器所加载的页面的目录
-        historyApiFallback: true,//不跳转
-        inline: true,//实时刷新
-        port: 8090, //端口号
-        hot: true
-    },
-    module:{
-        rules:[
+    module: {
+        rules: [
             {
-                test:/(\.js|\.jsx)$/,
-                use:{
-                    loader:'babel-loader'
+                test: /\.jsx?$/,
+                use: {
+                    loader: 'babel-loader',
+                    options: {
+                        presets: ["env", "stage-0", "react"]// env --> es6, stage-0 --> es7, react --> react
+                    }
                 },
-                exclude:'/node_module/'
-            }
+                include: path.resolve(__dirname, './src'),
+                exclude: /node_modules/
+            },
+            {
+                test: /(\.css|\.less|\.scss)$/,
+                use: ['style-loader', 'css-loader'],
+                include: path.resolve(__dirname, './src'),
+                exclude: /node_modules/
+            },
         ]
-    },
-    plugins:[
-        new HtmlWebpackPlugin({//根据模板引入css,js最终生成的html文件
-            filename: 'index.html',//生成文件存放路径
-            template: './public/index.html'//html模板路径
+    },//配置模块,主要用来配置不同文件的加载器
+    plugins: [
+        new HtmlWebpackPlugin({
+            template: './src/index.html',   // 指定产出的模板
+            filename: 'index.html',          // 产出的文件名
+            // chunks: ['common', 'base'],     // 在产出的HTML文件里引入哪些代码块
+            hash: true,                     // 名称是否哈希值
+            // title: 'base',                  // 可以给模板设置变量名，在html模板中调用 htmlWebpackPlugin.options.title 可以使用
+            minify: {                       // 对html文件进行压缩
+                removeAttributeQuotes: true // 移除双引号
+            }
         }),
-        new webpack.HotModuleReplacementPlugin(),//热加载插件
-    ],
-    mode: 'development'
-};
+        new CleanWebpackPlugin([path.join(__dirname, 'dist')]),//打包前先清空输出目录
+        new UglifyjsWebpackPlugin(),//压缩js
+    ],//配置插件
+
+    devServer: {//配置开发服务器
+        contentBase: path.resolve(__dirname, 'dist'),// 配置开发服务运行时的文件根目录
+        host: 'localhost',// 开发服务器监听的主机地址
+        compress: true,   // 开发服务器是否启动gzip等压缩
+        port: 8080,        // 开发服务器监听的端口
+        proxy: {
+            target: "http://localhost:3000", // 将 URL 中带有 /api 的请求代理到本地的 3000 端口的服务上
+            pathRewrite: { '^/api': '' }, // 把 URL 中 path 部分的 `api` 移除掉
+        }
+    }
+}
