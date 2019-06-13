@@ -5,10 +5,10 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const UglifyjsWebpackPlugin = require('uglifyjs-webpack-plugin');
 module.exports = {
-    entry: './src/index.jsx',//配置入口文件的地址
+    entry: './src/main.jsx',//配置入口文件的地址
     output: {//配置出口文件的地址
         path: path.resolve(__dirname, './dist'),
-        filename: 'index.[hash:7].js'//打包后输出的文件名，后面跟7位随机hash值
+        filename: 'main.[hash:7].js'//打包后输出的文件名，后面跟7位随机hash值
     },
     module: {
         rules: [
@@ -17,18 +17,52 @@ module.exports = {
                 use: {
                     loader: 'babel-loader',
                     options: {
-                        presets: ["env", "stage-0", "react"]// env --> es6, stage-0 --> es7, react --> react
+                        // presets: ["env", "stage-0", "react"]// env --> es6, stage-0 --> es7, react --> react
                     }
                 },
                 include: path.resolve(__dirname, './src'),
                 exclude: /node_modules/
             },
             {
-                test: /(\.css|\.less|\.scss)$/,
-                use: ['style-loader', 'css-loader'],
-                include: path.resolve(__dirname, './src'),
-                exclude: /node_modules/
+                test: /\.css$/,
+                use: ['style-loader', 'css-loader']
             },
+            {
+                test: /\.less$/,
+                use: [
+                    {
+                        loader: 'style-loader'
+                    },
+                    {
+                        loader: 'css-loader' // translates CSS into CommonJS
+                    },
+                    {
+                        loader: 'less-loader', // compiles Less to CSS
+                        options: {
+                            modifyVars: {
+                                'font-size-base': '12px',
+                                'primary-color': '#0EA679'
+                            },
+                            javascriptEnabled: true
+                        }
+                    }
+                ]
+            },
+            {
+                test: /\.(woff|woff2|eot|ttf|otf)$/,
+                use: ["file-loader"]
+            },
+            {
+                test: /\.(png|jpg|gif)$/,
+                use: [
+                    {
+                        loader: "url-loader",
+                        options: {
+                            limit: 8192
+                        }
+                    }
+                ]
+            }
         ]
     },//配置模块,主要用来配置不同文件的加载器
     plugins: [
