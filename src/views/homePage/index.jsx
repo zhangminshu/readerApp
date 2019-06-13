@@ -20,8 +20,8 @@ class HomePage extends React.Component {
             <div className="homeWarp">
                 <Layout>
                     <Header className="publicHeader">
-                        <div className="menuBtn"><Icon onClick={this.toggleCollapsed} type={this.state.collapsed ? 'menu-unfold' : 'menu-fold'} /></div>
-                        <div className="searchWarp"><Input allowClear placeholder="搜索" /> <span className="result"></span></div>
+                        <div className="menuBtn"><Icon onClick={this.toggleCollapsed} type={this.state.collapsed ? 'arrow-left' : 'menu'} /></div>
+                        <div className="searchWarp"><Input allowClear placeholder="搜索" /> <span className="result">找到约 3500 条结果</span></div>
                         <div className="loginInfo"><span>注册</span></div>
                     </Header>
 
