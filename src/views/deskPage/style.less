@@ -1,0 +1,55 @@
+.deskWarp{
+    .publicHeader{
+        background: #ffffff;
+        padding: 0;
+        display: flex;
+        .menuBtn{
+            width: 69px;
+            padding-left: 8px;
+            font-size: 24px;
+        }
+        .searchWarp{
+            width: 100%;
+            position: relative;
+            .result{
+                position: absolute;
+                right: 36px;
+                top: 0;
+            }
+            input::-ms-input-placeholder{
+                text-align: center;
+                color: #637282;
+            }
+            input::-webkit-input-placeholder{
+                text-align: center;
+                color: #637282;
+            }
+        }
+        .loginInfo{
+            width: 69px;
+            text-align: right;
+            padding-right: 8px;
+            color: #0070E0;
+            cursor: pointer;
+            .userName{
+                background: #05628B;
+                color: #fff;
+                width: 32px;
+                height: 32px;
+                display: inline-block;
+                border-radius: 50%;
+                line-height: 32px;
+                text-align: center;
+            }
+        }
+    }
+    .siderWarp{
+        background: #ffffff;
+        .ant-menu-inline, .ant-menu-vertical, .ant-menu-vertical-left{
+            border: none;
+        }
+        .ant-menu-inline .ant-menu-item::after{
+            border: none;
+        }
+    }
+}

@@ -29,17 +29,82 @@
             width: 69px;
             text-align: right;
             padding-right: 8px;
-        }
-    }
-    .siderWarp{
-        background: #ffffff;
-        .ant-menu-inline, .ant-menu-vertical, .ant-menu-vertical-left{
-            border: none;
+            color: #0070E0;
+            cursor: pointer;
+            .userName{
+                background: #05628B;
+                color: #fff;
+                width: 32px;
+                height: 32px;
+                display: inline-block;
+                border-radius: 50%;
+                line-height: 32px;
+                text-align: center;
+            }
         }
     }
     .mainContent{
-        height: calc(100vh - 133px);
+        // height: calc(100vh - 133px);
         background: #ffffff;
+        .bannerWarp{
+            height: 633px;
+            background: #F3F5F7;
+            position: relative;
+            .bannerBg{
+                height: 516px;
+                position: absolute;
+                bottom: 0;
+                right: 98px;
+            }
+            .bigDesc{
+                font-size:70px;
+                color: #1B2733;
+                padding-top: 162px;
+                padding-left: 296px;
+            }
+            .smallDesc{
+                font-size:28px;
+                color: #637282;
+                padding-left: 296px;    
+            }
+            .btn_login{
+                margin-left: 296px;
+                font-size: 25px;
+                width: 214px;
+                height: 66px;
+                margin-top: 79px; 
+            }
+        }
+        .content{
+            .titleWarp{
+                margin-top: 138px;
+                margin-bottom: 162px;
+                text-align: center;
+                .bigTitle{
+                    font-size:39px;
+                    color: #1B2733;
+                }
+                .subTitle{
+                    font-size:20px;
+                    color: #637282;
+                }
+            }
+            .introWarp{
+                display: flex;
+                margin-bottom: 120px;
+                .item{
+                    flex: 1;
+                    text-align: center;
+                    .itemImg img{
+                        width: 80px;
+                        height: 80px;
+                    }
+                    .title{
+                        font-size: 28px;
+                    }
+                }
+            }
+        }
     }
     .footerWarp{
         background: #ffffff;

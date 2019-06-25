@@ -1,0 +1,296 @@
+body{
+    font-family: "SegoeUI", "Microsoft YaHei", "Helvetica Neue","Helvetica","Arial",sans-serif
+}
+h1, h2, h3, h4, h5, h6{
+    margin-bottom: 0
+}
+.clearFix:after {
+    clear:both;
+    content:'.';
+    display:block;
+    width: 0;
+    height: 0;
+    visibility:hidden;
+}
+.ms_fl{
+    float: left;
+}
+.ms_fr{
+    float: right;
+}
+.ms-tc{
+    text-align: center;
+}
+.ant-btn{
+    padding: 0 20px;
+}
+.ant-btn-danger{
+    color: #FFFFFF;
+    background-color: #FF3B30;
+    border:1px solid #E6352C;
+    &:hover,&:focus{
+        background-color: #E6352C;
+        border:1px solid #CC2F27;
+        color: #FFFFFF;
+    }
+}
+.ant-btn-primary{
+    color: #fff;
+    background-color: #0070E0;
+    border-color: #007AF5;
+    &:hover,&:focus{
+        background-color: #007AF5;
+        // border:1px solid #007AF5;
+        color: #FFFFFF;
+    }
+}
+
+.confirmDialog{
+    .ant-btn{
+        padding: 0 20px;
+    }
+    .ant-modal-body{
+        padding: 30px 20px 30px 20px;
+    }
+    .ant-modal-confirm-title{
+        font-size: 18px;
+        color: #3D464D;
+    }
+    .ant-modal-confirm-body > .anticon + .ant-modal-confirm-title + .ant-modal-confirm-content{
+        margin-left:0;
+    }
+    .ant-modal-confirm-content{
+        margin-top:30px;
+        font-size: 16px;
+    }
+    .ant-modal-confirm-btns{
+        margin-top: 30px;
+    }
+    .ant-radio-wrapper{
+        font-size: 18px;
+    }
+    .radioWarp{
+        .radioItem{
+            margin-bottom: 20px;
+            .ant-radio{
+                margin-right: 8px;
+                position: relative;
+                top: -1px;
+            }
+            &:last-child{
+                margin-bottom: 0
+            }
+        }
+    }
+    .checkWarp{
+        .checkItem{
+            margin-bottom: 20px;
+            &:last-child{
+                margin-bottom: 0
+            }
+            .icon{
+                width: 16px;
+                height: 16px;
+                display: inline-block;
+            }
+            .icon_add{
+                background: url('../img/icon_add.svg');
+                margin-right: 14px;
+                cursor: pointer;
+            }
+            .icon_edit{
+                background: url('../img/icon_edit.svg');
+                cursor: pointer;
+                position: relative;
+                top: 3px;
+                &:hover{
+                    background: url('../img/icon_edit_hover.svg');
+                }
+            }
+        }
+        .ant-checkbox-wrapper{
+            font-size: 16px;
+        }
+        .ant-checkbox{
+            margin-right: 8px;
+        }
+
+    }
+    .anticon-question-circle{
+        display: none;
+    }
+    .shareUrl{
+        border-radius: 2px;
+    }
+    .desc{
+        color: #9D9D9D;
+        margin-top: 6px;
+        font-size: 14px;
+        margin-bottom: 0;
+    }
+}
+
+.myTableWarp{
+    width: 90%;
+    margin: 0 auto;
+    &.grayTh .ant-table-thead > tr{
+        background: #F3F4F5;   
+    }
+    .anticon-ellipsis{
+        font-size: 16px;
+        width: 30px;
+        height: 30px;
+        position: relative;
+        line-height: 30px;
+        border-radius: 2px;
+    }
+    .fileIcon{
+        position: relative;
+        top: -2px;
+        margin-right: 10px;
+        width: 24px;
+        height: 24px;
+    }
+    .isOwerFile{
+        color: #72B6EC;
+    }
+
+    .ant-checkbox-indeterminate .ant-checkbox-inner::after{
+        background-color: transparent;
+        content:'-';
+        color: #d9d9d9;
+    }
+    .ant-table-thead > tr > th{
+        background:transparent;
+
+    }
+    .ant-table-thead > tr{
+        .ant-checkbox{
+            display: none;
+        }
+        .ant-checkbox-checked,.ant-checkbox-indeterminate{
+            display: block;
+        }
+        &:hover{
+            .ant-checkbox{
+                display: block;
+            }
+        }
+    }
+    .ant-table-thead > tr > th, .ant-table-tbody > tr > td{
+        &.ant-table-selection-column{
+            border: none;
+            background: transparent;
+        }
+    }
+    .ant-table-tbody > tr .ant-checkbox{
+        display: none;
+    }
+    .ant-table-row-selected{
+        .anticon-ellipsis{
+            border: 1px solid #005FF8;
+            color: #005FF8;
+            cursor: pointer;
+        }
+    }
+    .ant-table-row-selected{
+        .fileName,.isOwerFile{
+            color: #005FF8;
+        }
+    }
+    .ant-table-tbody > tr:hover{
+        .anticon-ellipsis{
+            border: 1px solid #005FF8;
+            color: #005FF8;
+            cursor: pointer;
+        }
+        .fileName,.isOwerFile{
+            color: #005FF8;
+
+        }
+        .ant-checkbox{
+            display: block;
+        }
+    }
+    .showCheckBox{
+        .ant-table-tbody > tr .ant-checkbox{
+            display: block;
+        }
+    }
+    .btn_list{
+        visibility: hidden;
+        .btn{
+            margin-left: 14px;
+            &:first-child{
+                margin-left: 0;
+            }
+        }
+    }
+    .showBtnList{
+        visibility: visible;
+    }
+}
+
+.siderWarp{
+    background: #ffffff;
+    .ant-menu-inline, .ant-menu-vertical, .ant-menu-vertical-left{
+        border: none;
+    }
+    .ant-menu-inline .ant-menu-item::after{
+        border: none;
+    }
+    .ant-menu-item{
+        position: relative;
+        left: 4px;
+        border-left: 3px solid #ffffff;
+    }
+    .ant-menu-item-selected{
+        border-left: 3px solid #1890ff;
+    }
+}
+.publicHeader{
+    background: #ffffff;
+    padding: 0;
+    display: flex;
+    height: 64px;
+    line-height: 64px;
+    .menuBtn{
+        width: 69px;
+        padding-left: 8px;
+        font-size: 24px;
+    }
+    .searchWarp{
+        width: 100%;
+        position: relative;
+        .result{
+            position: absolute;
+            right: 36px;
+            top: 0;
+        }
+        input::-ms-input-placeholder{
+            text-align: center;
+            color: #637282;
+        }
+        input::-webkit-input-placeholder{
+            text-align: center;
+            color: #637282;
+        }
+    }
+    .loginInfo{
+        width: 69px;
+        text-align: right;
+        padding-right: 8px;
+        color: #0070E0;
+        cursor: pointer;
+        .userName{
+            background: #05628B;
+            color: #fff;
+            width: 32px;
+            height: 32px;
+            display: inline-block;
+            border-radius: 50%;
+            line-height: 32px;
+            text-align: center;
+        }
+    }
+}

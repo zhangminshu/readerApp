@@ -53,7 +53,7 @@ module.exports = {
                 use: ["file-loader"]
             },
             {
-                test: /\.(png|jpg|gif)$/,
+                test: /\.(png|jpg|gif|svg)$/,
                 use: [
                     {
                         loader: "url-loader",
@@ -79,15 +79,22 @@ module.exports = {
         new CleanWebpackPlugin([path.join(__dirname, 'dist')]),//打包前先清空输出目录
         new UglifyjsWebpackPlugin(),//压缩js
     ],//配置插件
-
     devServer: {//配置开发服务器
         contentBase: path.resolve(__dirname, 'dist'),// 配置开发服务运行时的文件根目录
         host: 'localhost',// 开发服务器监听的主机地址
         compress: true,   // 开发服务器是否启动gzip等压缩
         port: 8080,        // 开发服务器监听的端口
         proxy: {
-            target: "http://localhost:3000", // 将 URL 中带有 /api 的请求代理到本地的 3000 端口的服务上
-            pathRewrite: { '^/api': '' }, // 把 URL 中 path 部分的 `api` 移除掉
-        }
+            '/user': {
+              target: 'http://47.96.81.45',
+            //   pathRewrite: {"^/user": ""} // 将/api重写为""空字符串
+            },
+            '/book': {
+                target: 'http://47.96.81.45',
+            },
+            '/file': {
+                target: 'http://47.96.81.45',
+            }
+          }
     }
 }
