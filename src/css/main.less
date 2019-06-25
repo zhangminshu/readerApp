@@ -233,6 +233,13 @@ h1, h2, h3, h4, h5, h6{
 
 .siderWarp{
     background: #ffffff;
+    &.ant-layout-sider-collapsed{
+        flex: 0 0 0px!important;
+        max-width: 0px!important;
+        min-width: 0px!important;
+        width: 0px!important;
+        overflow: hidden;
+    }
     .ant-menu-inline, .ant-menu-vertical, .ant-menu-vertical-left{
         border: none;
     }

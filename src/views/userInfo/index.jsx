@@ -16,7 +16,9 @@ class UserInfo extends React.Component {
                 nick_name:"",
                 new_pwd:'',
                 status:'',
-                kindle_email:''
+                kindle_email:'',
+                old_pwd:'',
+                new_pwd:''
             }
         }
     }
@@ -58,14 +60,14 @@ class UserInfo extends React.Component {
         </RadioGroup></div>;
         const inputHtml = <div><Input allowClear defaultValue={oldVal} placeholder="" onChange={(e)=>{this.handleChange(e,fileName)}}/></div>;
         const pwdHtml = <div className="radioWarp">
-            <div className="radioItem"><Input.Password className="loginInput" autoComplete="off" datasource={[]} type="password" placeholder="原密码" onChange={(e)=>{this.handleChange(e,'oldPwd')}}/></div>
-            <div className="radioItem"><Input.Password className="loginInput" autoComplete="off" datasource={[]} type="password" placeholder="新密码" onChange={(e)=>{this.handleChange(e,'newPwd')}}/></div>
+            <div className="radioItem"><Input.Password className="loginInput" autoComplete="off" datasource={[]} type="password" placeholder="原密码" onChange={(e)=>{this.handleChange(e,'old_pwd')}}/></div>
+            <div className="radioItem"><Input.Password className="loginInput" autoComplete="off" datasource={[]} type="password" placeholder="新密码" onChange={(e)=>{this.handleChange(e,'new_pwd')}}/></div>
         </div>;
         switch (fileName) {
             case 'is_public':
                 currHtml = radioHtml;
                 break;
-            case 'new_pwd':
+            case 'changePWD':
                 currHtml = pwdHtml;
                 break;
             default:
@@ -92,22 +94,20 @@ class UserInfo extends React.Component {
     }
     updateUserInfo = (fileName) => {
         const {newUserInfo,userInfo} = this.state;
-        const id = userInfo.id;
         const requestData = {};
-        requestData[fileName] = newUserInfo[fileName];
-        // const url = `/book/${bookId}/_info`;
-        const url =`/user/${id}/_info`
+        let url='';
+        if(fileName ==='changePWD'){
+            requestData['old_pwd'] = newUserInfo['old_pwd'];
+            requestData['new_pwd'] = newUserInfo['new_pwd'];
+            url ='/user/_pwd'
+        }else{
+            requestData[fileName] = newUserInfo[fileName];
+            url ='/user/_info'
+        }
         HTTP.put(url, requestData).then(response => {
-            debugger;
             const res = response.data;
             if (res.status === 0) {
-                const tableData = this.state.tableData;
-                tableData.forEach(item => {
-                    if (item.id === bookId) item.is_public = isPublic;
-                })
-                this.setState({
-                    tableData
-                })
+                this.getUserInfo();
                 message.success('修改成功！')
             } else {
                 message.error(res.error)
@@ -142,12 +142,12 @@ class UserInfo extends React.Component {
                         </div>
                         <div className="subItem clearFix">
                             <span className="label ms_fl">密码</span>
-                            <span className="edit ms_fr" onClick={() => { this.edit('', 'new_pwd', '修改密码') }}>编辑</span>
+                            <span className="edit ms_fr" onClick={() => { this.edit('', 'changePWD', '修改密码') }}>编辑</span>
                             <span className="value ms_fr">{userInfo.update_pwd_time}</span>
                         </div>
                         <div className="subItem clearFix">
                             <span className="label ms_fl">存储空间</span>
-                            <span className="edit ms_fr" onClick={() => { this.edit(userInfo.storage_limit, 'storage_limit', '修改存储空间') }}>编辑</span>
+                            <span className="edit ms_fr" ></span>
                             <span className="value ms_fr">{userInfo.storage_limit} MB (已使用{userInfo.storage_used} MB)</span>
                         </div>
                     </div>
@@ -167,7 +167,7 @@ class UserInfo extends React.Component {
                             <span className="value ms_fr">{userInfo.email}</span> </div>
                         <div className="subItem clearFix">
                             <span className="label ms_fl">接收邮箱</span>
-                            <span className="edit ms_fr" onClick={() => { this.edit(userInfo.nick_name, 'kindle_email', '修改接收邮箱') }}>编辑</span>
+                            <span className="edit ms_fr" onClick={() => { this.edit(userInfo.kindle_email, 'kindle_email', '修改接收邮箱') }}>编辑</span>
                             <span className="value ms_fr">{userInfo.kindle_email}</span>
                         </div>
                     </div>
