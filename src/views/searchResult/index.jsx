@@ -21,14 +21,28 @@ class SearchResult extends React.Component {
             pageNum:1,
             pageSize:10,
             showTable:false,
-            result:0,
             tableData:[],
             fileType:0,
-            searchBookName:''
+            searchBookName:'',
+            searchText:'',
+            totalNum:0
         }
     }
     componentDidMount(){
-
+        this.getTotal();
+    }
+    getTotal=()=>{
+        const url ="/book/_total";
+        HTTP.get(url,{}).then(response=>{
+            const res = response.data;
+            if(res.status === 0){
+                const searchText =`可搜索 ${res.data} 个文件`;
+                this.setState({
+                    searchText,
+                    totalNum:res.data
+                })
+            }
+        })
     }
     searchBook=(e,type)=>{
         const bookName =type ==='search' ? e.target.value : e;
@@ -39,14 +53,16 @@ class SearchResult extends React.Component {
             ps:this.state.pageSize
         }
         if(bookName === ''){
-            this.setState({showTable:false,result:0})
+            const searchText = `可搜索 ${this.state.totalNum} 个文件`
+            this.setState({showTable:false,searchText})
         }else{
             HTTP.get(url,{params:requestJson}).then(response=>{
                 const res = response.data;
+                const searchText = `找到约 ${res.data.total} 条结果`
                 if(res.status === 0){
                     this.setState({
                         showTable:true,
-                        result:res.data.total,
+                        searchText:searchText,
                         tableData:res.data.list,
                         searchBookName:bookName
                     })
@@ -89,8 +105,11 @@ class SearchResult extends React.Component {
             this.setState({showCheckBox:false})
         }
     }
-    toLogin =()=>{
+    toLogin = () => {
         this.props.history.push('/login')
+    }
+    toUserInfo =()=>{
+        this.props.history.push('/userInfo')
     }
     toIndex =()=>{
         this.props.history.push('/')
@@ -294,11 +313,16 @@ class SearchResult extends React.Component {
                 }
             },
         ];
-        const userInfo = sessionStorage.getItem('userInfo');
-        let isLogin =false;let userName ='';
-        if(userInfo){
-            userName = JSON.parse(userInfo).nick_name[0];
-            isLogin =true;
+        const userInfo = JSON.parse(sessionStorage.getItem('userInfo'));
+        let isLogin = false; let userName = '';let photo = '';let hasPhoto =false;
+        if (userInfo) {
+            if(userInfo.photo && userInfo.photo.length > 0){
+                photo = userInfo.photo;
+                hasPhoto = true;
+            }else{
+                userName = userInfo.nick_name[0];
+                isLogin = true;
+            }
         }
         const isAdminUser = false;
         const rowSelection = {
@@ -307,12 +331,13 @@ class SearchResult extends React.Component {
             onSelectAll: this.handleSelectAll,
             selectedRowKeys:this.state.tableSelectedRowKeys
         };
+        
         return (
             <div className="searchResultWarp">
                 <div className="publicHeader">
                     <div className="menuBtn"><Icon onClick={this.toIndex} type={'arrow-left'} /></div>
-                    <div className="searchWarp"><Input allowClear placeholder="搜索" onChange={(value)=>{this.searchBook(value,'search')}} /> <span className="result">找到约 {this.state.result} 条结果</span></div>
-                    <div className="loginInfo" > {!isLogin? <span onClick={this.toLogin}>注册</span> : <span className="userName">{userName}</span>} </div>
+                    <div className="searchWarp"><Input allowClear placeholder="搜索" onChange={(value)=>{this.searchBook(value,'search')}} /> <span className="result">{this.state.searchText}</span></div>
+                    <div className="loginInfo" > {hasPhoto? <img className="userPhoto" onClick={this.toUserInfo} src={photo} alt=""/> : (!isLogin ? <span onClick={this.toLogin}>注册</span> : <span className="userName" onClick={this.toUserInfo}>{userName}</span>)} </div>
                 </div>
                 {this.state.showTable?
                 <div className="myTableWarp">

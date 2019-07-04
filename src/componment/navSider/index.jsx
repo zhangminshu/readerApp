@@ -31,20 +31,20 @@ const navList = [{
   },
   {
     name: '权利声明',
-    path: '/index',
+    path: '/statement',
     jumpType: 1,
     key: 4
   },
   {
     name: '服务协议',
-    path: '/index',
+    path: '/serverAgreement',
     jumpType: 1,
     key: 5
   },
   {
     name: '用户协议',
-    path: 'https://www.baidu.com/',
-    jumpType: 2 ,
+    path: '/userAgreement',
+    jumpType: 1 ,
     key: 6
   }]
   
@@ -74,7 +74,7 @@ class navSider extends React.Component {
     }
   render() {
     return (
-      <Menu defaultSelectedKeys={['1']} defaultOpenKeys={['sub1']} mode="inline" theme="light">
+      <Menu defaultSelectedKeys={['0']} defaultOpenKeys={['sub1']} mode="inline" theme="light">
         {this.getSider()}
       </Menu>
     )

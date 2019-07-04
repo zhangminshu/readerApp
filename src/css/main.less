@@ -131,18 +131,25 @@ h1, h2, h3, h4, h5, h6{
 }
 
 .myTableWarp{
-    width: 90%;
+    width: 95%;
     margin: 0 auto;
     &.grayTh .ant-table-thead > tr{
         background: #F3F4F5;   
     }
+    &.grayTh{
+        .title{
+            margin-left: 0px;
+        }
+    }
+    .title{
+        margin-left: 30px;
+    }
     .anticon-ellipsis{
         font-size: 16px;
-        width: 30px;
-        height: 30px;
-        position: relative;
-        line-height: 30px;
-        border-radius: 2px;
+    }
+    .btn_more_opt{
+        border: none;
+        padding: 0 10px;
     }
     .fileIcon{
         position: relative;
@@ -181,13 +188,14 @@ h1, h2, h3, h4, h5, h6{
         &.ant-table-selection-column{
             border: none;
             background: transparent;
+            padding: 16px 0;
         }
     }
     .ant-table-tbody > tr .ant-checkbox{
         display: none;
     }
     .ant-table-row-selected{
-        .anticon-ellipsis{
+        .btn_more_opt{
             border: 1px solid #005FF8;
             color: #005FF8;
             cursor: pointer;
@@ -198,8 +206,13 @@ h1, h2, h3, h4, h5, h6{
             color: #005FF8;
         }
     }
+    .ant-table-tbody > tr{
+        .btn_more_opt{
+            border: 1px solid transparent;
+        }
+    }
     .ant-table-tbody > tr:hover{
-        .anticon-ellipsis{
+        .btn_more_opt{
             border: 1px solid #005FF8;
             color: #005FF8;
             cursor: pointer;
@@ -229,8 +242,34 @@ h1, h2, h3, h4, h5, h6{
     .showBtnList{
         visibility: visible;
     }
-}
+    .unActive{
+        color: #FF3B30;
+    }
+    .tableUserName{
+        .name{
+            background: #000;
+            color: #fff;
+            width: 31px;
+            height: 31px;
+            display: inline-block;
+            text-align: center;
+            line-height: 31px;
+            border-radius: 50%;
+        }
+    }
 
+}
+.ant-popover-inner-content{
+    padding: 6px 4px;
+}
+.optItem{
+    cursor: pointer;
+    padding: 6px 10px;
+    margin-bottom: 2px;
+    &:hover{
+        background: #F3F4F5;
+    }
+}
 .siderWarp{
     background: #ffffff;
     &.ant-layout-sider-collapsed{
@@ -250,6 +289,26 @@ h1, h2, h3, h4, h5, h6{
         position: relative;
         left: 4px;
         border-left: 3px solid #ffffff;
+    }
+    .ant-menu-item-selected{
+        border-left: 3px solid #1890ff;
+    }
+}
+.mySider{
+    .ant-menu-inline, .ant-menu-vertical, .ant-menu-vertical-left{
+        border: none;
+    }
+    .ant-menu-inline .ant-menu-item::after{
+        border: none;
+    }
+    .ant-menu-item{
+        position: relative;
+        left: 4px;
+        border-left: 3px solid #ffffff;
+        &:hover{
+            background-color: #e6f7ff;
+            // border-left: 3px solid #1890ff;
+        }
     }
     .ant-menu-item-selected{
         border-left: 3px solid #1890ff;
@@ -298,6 +357,63 @@ h1, h2, h3, h4, h5, h6{
             border-radius: 50%;
             line-height: 32px;
             text-align: center;
+        }
+        .userPhoto{
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+        }
+    }
+}
+.ant-drawer-body{
+    padding: 24px 8px;
+}
+.showInBig{
+    display: block
+}
+.showInSmall{
+    display: none
+}
+@media (max-width: 768px){
+    .publicHeader{
+        .searchWarp{
+            .result{
+                position: absolute;
+                right: 6px;
+                top: 0;
+            }
+            input::-ms-input-placeholder{
+                text-align: left;
+                color: #637282;
+            }
+            input::-webkit-input-placeholder{
+                text-align: left;
+                color: #637282;
+            }
+        }
+    }
+    .siderWarp{
+        display: none
+        // width: 0!important;
+        // overflow: hidden;
+        // min-width: 0!important;
+        // flex: 0 0 0 !important;
+        // max-width: 0!important;
+    }
+    .showInBig{
+        display: none
+    }
+    .showInSmall{
+        display: block
+    }
+    .myTableWarp{
+        .ant-table-thead > tr{
+            .ant-checkbox{
+                display: block;
+            }
+        }
+        .ant-table-tbody > tr .ant-checkbox{
+            display: block;
         }
     }
 }

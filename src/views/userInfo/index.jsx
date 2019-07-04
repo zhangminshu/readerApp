@@ -3,6 +3,7 @@ import cookie from 'js-cookie'
 import { Table, Input, Icon, Button, message, Modal, Radio, Form, Popover, Checkbox } from 'antd';
 import HTTP from '../../httpServer/axiosConfig.js'
 import './style.less'
+import { debug } from 'util';
 const { confirm } = Modal;
 const RadioGroup = Radio.Group;
 const SUCCESS_CODE = 0;
@@ -11,6 +12,7 @@ class UserInfo extends React.Component {
         super(props);
         this.state = {
             userInfo: {},
+            days:"",
             newUserInfo:{
                 email:'',
                 nick_name:"",
@@ -30,13 +32,23 @@ class UserInfo extends React.Component {
         HTTP.get(url, {}).then(response => {
             const res = response.data;
             if (res.status === 0) {
+                const days = this.countDay(res.data.update_pwd_time)
                 this.setState({
-                    userInfo: res.data
+                    userInfo: res.data,
+                    days:days
                 })
             } else {
                 message.error(res.error);
             }
         })
+    }
+    countDay =(lastDate)=>{
+        if(lastDate =='')return 0;
+        const currDate=new Date();
+        const date1 = new Date(currDate.getFullYear(),currDate.getMonth()+1,currDate.getDate());
+        const date2 = new Date(lastDate.substr(0,4),lastDate.substr(5,2),lastDate.substr(8,2));
+        const date=(date1.getTime()-date2.getTime())/(1000*60*60*24);
+        return date;
     }
     toIndex = () => {
         this.props.history.push('/')
@@ -123,11 +135,12 @@ class UserInfo extends React.Component {
         const userInfo = this.state.userInfo;
         const nickName = userInfo.nick_name || "";
         const username = nickName[0];
+        const photo = userInfo.photo || '';
         return (
             <div className="userInfoWarp">
                 <div className="publicHeader"><div className="menuBtn"><Icon onClick={this.toIndex} type={'arrow-left'} /></div></div>
                 <div className="content">
-                    <div className="ms-tc"><span className="username">{username}</span></div>
+                    <div className="ms-tc">{photo.length>0 ? <img className="userPhoto" src={photo} alt=""/> : <span className="username">{username}</span>}</div>
                     <div className="baseInfo item">
                         <div className="title">基本信息</div>
                         <div className="subItem clearFix">
@@ -143,7 +156,7 @@ class UserInfo extends React.Component {
                         <div className="subItem clearFix">
                             <span className="label ms_fl">密码</span>
                             <span className="edit ms_fr" onClick={() => { this.edit('', 'changePWD', '修改密码') }}>编辑</span>
-                            <span className="value ms_fr">{userInfo.update_pwd_time}</span>
+                            <span className="value ms_fr">{this.state.days}天未修改密码</span>
                         </div>
                         <div className="subItem clearFix">
                             <span className="label ms_fl">存储空间</span>

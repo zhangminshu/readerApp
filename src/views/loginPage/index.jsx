@@ -28,6 +28,7 @@ class LoginPage extends React.Component {
         const email = formVals.email;
         const pwd = formVals.password;
         if(isRegister){
+            if(!formVals.isAgree) return message.warning('请先阅读并接受《用户协议》及《服务协议》')
             const registerUrl = '/user/_signup';
             HTTP.post(registerUrl,{email,pwd}).then(response=>{
                 const res = response.data;
@@ -43,20 +44,29 @@ class LoginPage extends React.Component {
             HTTP.post(loginUrl,{email,pwd}).then(response=>{
                 const res = response.data;
                 if(res.status === 0){
-                    const {id,email,nick_name} = res.data;
-                    const userInfo ={id,email,nick_name};
                     cookie.set('Authorization',res.data.token);
-                    sessionStorage.setItem('userInfo',JSON.stringify(userInfo));
-                    this.props.history.push('/')
+                    this.getUserInfo()
                     // message.success('登录成功！')
                 }else{
                     message.error(res.error);
                 }
             })
-        }
-
-        
+        }        
     };
+    getUserInfo = () => {
+        const url = '/user/_info';
+        HTTP.get(url, {}).then(response => {
+            const res = response.data;
+            if (res.status === 0) {
+                sessionStorage.setItem('userInfo',JSON.stringify(res.data));
+                if(res.data.role === 2){
+                    this.props.history.push('/manager')
+                }else{
+                    this.props.history.push('/desk')
+                }
+            }
+        })
+    }
     changeLoginState =()=>{
         this.setState({
             isRegister:!this.state.isRegister
