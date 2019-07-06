@@ -50,30 +50,38 @@
             height: 633px;
             background: #F3F5F7;
             position: relative;
-            .bannerBg{
-                height: 516px;
-                position: absolute;
-                bottom: 0;
-                right: 98px;
+            .solgan{
+                position: relative;
+                top: 0;
+                height: 100%;
+                margin: 0 auto;
+                width: 85%;
+                max-width: 1540px;
+                min-width: 1445px;
+                .bannerBg{
+                    height: 516px;
+                    position: absolute;
+                    bottom: 0;
+                    right: 0;
+                }
+                .bigDesc{
+                    font-size:70px;
+                    color: #1B2733;
+                    padding-top: 162px;
+                }
+                .smallDesc{
+                    font-size:28px;
+                    color: #637282;
+                }
+                .btn_login{
+                    font-size: 25px;
+                    width: 214px;
+                    height: 66px;
+                    margin-top: 79px; 
+                    transition: all 0s cubic-bezier(0.645, 0.045, 0.355, 1)
+                }
             }
-            .bigDesc{
-                font-size:70px;
-                color: #1B2733;
-                padding-top: 162px;
-                padding-left: 296px;
-            }
-            .smallDesc{
-                font-size:28px;
-                color: #637282;
-                padding-left: 296px;    
-            }
-            .btn_login{
-                margin-left: 296px;
-                font-size: 25px;
-                width: 214px;
-                height: 66px;
-                margin-top: 79px; 
-            }
+
         }
         .content{
             .titleWarp{
@@ -108,5 +116,121 @@
     }
     .footerWarp{
         background: #ffffff;
+    }
+}
+@media (max-width: 1690px){
+    .homeWarp{
+        .mainContent{
+            .bannerWarp{
+                height: 557px;
+                background: #F3F5F7;
+                position: relative;
+                .solgan{
+                    position: relative;
+                    top: 0;
+                    height: 100%;
+                    margin: 0 auto;
+                    width: 85%;
+                    max-width: 1540px;
+                    min-width: 1250px;
+                    .bannerBg{
+                        height: 454px;
+                        position: absolute;
+                        bottom: 0;
+                        right: 0;
+                    }
+                    .bigDesc{
+                        font-size:62px;
+                        color: #1B2733;
+                        padding-top: 142px;
+                    }
+                    .smallDesc{
+                        font-size:25px;
+                        color: #637282;
+                    }
+                    .btn_login{
+                        font-size: 22px;
+                        width: 188px;
+                        height: 58px;
+                        margin-top: 69px;
+                    }
+                }
+    
+            }
+        }
+    }
+}
+@media (max-width: 768px){
+    .homeWarp{
+        .mainContent{
+            .bannerWarp{
+                height: auto;
+                background: #F3F5F7;
+                position: relative;
+                .solgan{
+                    position: relative;
+                    top: 0;
+                    height: 100%;
+                    margin: 0 auto;
+                    width: 85%;
+                    max-width: 1024px;
+                    min-width: 250px;
+                    .bannerBg{
+                        height: auto;
+                        position: relative;
+                        bottom: 0;
+                        right: 0;
+                    }
+                    .bigDesc{
+                        font-size:24px;
+                        color: #1B2733;
+                        padding-top: 42px;
+                    }
+                    .smallDesc{
+                        font-size:16px;
+                        color: #637282;
+                        margin-top: 8px;
+                    }
+                    .btn_login{
+                        font-size: 14px;
+                        width: auto;
+                        height: 32px;
+                        margin-top: 24px;
+                        margin-bottom: 24px;
+                    }
+                }
+    
+            }
+            .content{
+                .titleWarp{
+                    margin-top: 40px;
+                    margin-bottom: 50px;
+                    text-align: center;
+                    .bigTitle{
+                        font-size:24px;
+                        color: #1B2733;
+                    }
+                    .subTitle{
+                        font-size:16px;
+                        color: #637282;
+                    }
+                }
+                .introWarp{
+                    display: block;
+                    margin-bottom: 100px;
+                    .item{
+                        margin-bottom: 40px;
+                        text-align: center;
+                        .itemImg img{
+                            width: 60px;
+                            height: 60px;
+                        }
+                        .title{
+                            font-size: 22px;
+                        }
+                    }
+                }
+            }
+        }
     }
 }

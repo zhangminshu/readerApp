@@ -6,6 +6,7 @@ import SearchResult from './views/searchResult/index.jsx';
 import DeskPage from './views/deskPage/index.jsx';
 import ManagerPage from './views/managerPage/index.jsx';
 import SharePage from './views/share/index.jsx'
+import Reder from './views/reder/index.jsx'
 import UserInfo from './views/userInfo/index.jsx';
 import UserAgreement from './views/userAgreement/index.jsx'
 import Statement from './views/statement/index.jsx'
@@ -20,6 +21,7 @@ const SliderComponent = () => (
       <Route path="/desk" component={DeskPage}/>
       <Route path="/manager" component={ManagerPage}/>
       <Route path="/share" component={SharePage}/>
+      <Route path="/reder" component={Reder}/>
       <Route path="/userInfo" component={UserInfo}/>
       <Route path="/searchResult" component={SearchResult}/>
       <Route path="/userAgreement" component={UserAgreement}/>

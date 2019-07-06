@@ -372,8 +372,9 @@ h1, h2, h3, h4, h5, h6{
     display: block
 }
 .showInSmall{
-    display: none
+    display: none;
 }
+
 @media (max-width: 768px){
     .publicHeader{
         .searchWarp{
@@ -394,17 +395,22 @@ h1, h2, h3, h4, h5, h6{
     }
     .siderWarp{
         display: none
-        // width: 0!important;
-        // overflow: hidden;
-        // min-width: 0!important;
-        // flex: 0 0 0 !important;
-        // max-width: 0!important;
     }
     .showInBig{
         display: none
     }
     .showInSmall{
-        display: block
+        display: block;
+        .fileName{
+            display: flex;
+            .bookName{
+                max-width: 500px;
+                overflow: hidden;
+                text-overflow:ellipsis;
+                white-space: nowrap;
+                display: inline-block;
+            }
+        }
     }
     .myTableWarp{
         .ant-table-thead > tr{
@@ -414,6 +420,36 @@ h1, h2, h3, h4, h5, h6{
         }
         .ant-table-tbody > tr .ant-checkbox{
             display: block;
+        }
+    }
+}
+@media (max-width: 445px){
+    .showInSmall{
+        display: block;
+        .fileName{
+            display: flex;
+            .bookName{
+                max-width: 200px;
+                overflow: hidden;
+                text-overflow:ellipsis;
+                white-space: nowrap;
+                display: inline-block;
+            }
+        }
+    }
+}
+@media (max-width: 325px){
+    .showInSmall{
+        display: block;
+        .fileName{
+            display: flex;
+            .bookName{
+                max-width: 160px;
+                overflow: hidden;
+                text-overflow:ellipsis;
+                white-space: nowrap;
+                display: inline-block;
+            }
         }
     }
 }

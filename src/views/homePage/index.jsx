@@ -90,10 +90,14 @@ class HomePage extends React.Component {
                         <Layout>
                             <Content className="mainContent">
                                 <div className="bannerWarp">
-                                    <img className="bannerBg" src={bannerBg} alt="" />
-                                    <h1 className="bigDesc">你要的书， 这里都有</h1>
-                                    <h3 className="smallDesc">找书、看书，一站解决</h3>
-                                    <Button className="btn_login" type="primary" onClick={this.toLogin}>立即体验</Button>
+                                    <div className="solgan  ">
+                                        
+                                        <h1 className="bigDesc">你要的书， 这里都有</h1>
+                                        <h3 className="smallDesc">找书、看书，一站解决</h3>
+                                        <Button className="btn_login" type="primary" onClick={this.toLogin}>立即体验</Button>
+                                        <img className="bannerBg" src={bannerBg} alt="" />
+                                    </div>
+
                                 </div>
                                 <div className="content">
                                     <div className="titleWarp">
