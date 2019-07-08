@@ -355,8 +355,8 @@ class SearchResult extends React.Component {
                     );
                     const optHtml = <div className="optWarp">
 
-                        <Popover placement="rightTop" content={optContent} trigger="click">
-                            <Icon style={{ fontSize: '16px' }} type="ellipsis" />
+                        <Popover placement="rightTop" content={optContent} trigger="focus">
+                            <Button className="btn_more_opt"><Icon style={{fontSize:'16px'}} type="ellipsis" /></Button> 
                         </Popover>
                     </div>
                     return optHtml;
@@ -401,8 +401,9 @@ class SearchResult extends React.Component {
             },
         ];
         const userInfo = JSON.parse(sessionStorage.getItem('userInfo'));
-        let isLogin = false; let userName = ''; let photo = ''; let hasPhoto = false;
+        let isLogin = false; let userName = ''; let photo = ''; let hasPhoto = false;let role=1;
         if (userInfo) {
+            role = userInfo.role;
             if (userInfo.photo && userInfo.photo.length > 0) {
                 photo = userInfo.photo;
                 hasPhoto = true;
@@ -418,7 +419,6 @@ class SearchResult extends React.Component {
             onSelectAll: this.handleSelectAll,
             selectedRowKeys: this.state.tableSelectedRowKeys
         };
-        const role = userInfo.role;
         return (
             <div className="deskWarp">
                 <Layout>

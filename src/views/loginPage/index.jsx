@@ -44,6 +44,7 @@ class LoginPage extends React.Component {
             HTTP.post(loginUrl,{email,pwd}).then(response=>{
                 const res = response.data;
                 if(res.status === 0){
+                    console.log('11',res.data.token)
                     cookie.set('Authorization',res.data.token);
                     this.getUserInfo()
                     // message.success('登录成功！')

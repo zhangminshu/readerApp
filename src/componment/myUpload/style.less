@@ -1,0 +1,80 @@
+.myUpload{
+    position: absolute;
+    bottom: 10%;
+    right: 5%;
+    z-index: 99;
+    .btn_upload{
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        font-size: 20px;
+    }
+    .hidden{
+        visibility: hidden;
+    }
+
+}
+.uploadDetail{
+    background: transparent;
+    .ant-modal-body{
+        padding: 0;
+    }
+    .ant-modal-content{
+        background-color: transparent;
+        box-shadow:none;
+    }
+    .uploadWarp{
+        .uploadList{
+            padding: 0 16px;
+            .ant-table-thead > tr > th, .ant-table-tbody > tr > td{
+                padding: 16px 0px;
+            }
+        }
+        .fileName{
+            display: inline-block;
+            width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            position: relative;
+            top: 6px;
+            left: 6px;
+        }
+        .main{
+            background: #ffffff;
+            border-radius: 4px;
+            .title{
+                font-size: 20px;
+                height: 70px;
+                line-height: 70px;
+                border-bottom: 1px solid #E6E8EB;
+            }
+            .footer{
+                text-align: right;
+                padding: 16px;
+                .btn_add{
+                    margin-right: 16px;
+                }
+            }
+        }
+        .overview{
+            background: #ffffff;
+            margin: 10px 0;
+            height: 50px;
+            line-height: 50px;
+            border-radius: 4px;
+            padding: 0 16px;
+        }
+        .desc{
+            color: #fff;
+            background-color: #0070E0;
+            width: 100%;
+            height: 50px;
+            line-height: 50px;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+    }
+
+}

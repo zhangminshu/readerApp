@@ -16,7 +16,7 @@ class HomePage extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            collapsed: false,
+            collapsed: true,
             visible: false
         }
     }
@@ -76,7 +76,7 @@ class HomePage extends React.Component {
             <div className="homeWarp">
                 <Layout>
                     <Header className="publicHeader">
-                        <div className="menuBtn showInBig"><Icon onClick={this.toggleCollapsed} type={this.state.collapsed ? 'arrow-left' : 'menu'} /></div>
+                        <div className="menuBtn showInBig"><Icon onClick={this.toggleCollapsed} type={this.state.collapsed ? 'menu' : 'arrow-left'} /></div>
                         <div className="menuBtn showInSmall"><Icon onClick={this.showDrawer} type="menu"/></div>
                         <div className="searchWarp"><Input allowClear placeholder="搜索" onClick={this.toResultPage} /> <span className="result"></span></div>
                         <div className="loginInfo" > {hasPhoto? <img className="userPhoto" onClick={this.toUserInfo} src={photo} alt=""/> : (!isLogin ? <span onClick={this.toLogin}>注册</span> : <span className="userName" onClick={this.toUserInfo}>{userName}</span>)} </div>
@@ -118,7 +118,7 @@ class HomePage extends React.Component {
                                             <div className="title">在线阅读</div>
                                             <div className="desc">
                                                 <div>支持mobi 、epub 、azw3 、txt、pdf</div>
-                                                <div>文在线阅读</div>
+                                                <div>文件在线阅读</div>
                                             </div>
                                         </div>
                                         <div className="item">

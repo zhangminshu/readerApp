@@ -87,22 +87,23 @@ class RederPage extends Component {
 
   render() {
     const { fullscreen, location } = this.state;
+    const bookInfo = JSON.parse(sessionStorage.getItem('bookInfo'));
+    const bookUrl = bookInfo.url;
+    const bookTitle = bookInfo.title;
     return (
       <Container>
         <GlobalStyle />
         <ReaderContainer fullscreen={fullscreen}>
           <ReactReader
-            url={
-              "http://online-reading-book.oss-cn-hangzhou.aliyuncs.com/file/1d91b3a8419806950fe6e14b879353a8.epub"
-            }
+            url={bookUrl}
             locationChanged={this.onLocationChanged}
-            title={"Alice in wonderland"}
+            title={bookTitle}
             location={location}
             getRendition={this.getRendition}
           />
-          <FontSizeButton onClick={this.onToggleFontSize}>
+          {/* <FontSizeButton onClick={this.onToggleFontSize}>
             Toggle font-size
-          </FontSizeButton>
+          </FontSizeButton> */}
         </ReaderContainer>
       </Container>
     );
