@@ -88,7 +88,7 @@ class RederPage extends Component {
   render() {
     const { fullscreen, location } = this.state;
     const bookInfo = JSON.parse(sessionStorage.getItem('bookInfo'));
-    const bookUrl = bookInfo.url;
+    const bookUrl ="https://"+ bookInfo.url.split("://")[1];
     const bookTitle = bookInfo.title;
     return (
       <Container>

@@ -47,7 +47,42 @@ const navList = [{
     jumpType: 1 ,
     key: 6
   }]
-  
+  const loginNav = [{
+    name: '首页',
+    path: '/',
+    jumpType: 1,
+    key: 0
+  },
+  {
+    name: '书籍代找',
+    path: 'https://jinshuju.net/f/0Dggwt',
+    jumpType: 2,
+    key: 2
+  },
+  {
+    name: '问题反馈',
+    path: 'https://jinshuju.net/f/peZNo8 ',
+    jumpType: 2,
+    key: 3
+  },
+  {
+    name: '权利声明',
+    path: '/statement',
+    jumpType: 1,
+    key: 4
+  },
+  {
+    name: '服务协议',
+    path: '/serverAgreement',
+    jumpType: 1,
+    key: 5
+  },
+  {
+    name: '用户协议',
+    path: '/userAgreement',
+    jumpType: 1 ,
+    key: 6
+  }]
 class navSider extends React.Component {
     static contextTypes ={
         router:PropTypes.object
@@ -59,8 +94,15 @@ class navSider extends React.Component {
         }
     }
     getSider =()=>{
+        const userInfo = JSON.parse(sessionStorage.getItem('userInfo'));
+        let currList =[];
+        if(userInfo){
+          currList = loginNav
+        }else{
+          currList = navList
+        }
         const menuList =[];
-        navList.map(item=>{
+        currList.map(item=>{
             menuList.push(<Menu.Item onClick={()=>{this.changeMenu(item)}} key={item.key}> <span>{item.name}</span></Menu.Item>)
         })
         return menuList;

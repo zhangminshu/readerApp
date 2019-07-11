@@ -72,6 +72,7 @@ module.exports = {
             // chunks: ['common', 'base'],     // 在产出的HTML文件里引入哪些代码块
             hash: true,                     // 名称是否哈希值
             // title: 'base',                  // 可以给模板设置变量名，在html模板中调用 htmlWebpackPlugin.options.title 可以使用
+            favicon: path.resolve('./src/img/favicon.ico'), 
             minify: {                       // 对html文件进行压缩
                 removeAttributeQuotes: true // 移除双引号
             }
@@ -86,23 +87,22 @@ module.exports = {
         port: 8080,        // 开发服务器监听的端口
         proxy: {
             '/user': {
-              target: 'http://47.96.81.45',
-            //   pathRewrite: {"^/user": ""} // 将/api重写为""空字符串
+              target: 'http://47.96.81.45:8080',
             },
             '/book': {
-                target: 'http://47.96.81.45',
+                target: 'http://47.96.81.45:8080',
             },
             '/file': {
-                target: 'http://47.96.81.45',
+                target: 'http://47.96.81.45:8080',
             },
             '/category': {
-                target: 'http://47.96.81.45',
+                target: 'http://47.96.81.45:8080',
             },
             '/bookmark': {
-                target: 'http://47.96.81.45',
+                target: 'http://47.96.81.45:8080',
             },
             '/file': {
-                target: 'http://47.96.81.45',
+                target: 'http://47.96.81.45:8080',
             }
           }
     }

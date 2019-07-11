@@ -21,20 +21,20 @@ class HomePage extends React.Component {
         }
     }
     componentDidMount(){
-        this.getUserInfo();
+        // this.getUserInfo();
     }
-    getUserInfo = () => {
-        const url = '/user/_info';
-        HTTP.get(url, {}).then(response => {
-            const res = response.data;
-            if (res.status === 0) {
-                this.setState({
-                    userInfo: res.data
-                })
-                sessionStorage.setItem('userInfo',JSON.stringify(res.data));
-            }
-        })
-    }
+    // getUserInfo = () => {
+    //     const url = '/user/_info';
+    //     HTTP.get(url, {}).then(response => {
+    //         const res = response.data;
+    //         if (res.status === 0) {
+    //             this.setState({
+    //                 userInfo: res.data
+    //             })
+    //             sessionStorage.setItem('userInfo',JSON.stringify(res.data));
+    //         }
+    //     })
+    // }
     showDrawer = () => {
         this.setState({
             visible: true,
@@ -54,14 +54,25 @@ class HomePage extends React.Component {
     toResultPage = () => {
         this.props.history.push('/searchResult')
     }
-    toLogin = () => {
-        this.props.history.push('/login')
+    toLogin = (isLogin) => {
+        if(isLogin){
+            const userInfo = JSON.parse(sessionStorage.getItem('userInfo'));
+            const role = userInfo.role;
+            if(role !== 2){
+                this.props.history.push('/desk')
+            }else{
+                this.props.history.push('/manager')
+            }
+        }else{
+            this.props.history.push('/login')
+        }
     }
     toUserInfo =()=>{
         this.props.history.push('/userInfo')
     }
     render() {
-        const userInfo = this.state.userInfo;
+        // const userInfo = this.state.userInfo;
+        const userInfo = JSON.parse(sessionStorage.getItem('userInfo'));
         let isLogin = false; let userName = '';let photo = '';let hasPhoto =false;
         if (userInfo) {
             if(userInfo.photo && userInfo.photo.length > 0){
@@ -69,8 +80,8 @@ class HomePage extends React.Component {
                 hasPhoto = true;
             }else{
                 userName = userInfo.nick_name[0];
-                isLogin = true;
             }
+            isLogin = true;
         }
         return (
             <div className="homeWarp">
@@ -79,12 +90,12 @@ class HomePage extends React.Component {
                         <div className="menuBtn showInBig"><Icon onClick={this.toggleCollapsed} type={this.state.collapsed ? 'menu' : 'arrow-left'} /></div>
                         <div className="menuBtn showInSmall"><Icon onClick={this.showDrawer} type="menu"/></div>
                         <div className="searchWarp"><Input allowClear placeholder="搜索" onClick={this.toResultPage} /> <span className="result"></span></div>
-                        <div className="loginInfo" > {hasPhoto? <img className="userPhoto" onClick={this.toUserInfo} src={photo} alt=""/> : (!isLogin ? <span onClick={this.toLogin}>注册</span> : <span className="userName" onClick={this.toUserInfo}>{userName}</span>)} </div>
+                        <div className="loginInfo" > {hasPhoto? <img className="userPhoto" onClick={this.toUserInfo} src={photo} alt=""/> : (!isLogin ? <span onClick={()=>{this.toLogin(false)}}>注册</span> : <span className="userName" onClick={this.toUserInfo}>{userName}</span>)} </div>
                     </Header>
 
                     <Layout>
                         <Sider className="siderWarp mySider" collapsed={this.state.collapsed}>
-                            <SiderMenu></SiderMenu>
+                            <SiderMenu ></SiderMenu>
                         </Sider>
 
                         <Layout>
@@ -93,8 +104,8 @@ class HomePage extends React.Component {
                                     <div className="solgan  ">
                                         
                                         <h1 className="bigDesc">你要的书， 这里都有</h1>
-                                        <h3 className="smallDesc">找书、看书，一站解决</h3>
-                                        <Button className="btn_login" type="primary" onClick={this.toLogin}>立即体验</Button>
+                                        <h3 className="smallDesc">找书，用阅读链</h3>
+                                        <Button className="btn_login" type="primary" onClick={()=>{this.toLogin(isLogin)}}>立即体验</Button>
                                         <img className="bannerBg" src={bannerBg} alt="" />
                                     </div>
 

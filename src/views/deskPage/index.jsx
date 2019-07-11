@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layout, Menu, Table, Input, Icon, Button, message, Modal, Radio, Popover, Checkbox, Drawer, Upload } from 'antd';
+import { Layout, Menu, Table, Input, Icon, Button, message, Modal, Radio, Popover, Checkbox, Drawer,Spin, Upload } from 'antd';
 import HTTP from '../../httpServer/axiosConfig.js'
 import MyUpload from '../../componment/myUpload/index.jsx'
 import axios from 'axios'
@@ -20,33 +20,53 @@ class DeskPage extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            isLoading:false,
+            isAddTag:false,
+            editTag:'',//编辑中的标签
+            showTagDialog:false,
+            selectBookId:"",//需要修改标签文件id
+            tableSelectedRowKeys: [],
+            categoryList:[],
+            selectedRow: [],
+            showCheckBox: false,
             collapsed:true,
             fileList: [],
             visible: false,
             role: 1,
             bookName: '',
-            activeItem: '-2',
+            activeItem: '',
             showTable: false,
             tableData: [],
+            tagList:[],
+            editTagInfo:{
+                addTag:'',
+                newTag:''
+            },
             navList: [{
-                id: "-2",
-                title: '最近阅读',
-                remark: ''
-            }, {
                 id: "",
                 title: '全部书籍',
-                remark: ''
-            }, {
+                remark: '',
+                key:'all'
+            },{
+                id: "-2",
+                title: '最近阅读',
+                remark: '',
+                key:'-2'
+            },{
                 id: "-1",
                 title: '未分类',
-                remark: ''
+                remark: '',
+                key:'-1'
             }]
         }
+        this.deskActiveMenu =''
     }
-    componentDidMount() {
+    componentDidMount() {    
+        this.deskActiveMenu = sessionStorage.getItem('deskActiveMenu') || 'all';
+        const currId = this.deskActiveMenu === 'all'?'':this.deskActiveMenu;
         this.getUserInfo();
         this.getCategory();
-        this.getBookListById(this.state.activeItem)
+        this.getBookListById(currId)
     }
     getUserInfo = () => {
         const url = '/user/_info';
@@ -67,9 +87,32 @@ class DeskPage extends React.Component {
             const res = response.data;
             if (res.status === 0) {
                 console.log(res.data)
-                const newList = this.state.navList.concat(res.data.list);
+                res.data.list.map(item=>{
+                    item.key = item.id;
+                })
+                const tagList =[];
+                const navList= [{
+                    id: "",
+                    title: '全部书籍',
+                    remark: '',
+                    key:'all'
+                },{
+                    id: "-2",
+                    title: '最近阅读',
+                    remark: '',
+                    key:'-2'
+                },{
+                    id: "-1",
+                    title: '未分类',
+                    remark: '',
+                    key:'-1'
+                }]
+                const newList = navList.concat(res.data.list);
+                const newTagList = tagList.concat(res.data.list);
                 this.setState({
-                    navList: newList
+                    categoryList:res.data.list,
+                    navList: newList,
+                    tagList:newTagList
                 })
             } else {
                 message.error(res.error);
@@ -98,11 +141,14 @@ class DeskPage extends React.Component {
         const navList = this.state.navList;
         const menuList = [];
         navList.map(item => {
-            menuList.push(<Menu.Item onClick={() => { this.changeMenu(item.id, type) }} key={item.id}> <span>{item.title}</span></Menu.Item>)
+            menuList.push(<Menu.Item onClick={() => { this.changeMenu(item.id, type) }} key={item.key}> <span>{item.title}</span></Menu.Item>)
         })
         return menuList;
     }
     getBookListById = (id) => {
+        if(id==='all'){
+            id = '';
+        }
         let requestJson = {}
         const url = '/book';
         if (id !== '') {
@@ -140,6 +186,8 @@ class DeskPage extends React.Component {
                 activeItem: id.toString()
             })
         }
+        this.deskActiveMenu = id.toString() || 'all';
+        sessionStorage.setItem('deskActiveMenu',this.deskActiveMenu);
 
         this.getBookListById(id)
     }
@@ -176,7 +224,7 @@ class DeskPage extends React.Component {
             const res = response.data;
             if (res.status === SUCCESS_CODE) {
                 message.success('删除成功！');
-                this.changeMenu(this.state.activeItem)
+                this.changeMenu(this.deskActiveMenu)
             } else {
                 message.error(res.error)
             }
@@ -233,26 +281,65 @@ class DeskPage extends React.Component {
             }
         })
     }
-    fileClone = () => {
-        const bookId = this.state.selectedRow[0].id;
-        const fileType = this.state.selectedRow[0].is_public;
-        const _this = this;
-        confirm({
-            title: '修改标签',
-            content: <div className="checkWarp">
-                <div className="checkItem"><i className="icon icon_add"></i><span>创建标签</span></div>
-                <div className="checkItem clearFix"><Checkbox onChange={this.handleCheckBox}>标签一</Checkbox><i className="icon icon_edit ms_fr"></i></div>
-                <div className="checkItem clearFix"><Checkbox onChange={this.handleCheckBox}>标签二</Checkbox><i className="icon icon_edit ms_fr"></i></div>
-            </div>,
-            okText: '确认',
-            className: 'confirmDialog',
-            cancelText: '取消',
-            onOk() {
-                const isPublic = _this.state.fileType;
-                _this.modifyFileType(bookId, isPublic);
-            },
-            onCancel() { }
-        });
+    /**
+     * 标签修改
+     */
+    fileClone = (type, item) => {
+        const ids = [];
+        let bookId = "";
+        if (type === 'single') {
+            bookId = item.id.toString();
+        } else {
+            this.state.selectedRow.forEach(item => {
+                ids.push(item.id);
+            })
+            bookId = ids.join(',')
+        }
+        this.setState({
+            selectBookId:bookId,
+            showTagDialog:true
+        })
+    }
+    /**
+     * 保存文件标签
+     */
+    saveTagChange =()=>{
+        const bookid = this.state.selectBookId;
+        const categoryList = this.state.categoryList;
+        const categoryIds =[];
+        categoryList.forEach(item=>{
+            if(item.isChecked){
+                categoryIds.push(item.id)
+            }
+        })
+        const category_id = categoryIds.join(',')
+        if(category_id ==='')return message.error('标签不能为空！')
+        const url = `/category/${category_id}/_shiftin`;
+        HTTP.post(url,{book_ids:bookid}).then(response=>{
+            const res = response.data;
+            if(res.status === 0){
+                this.setState({
+                    showTagDialog:false
+                })
+                message.success('修改成功！')
+            }else{
+                message.error(res.error);
+            }
+        })
+
+    }
+    handleCheckBox(e,id) {
+        const isChecked = e.target.checked;
+        const newList =[]
+        this.state.categoryList.forEach(item=>{
+            if(item.id === id){
+                item.isChecked = isChecked
+            }
+            newList.push(item);
+        })
+        this.setState({
+            categoryList:newList
+        })
     }
     fileShare = (type, id) => {
         const ids = [];
@@ -290,6 +377,7 @@ class DeskPage extends React.Component {
         a.href = href; //设置下载地址
         // a.download = name; //设置下载文件名
         a.dispatchEvent(e); //给指定的元素，执行事件click事件
+        this.setState({isLoading:false})
     }
     downloadEvent = (type, item) => {
         let bookIds = "";
@@ -307,6 +395,7 @@ class DeskPage extends React.Component {
         this.getDownUrl(bookIds)
     }
     getDownUrl = (ids) => {
+        this.setState({isLoading:true})
         const url = "/book/_package";
         HTTP.get(url, { params: { book_ids: ids } }).then(response => {
             const res = response.data;
@@ -376,12 +465,21 @@ class DeskPage extends React.Component {
         }
         return fileIcon;
     }
-    sendToKindle = (bid) => {
+    sendToKindle = (bid,isOverLimit) => {
+        if(isOverLimit) return message.info('请选择10M以内的文件');
+        const userInfo = JSON.parse(sessionStorage.getItem('userInfo'));
+        if(userInfo){
+            const kindle_email = userInfo.kindle_email;
+            if(!kindle_email)return message.info('请到设置页面添加您的kindle邮箱')
+        }else{
+            return message.info('请到设置页面添加您的kindle邮箱')
+        }
+
         const url = `/book/${bid}/_push`;
         HTTP.post(url, {}).then(response => {
             const res = response.data;
             if (res.status === 0) {
-                message.success('发送成功！')
+                message.success('推送成功！')
             } else {
                 message.error(res.error)
             }
@@ -417,45 +515,76 @@ class DeskPage extends React.Component {
             const res = response.data;
             if (res.status === 0) {
                 message.success('修改成功！')
-                this.changeMenu(this.state.activeItem)
+                this.changeMenu(this.deskActiveMenu)
             } else {
                 message.error(res.error)
             }
         })
     }
-    beforeUpload= (file) => {
-        console.log('beforeUpload:',file)
-        this.setState((state) => ({
-          fileList: [...state.fileList, file],
-        }));
-        // return false;
-      }
-      handleChange = info => {
-        debugger
-        console.log(info)
-        let fileList = [...info.fileList];
-
-        // 1. Limit the number of uploaded files
-        // Only to show two recent uploaded files, and old ones will be replaced by the new
-        fileList = fileList.slice(-2);
-
-        // 2. Read from response and show file link
-        fileList = fileList.map(file => {
-            if (file.response) {
-                // Component will show file.url as link
-                file.url = file.response.url;
-            }
-            return file;
-        });
-
-        this.setState({ fileList });
-    };
     readerBook=(bookInfo)=>{
-        if(bookInfo.extension ==='epub'){
+        if(bookInfo.extension ==='pdf'){
+            window.open(bookInfo.url,"_blank")
+        }else{
             sessionStorage.setItem('bookInfo',JSON.stringify(bookInfo));
             this.props.history.push('/reader')
         }
 
+    }
+    handleTagChange=(e,name)=>{
+        const value = e.target.value;
+        const newTagInfo = this.state.editTagInfo;
+        newTagInfo[name] = value;
+        this.setState({
+            editTagInfo:newTagInfo
+        })
+    }
+    addNewTag=(type,id)=>{
+        if(type === 'create'){
+            const title = this.state.editTagInfo.addTag;
+            const url = '/category';
+            if(title==='')return message.error('标签名称不能为空！');
+            HTTP.post(url,{title:title}).then(response=>{
+                const res = response.data;
+                const newTagInfo = this.state.editTagInfo;
+                newTagInfo['addTag'] = '';
+                if(res.status === 0){
+                    this.setState({
+                        isAddTag:false,
+                        editTagInfo:newTagInfo
+                    })
+                    message.success('创建成功！')
+                    this.getCategory();
+                }
+            })
+        }else{
+            const url =`/category/${id}`;
+            const title = this.state.editTagInfo.newTag;
+            HTTP.put(url,{title:title}).then(response=>{
+                const res = response.data;
+                const newTagInfo = this.state.editTagInfo;
+                newTagInfo['newTag'] = '';
+                if(res.status === 0){
+                    this.setState({
+                        editTag:null,
+                        editTagInfo:newTagInfo
+                    })
+                    message.success('修改成功！')
+                    this.getCategory();
+                }
+            })
+        }
+    }
+    delTag=(id)=>{
+        const url = `/category/${id}`;
+        HTTP.delete(url,{}).then(response=>{
+            const res = response.data;
+            if(res.status === 0){
+                this.getCategory();
+                message.success('删除成功！')
+            }else{
+                message.error(res.error)
+            }
+        })
     }
     render() {
         const userInfo = this.state.userInfo;
@@ -511,12 +640,13 @@ class DeskPage extends React.Component {
                 dataIndex: 'opt',
                 key: 'opt',
                 render: (text, record) => {
+                    const isOver10M = record.size > 10;
                     const optContent = (
                         <div>
                             <p className="optItem" onClick={() => { this.fileShare("row", record.id) }}>分享</p>
-                            <p className="optItem" onClick={() => { this.sendToKindle(record.id) }}>kindle</p>
+                            <p className={`${isOver10M ? 'overLimit':''} optItem`} onClick={() => { this.sendToKindle(record.id,isOver10M) }}>kindle</p>
                             <p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>
-                            <p className="optItem">标签</p>
+                            <p className="optItem" onClick={() => { this.fileClone('single', record)}}>标签</p>
                             <p className="optItem" onClick={() => { this.renameDialog(record) }}>重命名</p>
                             <p className="optItem" onClick={() => { this.fileTypeChange('single', record) }}>文件类型</p>
                             <p className="optItem" onClick={() => { this.showDeleteConfirm('single', record) }}>删除</p>
@@ -551,20 +681,21 @@ class DeskPage extends React.Component {
                 dataIndex: 'opt',
                 key: 'opt',
                 render: (text, record) => {
+                    const isOver10M = record.size > 10;
                     const optContent = (
                         <div>
                             <p className="optItem" onClick={() => { this.fileShare("row", record.id) }}>分享</p>
-                            <p className="optItem" onClick={() => { this.sendToKindle(record.id) }}>kindle</p>
+                            <p className={`${isOver10M ? 'overLimit':''} optItem`} onClick={() => { this.sendToKindle(record.id,isOver10M) }}>kindle</p>
                             <p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>
-                            <p className="optItem" >标签</p>
-                            <p className="optItem">重命名</p>
+                            <p className="optItem" onClick={() => { this.fileClone('single', record)}}>标签</p>
+                            <p className="optItem" onClick={() => { this.renameDialog(record) }}>重命名</p>
                             <p className="optItem" onClick={() => { this.fileTypeChange('single', record) }}>文件类型</p>
                             <p className="optItem" onClick={() => { this.showDeleteConfirm('single', record) }}>删除</p>
                         </div>
                     );
                     const optHtml = <div className="optWarp">
 
-                        <Popover placement="rightTop" content={optContent} trigger="focus">
+                        <Popover placement="rightTop" content={optContent} trigger="click">
                             <Button className="btn_more_opt"><Icon style={{ fontSize: '16px' }} type="ellipsis" /></Button>
                         </Popover>
                     </div>
@@ -572,7 +703,6 @@ class DeskPage extends React.Component {
                 }
             },
         ];
-        const isAdminUser = false;
         const rowSelection = {
             columnWidth: '30px',
             onChange: this.handleRowChange,
@@ -580,16 +710,10 @@ class DeskPage extends React.Component {
             onSelectAll: this.handleSelectAll,
             selectedRowKeys: this.state.tableSelectedRowKeys
         };
-        const props = {
-            showUploadList: false,
-            name: 'book',
-            action: '/book',
-            beforeUpload: this.beforeUpload,
-            onChange: this.handleChange,
-            multiple: true,
-            headers: { Authorization: cookie.get('Authorization') }
-        };
+        this.deskActiveMenu = sessionStorage.getItem('deskActiveMenu') || 'all'
+        
         return (
+            <Spin tip="正在下载请稍等" spinning={this.state.isLoading}>
             <div className="deskWarp">
                 <Layout>
                     <Header className="publicHeader">
@@ -601,7 +725,7 @@ class DeskPage extends React.Component {
 
                     <Layout>
                         <Sider className="siderWarp" collapsed={this.state.collapsed}>
-                            <Menu defaultSelectedKeys={[this.state.activeItem]} mode="inline" theme="light">
+                            <Menu defaultSelectedKeys={[this.deskActiveMenu]} mode="inline" theme="light">
                                 {this.getSider()}
                             </Menu>
                         </Sider>
@@ -632,18 +756,39 @@ class DeskPage extends React.Component {
 
                 </Layout>
                 <Drawer title="" placement="left" closable={false} onClose={this.onClose} visible={this.state.visible} className="mySider">
-                    <Menu defaultSelectedKeys={[this.state.activeItem]} mode="inline" theme="light">
+                    <Menu defaultSelectedKeys={[this.deskActiveMenu]} mode="inline" theme="light">
                         {this.getSider("small")}
                     </Menu>
                 </Drawer>
                 <MyUpload />
-                {/* <div className="myUpload">
-                
-                    <Upload {...props} >
-                        <Button className="btn_upload" type="primary"><Icon type="plus" /> </Button>
-                    </Upload>
-                </div> */}
+
+                <Modal
+                    width="416px" title="" visible={this.state.showTagDialog} className="tagDialog" closable={false}
+                    cancelText="取消" okText="确定"
+                    onOk={this.saveTagChange} onCancel={()=>{this.setState({showTagDialog:false})}}
+                >
+                    <div className="title">修改标签</div>
+                    <div className="checkWarp">
+                        <div className={`${this.state.isAddTag ? 'tagAdding':''} checkItem clearFix`}>
+                            <i className="icon icon_add" title="新增" onClick={() => { this.setState({ isAddTag: true }) }}></i> 
+                            <i className="icon icon_cancel" title="取消" onClick={() => { this.setState({ isAddTag: false }) }}></i>
+                            <span className="addText">创建新标签</span>
+                            <Input className="addTag tagInput" defaultValue="" onChange={(value)=>{this.handleTagChange(value,'addTag')}} placeholder="创建标签" />
+                            <i className="icon icon_ok ms_fr" title="保存" onClick={()=>{this.addNewTag('create')}}></i>
+                        </div>
+                        {this.state.tagList.map((item,index) => {
+                            return <div key={`complete${item.id}${index}`} className={`${this.state.editTag === item.id ? 'tagAdding' :''} checkItem clearFix`}>
+                                <Checkbox className="checkItem" onChange={(value)=>{this.handleCheckBox(value,item.id)}}>{item.title}</Checkbox>
+                                <i className="icon icon_del" title="删除" onClick={() => { this.delTag(item.id) }}></i>
+                                <Input className="addTag tagInput" onChange={(value)=>{this.handleTagChange(value,'newTag')}} placeholder="" defaultValue={item.title} />
+                                <i className="icon icon_edit ms_fr" onClick={()=>{this.setState({editTag:item.id})}}></i>
+                                <i className="icon icon_ok ms_fr" title="保存" onClick={()=>{this.addNewTag('edit',item.id)}}></i>
+                                </div>
+                        })}
+                    </div>
+                </Modal>
             </div>
+            </Spin>
         )
     }
 }

@@ -57,6 +57,7 @@ class ManagerPage extends React.Component {
                 new_pwd: ''
             }
         }
+        this.activeMenu = '0'
         this.statisticsList = [{
             name: '用户',
             num: 0,
@@ -68,7 +69,11 @@ class ManagerPage extends React.Component {
         }]
     }
     componentDidMount() {
-        this.changeMenu(navList[0])
+        this.activeMenu = sessionStorage.getItem('activeMenu') || '0'
+        this.changeMenu(navList[this.activeMenu])
+    }
+    componentWillUnmount(){
+        
     }
     onClose = () => {
         this.setState({
@@ -93,7 +98,7 @@ class ManagerPage extends React.Component {
     }
     handleSearchChange = (e) => {
         const urlList = ["/book", "/user", "/file"];
-        const currUrl = urlList[this.state.activeMenu];
+        const currUrl = urlList[this.activeMenu];
         const value = e.target.value
         this.searchBookOrFille(currUrl, value)
     }
@@ -144,6 +149,8 @@ class ManagerPage extends React.Component {
                 tableName: item.name
             })
         }
+        this.activeMenu = item.key;
+        sessionStorage.setItem('activeMenu',item.key)
         if (item.key === "0") {
             this.getUserStatis();
             this.getFileStatis();
@@ -279,7 +286,7 @@ class ManagerPage extends React.Component {
             const res = response.data;
             if (res.status === SUCCESS_CODE) {
                 message.success('删除成功！');
-                this.changeMenu(navList[this.state.activeMenu])
+                this.changeMenu(navList[this.activeMenu])
             } else {
                 message.error(res.error)
             }
@@ -414,7 +421,6 @@ class ManagerPage extends React.Component {
         return isJPG && isLt10M;
       }
       handleImgChange = info => {
-          debugger
         if (info.file.status === 'uploading') {
           this.setState({ loading: true });
           return;
@@ -525,7 +531,7 @@ class ManagerPage extends React.Component {
         HTTP.put(url, requestData).then(response => {
             const res = response.data;
             if (res.status === 0) {
-                this.changeMenu(navList[this.state.activeMenu])
+                this.changeMenu(navList[this.activeMenu])
                 message.success('修改成功！')
             } else {
                 message.error(res.error)
@@ -706,6 +712,7 @@ class ManagerPage extends React.Component {
             onSelectAll: this.handleSelectAll,
             selectedRowKeys: this.state.tableSelectedRowKeys
         };
+        this.activeMenu = sessionStorage.getItem('activeMenu') || '0'
         // const currRowSelection = this.state.activeMenu ==='0'?null:rowSelection;
         return (
             <div className="managerWarp">
@@ -720,29 +727,29 @@ class ManagerPage extends React.Component {
                     <Layout>
                         <Sider className="siderWarp" collapsed={this.state.collapsed}>
                             {/* <SiderMenu></SiderMenu> */}
-                            <Menu defaultSelectedKeys={[this.state.activeMenu]} mode="inline" theme="light">
+                            <Menu defaultSelectedKeys={[this.activeMenu]} mode="inline" theme="light">
                                 {this.getSider()}
                             </Menu>
                         </Sider>
 
                         <Layout>
                             <Content className="mainContent">
-                                <div className={`${this.state.activeMenu === '0' ? 'grayTh' : ''} myTableWarp`}>
+                                <div className={`${this.activeMenu === '0' ? 'grayTh' : ''} myTableWarp`}>
                                     <div className="clearFix">
                                         <div className="title ms_fl" style={{ fontSize: '20px', color: '#1B2733' }}>{this.state.tableName}</div>
                                         <div className={`${this.state.showCheckBox ? 'showBtnList' : ''} btn_list ms_fr`}>
                                             {/* {this.state.activeMenu === '1' ? <Button className="btn btn_fileType" type="primary" onClick={this.setFileSize.bind(this)}>存储</Button> : ""} */}
                                             {/* {this.state.activeMenu === '1'?<Button className="btn btn_fileType" onClick={this.userStatusChange.bind(this)}>状态</Button>:""} */}
-                                            {this.state.activeMenu === '2' ? <Button className="btn btn_fileType" type="primary" onClick={this.fileTypeChange.bind(this)}>类型</Button> : ""}
-                                            {this.state.activeMenu === '2' ? <Button className="btn btn_del" type="danger" onClick={this.showDeleteConfirm}>删除</Button> : ""}
+                                            {this.activeMenu === '2' ? <Button className="btn btn_fileType" type="primary" onClick={this.fileTypeChange.bind(this)}>类型</Button> : ""}
+                                            {this.activeMenu === '2' ? <Button className="btn btn_del" type="danger" onClick={this.showDeleteConfirm}>删除</Button> : ""}
                                         </div>
                                     </div>
-                                    {this.state.activeMenu === '0' ? <Table rowKey={(record, index) => `complete${record.id}${index}`} className={`${this.state.showCheckBox ? 'showCheckBox' : ''} `} pagination={false} columns={statisticsCol} dataSource={this.state.statisticsData} /> : ""}
-                                    {this.state.activeMenu === '1' ? <Table rowKey={(record, index) => `complete${record.id}${index}`} className={`${this.state.showCheckBox ? 'showCheckBox' : ''} showInBig`} pagination={false} columns={userCol} rowSelection={rowSelection} dataSource={this.state.userTableData} /> : ""}
-                                    {this.state.activeMenu === '2' ? <Table rowKey={(record, index) => `complete${record.id}${index}`} className={`${this.state.showCheckBox ? 'showCheckBox' : ''} showInBig`} pagination={false} columns={fileCol} rowSelection={rowSelection} dataSource={this.state.fileTableData} /> : ""}
+                                    {this.activeMenu === '0' ? <Table rowKey={(record, index) => `complete${record.id}${index}`} className={`${this.state.showCheckBox ? 'showCheckBox' : ''} `} pagination={false} columns={statisticsCol} dataSource={this.state.statisticsData} /> : ""}
+                                    {this.activeMenu === '1' ? <Table rowKey={(record, index) => `complete${record.id}${index}`} className={`${this.state.showCheckBox ? 'showCheckBox' : ''} showInBig`} pagination={false} columns={userCol} rowSelection={rowSelection} dataSource={this.state.userTableData} /> : ""}
+                                    {this.activeMenu === '2' ? <Table rowKey={(record, index) => `complete${record.id}${index}`} className={`${this.state.showCheckBox ? 'showCheckBox' : ''} showInBig`} pagination={false} columns={fileCol} rowSelection={rowSelection} dataSource={this.state.fileTableData} /> : ""}
 
-                                    {this.state.activeMenu === '1' ? <Table rowKey={(record, index) => `complete${record.id}${index}`} className={`${this.state.showCheckBox ? 'showCheckBox' : ''} showInSmall`} pagination={false} columns={smallUserCol} rowSelection={rowSelection} dataSource={this.state.userTableData} /> : ""}
-                                    {this.state.activeMenu === '2' ? <Table rowKey={(record, index) => `complete${record.id}${index}`} className={`${this.state.showCheckBox ? 'showCheckBox' : ''} showInSmall`} pagination={false} columns={smallFileCol} rowSelection={rowSelection} dataSource={this.state.fileTableData} /> : ""}
+                                    {this.activeMenu === '1' ? <Table rowKey={(record, index) => `complete${record.id}${index}`} className={`${this.state.showCheckBox ? 'showCheckBox' : ''} showInSmall`} pagination={false} columns={smallUserCol} rowSelection={rowSelection} dataSource={this.state.userTableData} /> : ""}
+                                    {this.activeMenu === '2' ? <Table rowKey={(record, index) => `complete${record.id}${index}`} className={`${this.state.showCheckBox ? 'showCheckBox' : ''} showInSmall`} pagination={false} columns={smallFileCol} rowSelection={rowSelection} dataSource={this.state.fileTableData} /> : ""}
                                 </div>
                             </Content>
                         </Layout>
@@ -751,7 +758,7 @@ class ManagerPage extends React.Component {
 
                 </Layout>
                 <Drawer title="" placement="left" closable={false} onClose={this.onClose} visible={this.state.visible} className="mySider">
-                    <Menu defaultSelectedKeys={[this.state.activeMenu]} mode="inline" theme="light">
+                    <Menu defaultSelectedKeys={[this.activeMenu]} mode="inline" theme="light">
                         {this.getSider("small")}
                     </Menu>
                 </Drawer>

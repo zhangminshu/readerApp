@@ -51,7 +51,7 @@ class UserInfo extends React.Component {
         return date;
     }
     toIndex = () => {
-        this.props.history.push('/')
+        this.props.history.go(-1)
     }
     edit = (oldVal, fileName, title) => {
         this.setDialog(oldVal, fileName, title);
@@ -138,6 +138,7 @@ class UserInfo extends React.Component {
             onOk() {
                 cookie.remove('Authorization');
                 sessionStorage.removeItem('userInfo');
+                sessionStorage.clear();
                 _this.props.history.push('/login');
             },
             onCancel() {

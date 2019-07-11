@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layout, Menu, Table, Input, Icon, Button, message, Modal, Radio, Popover, Checkbox, Drawer } from 'antd';
+import { Layout, Menu, Table, Input, Icon, Button, message, Modal, Radio, Popover, Checkbox,Spin, Drawer } from 'antd';
 import HTTP from '../../httpServer/axiosConfig.js'
 import './style.less'
 
@@ -16,6 +16,20 @@ class SharePage extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            isLoading:false,
+            isAddTag:false,
+            editTag:'',//编辑中的标签
+            showTagDialog:false,
+            categoryList:[],
+            tagList:[],
+            editTagInfo:{
+                addTag:'',
+                newTag:''
+            },
+            selectBookId:"",//需要修改标签文件id
+            tableSelectedRowKeys: [],
+            selectedRow: [],
+            showCheckBox: false,
             visible: false,
             role:1,
             showTable:false,
@@ -25,6 +39,25 @@ class SharePage extends React.Component {
     }
     componentDidMount() {
         this.getShareBookList()
+        this.getUserInfo();
+        this.getCategory()
+    }
+    getCategory = () => {
+        const url = '/category';
+        HTTP.get(url, {}).then(response => {
+            const res = response.data;
+            if (res.status === 0) {
+                res.data.list.map(item=>{
+                    item.key = item.id;
+                })
+                const tagList =[];
+                const newTagList = tagList.concat(res.data.list);
+                this.setState({
+                    categoryList:res.data.list,
+                    tagList:newTagList
+                })
+            }
+        })
     }
     getShareBookList=()=>{
         const shareParams = location.href.split("?")[1];
@@ -44,8 +77,6 @@ class SharePage extends React.Component {
         }
         HTTP.get(url, { params: requestJson }).then(response => {
             const res = response.data;
-            debugger
-
             if (res.status === 0) {
                 this.setState({
                     showTable: true,
@@ -70,43 +101,88 @@ class SharePage extends React.Component {
             }
         })
     }
-    getCategory = () => {
-        const url = '/category';
-        HTTP.get(url, {}).then(response => {
+    readerBook=(bookInfo)=>{
+        if(!bookInfo.url) return message.error('书本链接不存在！')
+        if(bookInfo.extension ==='pdf'){
+            window.open(bookInfo.url,"_blank")
+        }else{
+            sessionStorage.setItem('bookInfo',JSON.stringify(bookInfo));
+            this.props.history.push('/reader')
+        }
+
+    }
+    fileClone = (type, item) => {
+        const userInfo = sessionStorage.getItem('userInfo');
+        if(!userInfo){
+            this.unLoginTip();
+            return;
+        }
+        const ids = [];
+        let bookId = "";
+        if (type === 'single') {
+            bookId = item.id.toString();
+        } else {
+            this.state.selectedRow.forEach(item => {
+                ids.push(item.id);
+            })
+            bookId = ids.join(',')
+        }
+        this.setState({
+            selectBookId:bookId,
+            showTagDialog:true
+        })
+    }
+        /**
+     * 保存文件标签
+     */
+    saveTagChange =()=>{
+        const bookid = this.state.selectBookId;
+        const categoryList = this.state.categoryList;
+        const categoryIds =[];
+        categoryList.forEach(item=>{
+            if(item.isChecked){
+                categoryIds.push(item.id)
+            }
+        })
+        const category_id = categoryIds.join(',')
+        if(category_id ==='')return message.error('标签不能为空！')
+        const url = `/category/${category_id}/_shiftin`;
+        HTTP.post(url,{book_ids:bookid}).then(response=>{
             const res = response.data;
-            if (res.status === 0) {
-                console.log(res.data)
-                const newList = this.state.navList.concat(res.data.list);
+            if(res.status === 0){
                 this.setState({
-                    navList: newList
+                    showTagDialog:false
                 })
-            } else {
+                message.success('克隆成功！')
+            }else{
                 message.error(res.error);
             }
         })
+
     }
-
-
-    fileClone=()=>{
-        const bookId = this.state.selectedRow[0].id;
-        const fileType = this.state.selectedRow[0].is_public;
-        const _this = this;
+    handleCheckBox(e,id) {
+        const isChecked = e.target.checked;
+        const newList =[]
+        this.state.categoryList.forEach(item=>{
+            if(item.id === id){
+                item.isChecked = isChecked
+            }
+            newList.push(item);
+        })
+        this.setState({
+            categoryList:newList
+        })
+    }
+    unLoginTip=()=>{
         confirm({
-          title: '修改标签',
-          content: <div className="checkWarp">
-                        <div className="checkItem"><i className="icon icon_add"></i><span>创建标签</span></div>
-                        <div className="checkItem clearFix"><Checkbox onChange={this.handleCheckBox}>标签一</Checkbox><i className="icon icon_edit ms_fr"></i></div>
-                        <div className="checkItem clearFix"><Checkbox onChange={this.handleCheckBox}>标签二</Checkbox><i className="icon icon_edit ms_fr"></i></div>
-                    </div>,
-          okText: '确认',
-          className:'confirmDialog',
-          cancelText: '取消',
-          onOk() {
-            const isPublic = _this.state.fileType;
-            
-          },
-          onCancel() {}
-        });
+            title: '请登录',
+            content: "登录后可使用该功能",
+            okText: '确认',
+            className:'confirmDialog',
+            cancelText: '取消',
+            onOk() {},
+            onCancel() {}
+          });
     }
     handleChange =(selectedRowKeys, selectedRows)=>{
         this.setState({
@@ -150,6 +226,47 @@ class SharePage extends React.Component {
     toUserInfo =()=>{
         this.props.history.push('/userInfo')
     }
+    fileDownload = (href) => {
+        const a = document.createElement("a"), //创建a标签
+            e = document.createEvent("MouseEvents"); //创建鼠标事件对象
+        e.initEvent("click", false, false); //初始化事件对象
+        a.href = href; //设置下载地址
+        // a.download = name; //设置下载文件名
+        a.dispatchEvent(e); //给指定的元素，执行事件click事件
+        this.setState({isLoading:false})
+    }
+    downloadEvent = (type, item) => {
+        const userInfo = sessionStorage.getItem('userInfo');
+        if(!userInfo){
+            this.unLoginTip();
+            return;
+        }
+        let bookIds = "";
+        const ids = []
+        if (type === 'single') {
+            bookIds = item.id;
+        } else {
+            const fileList = this.state.selectedRow;
+            fileList.forEach(item => {
+                ids.push(item.id)
+                // download(item.title, item.url);
+            })
+            bookIds = ids.join(",");
+        }
+        this.getDownUrl(bookIds)
+    }
+    getDownUrl = (ids) => {
+        this.setState({isLoading:true})
+        const url = "/book/_package";
+        HTTP.get(url, { params: { book_ids: ids } }).then(response => {
+            const res = response.data;
+            if (res.status === 0) {
+                this.fileDownload(res.data)
+            }else{
+                message.error(res.error);
+            }
+        })
+    }
     getFileIcon =(type)=>{
         let fileIcon = coverPDF;
         switch(type){
@@ -173,6 +290,62 @@ class SharePage extends React.Component {
             break;
         }
         return fileIcon;
+    }
+    handleTagChange=(e,name)=>{
+        const value = e.target.value;
+        const newTagInfo = this.state.editTagInfo;
+        newTagInfo[name] = value;
+        this.setState({
+            editTagInfo:newTagInfo
+        })
+    }
+    addNewTag=(type,id)=>{
+        if(type === 'create'){
+            const title = this.state.editTagInfo.addTag;
+            const url = '/category';
+            if(title==='')return message.error('标签名称不能为空！');
+            HTTP.post(url,{title:title}).then(response=>{
+                const res = response.data;
+                const newTagInfo = this.state.editTagInfo;
+                newTagInfo['addTag'] = '';
+                if(res.status === 0){
+                    this.setState({
+                        isAddTag:false,
+                        editTagInfo:newTagInfo
+                    })
+                    message.success('创建成功！')
+                    this.getCategory();
+                }
+            })
+        }else{
+            const url =`/category/${id}`;
+            const title = this.state.editTagInfo.newTag;
+            HTTP.put(url,{title:title}).then(response=>{
+                const res = response.data;
+                const newTagInfo = this.state.editTagInfo;
+                newTagInfo['newTag'] = '';
+                if(res.status === 0){
+                    this.setState({
+                        editTag:null,
+                        editTagInfo:newTagInfo
+                    })
+                    message.success('修改成功！')
+                    this.getCategory();
+                }
+            })
+        }
+    }
+    delTag=(id)=>{
+        const url = `/category/${id}`;
+        HTTP.delete(url,{}).then(response=>{
+            const res = response.data;
+            if(res.status === 0){
+                this.getCategory();
+                message.success('删除成功！')
+            }else{
+                message.error(res.error)
+            }
+        })
     }
     render() {
         const userInfo = this.state.userInfo;
@@ -227,9 +400,9 @@ class SharePage extends React.Component {
                 render:(text,record)=>{
                     const optContent = (
                         <div>
-                          <p className="optItem" onClick={()=>{this.fileClone("row",record.id)}}>克隆</p>
-                          <p className="optItem">下载</p>
-                          <p className="optItem">阅读</p>
+                          <p className="optItem" onClick={() => { this.fileClone('single', record)}}>克隆</p>
+                          <p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>
+                          <p className="optItem" onClick={()=>{this.readerBook(record)}}>阅读</p>
                         </div>
                       );
                     const optHtml = <div className="optWarp">
@@ -263,9 +436,9 @@ class SharePage extends React.Component {
                 render:(text,record)=>{
                     const optContent = (
                         <div>
-                          <p className="optItem" onClick={()=>{this.fileClone("row",record.id)}}>克隆</p>
-                          <p className="optItem">下载</p>
-                          <p className="optItem">阅读</p>
+                          <p className="optItem" onClick={() => { this.fileClone('single', record)}}>克隆</p>
+                          <p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>
+                          <p className="optItem" onClick={()=>{this.readerBook(record)}}>阅读</p>
                         </div>
                       );
                     const optHtml = <div className="optWarp">
@@ -286,7 +459,9 @@ class SharePage extends React.Component {
             onSelectAll: this.handleSelectAll,
             selectedRowKeys:this.state.tableSelectedRowKeys
         };
+        console.log(this.state.tagList)
         return (
+            <Spin tip="正在下载请稍等" spinning={this.state.isLoading}>
             <div className="deskWarp">
                 <Layout>
                     <Header className="publicHeader">
@@ -301,7 +476,7 @@ class SharePage extends React.Component {
                                             <div className="title ms_fl">全部文件</div>
                                             <div className={`${this.state.showCheckBox ? 'showBtnList' : ''} btn_list ms_fr`}>
                                                 <Button className="btn btn_clone" type="primary" onClick={this.fileClone}>克隆</Button>
-                                                <Button className="btn btn_download">下载</Button>
+                                                <Button className="btn btn_download" onClick={this.downloadEvent}>下载</Button>
                                             </div>
                                         </div>
                                         <Table rowKey={(record, index) => `complete${record.id}${index}`} className={`${this.state.showCheckBox ? 'showCheckBox' : ''} showInBig`} pagination={false} columns={columns} rowSelection={rowSelection} dataSource={this.state.tableData} />
@@ -310,11 +485,34 @@ class SharePage extends React.Component {
                                     {/* : ''} */}
                             </Content>
                         </Layout>
-
-
-
                 </Layout>
+                <Modal
+                    width="416px" title="" visible={this.state.showTagDialog} className="tagDialog" closable={false}
+                    cancelText="取消" okText="确定"
+                    onOk={this.saveTagChange} onCancel={()=>{this.setState({showTagDialog:false})}}
+                >
+                    <div className="title">修改标签</div>
+                    <div className="checkWarp">
+                        <div className={`${this.state.isAddTag ? 'tagAdding':''} checkItem clearFix`}>
+                            <i className="icon icon_add" title="新增" onClick={() => { this.setState({ isAddTag: true }) }}></i> 
+                            <i className="icon icon_cancel" title="取消" onClick={() => { this.setState({ isAddTag: false }) }}></i>
+                            <span className="addText">创建新标签</span>
+                            <Input className="addTag tagInput" defaultValue="" onChange={(value)=>{this.handleTagChange(value,'addTag')}} placeholder="创建标签" />
+                            <i className="icon icon_ok ms_fr" title="保存" onClick={()=>{this.addNewTag('create')}}></i>
+                        </div>
+                        {this.state.tagList.map((item,index) => {
+                            return <div key={`complete${item.id}${index}`} className={`${this.state.editTag === item.id ? 'tagAdding' :''} checkItem clearFix`}>
+                                <Checkbox className="checkItem" onChange={(value)=>{this.handleCheckBox(value,item.id)}}>{item.title}</Checkbox>
+                                <i className="icon icon_del" title="删除" onClick={() => { this.delTag(item.id) }}></i>
+                                <Input className="addTag tagInput" onChange={(value)=>{this.handleTagChange(value,'newTag')}} placeholder="" defaultValue={item.title} />
+                                <i className="icon icon_edit ms_fr" onClick={()=>{this.setState({editTag:item.id})}}></i>
+                                <i className="icon icon_ok ms_fr" title="保存" onClick={()=>{this.addNewTag('edit',item.id)}}></i>
+                                </div>
+                        })}
+                    </div>
+                </Modal>
             </div>
+            </Spin>
         )
     }
 }
