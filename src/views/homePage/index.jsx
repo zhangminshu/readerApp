@@ -23,18 +23,7 @@ class HomePage extends React.Component {
     componentDidMount(){
         // this.getUserInfo();
     }
-    // getUserInfo = () => {
-    //     const url = '/user/_info';
-    //     HTTP.get(url, {}).then(response => {
-    //         const res = response.data;
-    //         if (res.status === 0) {
-    //             this.setState({
-    //                 userInfo: res.data
-    //             })
-    //             sessionStorage.setItem('userInfo',JSON.stringify(res.data));
-    //         }
-    //     })
-    // }
+
     showDrawer = () => {
         this.setState({
             visible: true,
@@ -56,7 +45,7 @@ class HomePage extends React.Component {
     }
     toLogin = (isLogin) => {
         if(isLogin){
-            const userInfo = JSON.parse(sessionStorage.getItem('userInfo'));
+            const userInfo = JSON.parse(localStorage.getItem('userInfo'));
             const role = userInfo.role;
             if(role !== 2){
                 this.props.history.push('/desk')
@@ -72,7 +61,7 @@ class HomePage extends React.Component {
     }
     render() {
         // const userInfo = this.state.userInfo;
-        const userInfo = JSON.parse(sessionStorage.getItem('userInfo'));
+        const userInfo = JSON.parse(localStorage.getItem('userInfo'));
         let isLogin = false; let userName = '';let photo = '';let hasPhoto =false;
         if (userInfo) {
             if(userInfo.photo && userInfo.photo.length > 0){

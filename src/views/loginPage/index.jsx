@@ -2,6 +2,7 @@ import React from 'react';
 import cookie from 'js-cookie'
 import { Form, Icon, Input, Button, Checkbox,message,Modal } from 'antd';
 import HTTP from '../../httpServer/axiosConfig.js'
+import { Link } from 'react-router-dom';
 import './style.less'
 import wxBg from '../../img/wxCode.png'
 const FormItem = Form.Item;
@@ -60,6 +61,7 @@ class LoginPage extends React.Component {
             const res = response.data;
             if (res.status === 0) {
                 sessionStorage.setItem('userInfo',JSON.stringify(res.data));
+                localStorage.setItem('userInfo',JSON.stringify(res.data))
                 if(res.data.role === 2){
                     this.props.history.push('/manager')
                 }else{
@@ -110,7 +112,7 @@ class LoginPage extends React.Component {
                             <FormItem className="userAgreement">
                                 {getFieldDecorator('isAgree', {
                                 })(
-                                    <Checkbox >阅读并接受《用户协议》及《服务协议》</Checkbox>
+                                    <div><Checkbox ></Checkbox><span>阅读并接受<Link to="/userAgreement">《用户协议》</Link>及<Link to="/serverAgreement">《服务协议》</Link></span></div>
                                 )}
                             </FormItem>:""}
                             <Button className="btn_change" onClick={this.changeLoginState}>{changeTxt}</Button>

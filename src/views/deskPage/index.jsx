@@ -2,6 +2,8 @@ import React from 'react';
 import { Layout, Menu, Table, Input, Icon, Button, message, Modal, Radio, Popover, Checkbox, Drawer,Spin, Upload } from 'antd';
 import HTTP from '../../httpServer/axiosConfig.js'
 import MyUpload from '../../componment/myUpload/index.jsx'
+import EmptyComp from '../../componment/emptyPage/index.jsx'
+import util from '../../lib/util.js';
 import axios from 'axios'
 import copy from 'copy-to-clipboard';
 import cookie from 'js-cookie';
@@ -20,6 +22,7 @@ class DeskPage extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            showEmpty:false,
             isLoading:false,
             isAddTag:false,
             editTag:'',//编辑中的标签
@@ -36,6 +39,8 @@ class DeskPage extends React.Component {
             bookName: '',
             activeItem: '',
             showTable: false,
+            pageNum: 1,
+            pageSize: 10,
             tableData: [],
             tagList:[],
             editTagInfo:{
@@ -77,7 +82,7 @@ class DeskPage extends React.Component {
                     userInfo: res.data,
                     role: res.data.role
                 })
-                sessionStorage.setItem('userInfo', JSON.stringify(res.data));
+                localStorage.setItem('userInfo', JSON.stringify(res.data));
             }
         })
     }
@@ -112,7 +117,7 @@ class DeskPage extends React.Component {
                 this.setState({
                     categoryList:res.data.list,
                     navList: newList,
-                    tagList:newTagList
+                    tagList:newTagList.reverse()
                 })
             } else {
                 message.error(res.error);
@@ -159,9 +164,12 @@ class DeskPage extends React.Component {
         HTTP.get(url, { params: requestJson }).then(response => {
             const res = response.data;
             if (res.status === 0) {
+                let isEmpty = false;
+                if(res.data.total === 0)isEmpty =true;
                 this.setState({
                     showTable: true,
                     result: res.data.total,
+                    showEmpty:isEmpty,
                     tableData: res.data.list
                 })
             } else {
@@ -313,9 +321,15 @@ class DeskPage extends React.Component {
             }
         })
         const category_id = categoryIds.join(',')
-        if(category_id ==='')return message.error('标签不能为空！')
-        const url = `/category/${category_id}/_shiftin`;
-        HTTP.post(url,{book_ids:bookid}).then(response=>{
+        // if(category_id ==='')return message.error('标签不能为空！')
+        let requestJson ={};
+        if(category_id === ''){
+            requestJson={book_ids:bookid}
+        }else{
+            requestJson={book_ids:bookid,category_ids:category_id}
+        }
+        const url = `/book/_shiftin`;
+        HTTP.post(url,requestJson).then(response=>{
             const res = response.data;
             if(res.status === 0){
                 this.setState({
@@ -467,7 +481,7 @@ class DeskPage extends React.Component {
     }
     sendToKindle = (bid,isOverLimit) => {
         if(isOverLimit) return message.info('请选择10M以内的文件');
-        const userInfo = JSON.parse(sessionStorage.getItem('userInfo'));
+        const userInfo = JSON.parse(localStorage.getItem('userInfo'));
         if(userInfo){
             const kindle_email = userInfo.kindle_email;
             if(!kindle_email)return message.info('请到设置页面添加您的kindle邮箱')
@@ -492,9 +506,11 @@ class DeskPage extends React.Component {
         })
     }
     renameDialog = (item) => {
-
+        const nameSplit = item.title.split('.');
+        const bookType = nameSplit.pop();
+        const bookName = nameSplit.join('.');
         const _this = this;
-        const inputHtml = <div><Input allowClear defaultValue={item.title} placeholder="" onChange={(e) => { this.handleNameChange(e) }} /></div>;
+        const inputHtml = <div><Input allowClear defaultValue={bookName} placeholder="" onChange={(e) => { this.handleNameChange(e) }} /></div>;
         confirm({
             title: '名称修改',
             content: <div>{inputHtml}</div>,
@@ -503,14 +519,14 @@ class DeskPage extends React.Component {
             cancelText: '取消',
             onOk() {
 
-                _this.changeBookName(item);
+                _this.changeBookName(item,bookType);
             },
             onCancel() { }
         });
     }
-    changeBookName = (item) => {
+    changeBookName = (item,bookType) => {
         const url = `/book/${item.id}/_info`;
-        const bookName = this.state.bookName;
+        let bookName = this.state.bookName + '.'+bookType;
         HTTP.put(url, { title: bookName }).then(response => {
             const res = response.data;
             if (res.status === 0) {
@@ -522,13 +538,7 @@ class DeskPage extends React.Component {
         })
     }
     readerBook=(bookInfo)=>{
-        if(bookInfo.extension ==='pdf'){
-            window.open(bookInfo.url,"_blank")
-        }else{
-            sessionStorage.setItem('bookInfo',JSON.stringify(bookInfo));
-            this.props.history.push('/reader')
-        }
-
+        util.showReaderTip(bookInfo);
     }
     handleTagChange=(e,name)=>{
         const value = e.target.value;
@@ -586,7 +596,28 @@ class DeskPage extends React.Component {
             }
         })
     }
+    pageChange =(current, pageSize)=>{
+        this.setState({
+            pageNum:current
+        },()=>{
+            this.changeMenu(this.deskActiveMenu)
+        });
+        
+    }
     render() {
+        const currPagination = this.state.result>10?{
+            total:this.state.result,
+            pageSize:this.state.pageSize,
+            current:this.state.pageNum,
+            onChange:this.pageChange.bind(this)
+        }:false
+        const currSmallPagination =this.state.result>10?{
+            size:'small',
+            total:this.state.result,
+            pageSize:this.state.pageSize,
+            current:this.state.pageNum,
+            onChange:this.pageChange.bind(this)
+        }:false
         const userInfo = this.state.userInfo;
         const role = this.state.role;
         let isLogin = false; let userName = ''; let photo = ''; let hasPhoto = false;
@@ -649,7 +680,7 @@ class DeskPage extends React.Component {
                             <p className="optItem" onClick={() => { this.fileClone('single', record)}}>标签</p>
                             <p className="optItem" onClick={() => { this.renameDialog(record) }}>重命名</p>
                             <p className="optItem" onClick={() => { this.fileTypeChange('single', record) }}>文件类型</p>
-                            <p className="optItem" onClick={() => { this.showDeleteConfirm('single', record) }}>删除</p>
+                            <p className="optItem" style={{color:'#FF3B30'}} onClick={() => { this.showDeleteConfirm('single', record) }}>删除</p>
                         </div>
                     );
                     const optHtml = <div className="optWarp">
@@ -690,7 +721,7 @@ class DeskPage extends React.Component {
                             <p className="optItem" onClick={() => { this.fileClone('single', record)}}>标签</p>
                             <p className="optItem" onClick={() => { this.renameDialog(record) }}>重命名</p>
                             <p className="optItem" onClick={() => { this.fileTypeChange('single', record) }}>文件类型</p>
-                            <p className="optItem" onClick={() => { this.showDeleteConfirm('single', record) }}>删除</p>
+                            <p className="optItem" style={{color:'#FF3B30'}} onClick={() => { this.showDeleteConfirm('single', record) }}>删除</p>
                         </div>
                     );
                     const optHtml = <div className="optWarp">
@@ -732,12 +763,11 @@ class DeskPage extends React.Component {
 
                         <Layout>
                             <Content className="mainContent">
-                                {this.state.showTable ?
+                                {this.state.showTable && !this.state.showEmpty ?
                                     <div className="myTableWarp">
                                         <div className="clearFix">
                                             <div className="title ms_fl">全部文件</div>
                                             <div className={`${this.state.showCheckBox ? 'showBtnList' : ''} btn_list ms_fr`}>
-                                                {/* {role===1?<Button className="btn btn_clone" type="primary" onClick={this.fileClone}>克隆</Button>:''} */}
                                                 {role !== 2 ? <Button className="btn btn_share" type="primary" onClick={this.fileShare}>分享</Button> : ''}
                                                 {role !== 2 ? <Button className="btn btn_download" onClick={this.fileClone}>标签</Button> : ""}
                                                 {role !== 2 ? <Button className="btn btn_download" onClick={this.downloadEvent}>下载</Button> : ""}
@@ -745,10 +775,11 @@ class DeskPage extends React.Component {
                                                 {role === 2 ? <Button className="btn btn_del" type="danger" onClick={this.showDeleteConfirm}>删除</Button> : ""}
                                             </div>
                                         </div>
-                                        <Table rowKey={(record, index) => `complete${record.id}${index}`} className={`${this.state.showCheckBox ? 'showCheckBox' : ''} showInBig`} pagination={false} columns={columns} rowSelection={rowSelection} dataSource={this.state.tableData} />
-                                        <Table rowKey={(record, index) => `complete${record.id}${index}`} className={`${this.state.showCheckBox ? 'showCheckBox' : ''} showInSmall`} pagination={false} columns={smallColumns} rowSelection={rowSelection} dataSource={this.state.tableData} />
+                                        <Table rowKey={(record, index) => `complete${record.id}${index}`} className={`${this.state.showCheckBox ? 'showCheckBox' : ''} showInBig`} pagination={currPagination} columns={columns} rowSelection={rowSelection} dataSource={this.state.tableData} />
+                                        <Table rowKey={(record, index) => `complete${record.id}${index}`} className={`${this.state.showCheckBox ? 'showCheckBox' : ''} showInSmall`} pagination={currSmallPagination} columns={smallColumns} rowSelection={rowSelection} dataSource={this.state.tableData} />
                                     </div>
                                     : ''}
+                                    {this.state.showEmpty? <EmptyComp type="desk"/> :''}
                             </Content>
                         </Layout>
 
@@ -773,7 +804,7 @@ class DeskPage extends React.Component {
                             <i className="icon icon_add" title="新增" onClick={() => { this.setState({ isAddTag: true }) }}></i> 
                             <i className="icon icon_cancel" title="取消" onClick={() => { this.setState({ isAddTag: false }) }}></i>
                             <span className="addText">创建新标签</span>
-                            <Input className="addTag tagInput" defaultValue="" onChange={(value)=>{this.handleTagChange(value,'addTag')}} placeholder="创建标签" />
+                            {this.state.isAddTag ?<Input className="addTag tagInput" defaultValue="" onChange={(value)=>{this.handleTagChange(value,'addTag')}} placeholder="创建标签" />:""}
                             <i className="icon icon_ok ms_fr" title="保存" onClick={()=>{this.addNewTag('create')}}></i>
                         </div>
                         {this.state.tagList.map((item,index) => {

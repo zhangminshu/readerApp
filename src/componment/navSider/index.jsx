@@ -94,7 +94,7 @@ class navSider extends React.Component {
         }
     }
     getSider =()=>{
-        const userInfo = JSON.parse(sessionStorage.getItem('userInfo'));
+        const userInfo = JSON.parse(localStorage.getItem('userInfo'));
         let currList =[];
         if(userInfo){
           currList = loginNav
@@ -115,8 +115,10 @@ class navSider extends React.Component {
         }
     }
   render() {
+    debugger
+    const defOpenKey = this.props.defOpenKey || '0'
     return (
-      <Menu defaultSelectedKeys={['0']} defaultOpenKeys={['sub1']} mode="inline" theme="light">
+      <Menu defaultSelectedKeys={[defOpenKey]} defaultOpenKeys={['sub1']} mode="inline" theme="light">
         {this.getSider()}
       </Menu>
     )

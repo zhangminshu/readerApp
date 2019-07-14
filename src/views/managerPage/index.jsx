@@ -1,7 +1,9 @@
 import React from 'react';
-import { Layout, Table, Input, Icon, Button, message, Modal, Radio, Popover, Checkbox, Menu, Drawer,Upload } from 'antd';
+import { Layout, Table, Input, Icon, Button, message, Modal, Radio, Popover, Checkbox, Menu, Drawer,Upload,Spin } from 'antd';
 import HTTP from '../../httpServer/axiosConfig.js'
+import copy from 'copy-to-clipboard';
 import cookie from 'js-cookie';
+import EmptyComp from '../../componment/emptyPage/index.jsx'
 import SiderMenu from '../../componment/navSider/index.jsx'
 import './style.less'
 
@@ -10,6 +12,7 @@ import coverAZW3 from '../../img/coverAZW3.svg'
 import coverEPUB from '../../img/coverEPUB.svg'
 import coverMOBI from '../../img/coverMOBI.svg'
 import coverTXT from '../../img/coverTXT.svg'
+import util from '../../lib/util.js';
 const { confirm } = Modal;
 const RadioGroup = Radio.Group;
 const SUCCESS_CODE = 0;
@@ -30,6 +33,9 @@ class ManagerPage extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            showEmpty:false,
+            userStatus:"",
+            isLoading:false,
             collapsed: true,
             loading:false,
             tableSelectedRowKeys: [],
@@ -100,26 +106,42 @@ class ManagerPage extends React.Component {
         const urlList = ["/book", "/user", "/file"];
         const currUrl = urlList[this.activeMenu];
         const value = e.target.value
-        this.searchBookOrFille(currUrl, value)
+        this.searchBookOrFille(currUrl, value,'')
     }
-    searchBookOrFille = (url, value) => {
-        const requestJson = {
-            keyword: value,
-            pn: this.state.pageNum,
-            ps: this.state.pageSize
+    searchBookOrFille = (url, value,changeType) => {
+        let requestJson = {}
+        const {pageNum,pageSize} = this.state;
+        if(changeType === 'menu'){
+            requestJson = {
+                pn: 1,
+                ps: pageSize
+            }
+            this.setState({pageNum:1})
+        }else{
+            requestJson = {
+                keyword: value,
+                pn: pageNum,
+                ps: pageSize
+            }
         }
+
+
         HTTP.get(url, { params: requestJson }).then(response => {
             const res = response.data;
             if (res.status === 0) {
+                let isEmpty = false;
+                if(res.data.total === 0)isEmpty =true;
                 if (url === '/user') {
                     this.setState({
                         result: res.data.total,
+                        showEmpty:isEmpty,
                         userTableData: res.data.list,
                         searchBookName: value
                     })
                 } else {
                     this.setState({
                         result: res.data.total,
+                        showEmpty:isEmpty,
                         fileTableData: res.data.list,
                         searchBookName: value
                     })
@@ -131,12 +153,18 @@ class ManagerPage extends React.Component {
         })
     }
     toResultPage = () => {
-        this.props.history.push('/searchResult')
+        const activeMenu = this.state.activeMenu;
+        if(activeMenu === '1'){
+            // this.props.history.push({pathname:'/searchResult?type=user'})
+            location.href = '#/searchResult?type=user'
+        }else{
+            this.props.history.push('/searchResult')
+        }
     }
-    changeMenu = (item, type) => {
+    changeMenu = (item, type,changeType) => {
+        
         const urlList = ["/book", "/user", "/file"];
         const currUrl = urlList[item.key];
-
         if (type === "small") {
             this.setState({
                 activeMenu: item.key,
@@ -160,7 +188,7 @@ class ManagerPage extends React.Component {
                 selectedRow: [],
                 showCheckBox: false
             })
-            this.searchBookOrFille(currUrl)
+            this.searchBookOrFille(currUrl,undefined,changeType)
         }
 
     }
@@ -191,7 +219,7 @@ class ManagerPage extends React.Component {
     getSider = (type) => {
         const menuList = [];
         navList.map(item => {
-            menuList.push(<Menu.Item onClick={() => { this.changeMenu(item, type) }} key={item.key}> <span>{item.name}</span></Menu.Item>)
+            menuList.push(<Menu.Item onClick={() => { this.changeMenu(item, type,'menu') }} key={item.key}> <span>{item.name}</span></Menu.Item>)
         })
         return menuList;
     }
@@ -307,22 +335,43 @@ class ManagerPage extends React.Component {
             },
         });
     }
+    handleStatusChange =(e)=>{
+        const userStatus =e.target.value;
+        this.setState({userStatus})
+    }
     userStatusChange = () => {
-        const bookId = this.state.selectedRow[0].id;
-        const fileType = this.state.selectedRow[0].is_public;
+        let userIdArr = [];
+        let defStatus = 2;
+        this.state.selectedRow.forEach(item=>{
+            userIdArr.push(item.id)
+            if(item.status ===1 && defStatus ===2){
+                defStatus = 1
+            }
+        });
+        const userId = userIdArr.join(',')
         const _this = this;
         confirm({
-            title: '修改类型',
-            content: <div className="radioWarp"><RadioGroup defaultValue={fileType} onChange={this.handleRadioChange} >
-                <div className="radioItem"><Radio value={1}>公开</Radio></div>
-                <div className="radioItem"><Radio value={0}>私有</Radio></div>
+            title: '修改账户状态',
+            content: <div className="radioWarp"><RadioGroup defaultValue={defStatus} onChange={this.handleStatusChange} >
+                <div className="radioItem"><Radio value={1}>激活</Radio></div>
+                <div className="radioItem"><Radio value={2}>冻结</Radio></div>
             </RadioGroup></div>,
             okText: '确认',
             className: 'confirmDialog',
             cancelText: '取消',
             onOk() {
-                const isPublic = _this.state.fileType;
-                _this.modifyFileType(bookId, isPublic);
+                const userStatus = _this.state.userStatus || defStatus;
+                const url = '/user'
+                HTTP.put(url,{user_ids:userId,status:userStatus}).then(response=>{
+                    const res = response.data;
+                    if(res.status === 0){
+                        _this.setState({userStatus:''})
+                        _this.changeMenu(navList[_this.activeMenu])
+                        message.success('修改成功！')
+                    }else{
+                        message.error(res.error)
+                    }
+                })
             },
             onCancel() { }
         });
@@ -378,29 +427,109 @@ class ManagerPage extends React.Component {
             }
         })
     }
-    fileClone = () => {
-        const bookId = this.state.selectedRow[0].id;
-        const fileType = this.state.selectedRow[0].is_public;
-        const _this = this;
+    fileShare = (type, id) => {
+        const ids = [];
+        let bookIds = "";
+        if (type === "row") {
+            bookIds = id;
+        } else {
+            this.state.selectedRow.forEach(item => {
+                ids.push(item.id)
+            })
+            bookIds = ids.join(',');
+        }
+        const shareUrl = location.origin + "/#/share?bid=" + bookIds;
+        this.showShareConfirm(shareUrl)
+    }
+    showShareConfirm = (shareUrl) => {
         confirm({
-            title: '修改标签',
-            content: <div className="checkWarp">
-                <div className="checkItem"><i className="icon icon_add"></i><span>创建标签</span></div>
-                <div className="checkItem clearFix"><Checkbox onChange={this.handleCheckBox}>标签一</Checkbox><i className="icon icon_edit ms_fr"></i></div>
-                <div className="checkItem clearFix"><Checkbox onChange={this.handleCheckBox}>标签二</Checkbox><i className="icon icon_edit ms_fr"></i></div>
-            </div>,
+            title: '分享文件',
+            content: <div><Input className="shareUrl" disabled defaultValue={shareUrl} /><p className="desc">把链接通过微信、QQ、微博等方式分享给好友</p></div>,
+            okText: '复制',
+            className: 'confirmDialog',
+            cancelText: '取消',
+            onOk() {
+                copy(shareUrl);
+            },
+            onCancel() {
+                console.log('Cancel');
+            },
+        });
+    }
+    fileDownload = (href) => {
+        const a = document.createElement("a"), //创建a标签
+            e = document.createEvent("MouseEvents"); //创建鼠标事件对象
+        e.initEvent("click", false, false); //初始化事件对象
+        a.href = href; //设置下载地址
+        // a.download = name; //设置下载文件名
+        a.dispatchEvent(e); //给指定的元素，执行事件click事件
+        this.setState({isLoading:false})
+    }
+    downloadEvent = (type, item) => {
+        let bookIds = "";
+        const ids = []
+        if (type === 'single') {
+            bookIds = item.id;
+        } else {
+            const fileList = this.state.selectedRow;
+            fileList.forEach(item => {
+                ids.push(item.id)
+                // download(item.title, item.url);
+            })
+            bookIds = ids.join(",");
+        }
+        this.getDownUrl(bookIds)
+    }
+    getDownUrl = (ids) => {
+        this.setState({isLoading:true})
+        const url = "/book/_package";
+        HTTP.get(url, { params: { book_ids: ids } }).then(response => {
+            const res = response.data;
+            if (res.status === 0) {
+                this.fileDownload(res.data)
+            }
+        })
+    }
+    handleNameChange = (e) => {
+        const bookName = e.target.value;
+        this.setState({
+            bookName
+        })
+    }
+    renameDialog = (item) => {
+        const nameSplit = item.title.split('.');
+        const bookType = nameSplit.pop();
+        const bookName = nameSplit.join('.');
+        const _this = this;
+        const inputHtml = <div><Input allowClear defaultValue={bookName} placeholder="" onChange={(e) => { this.handleNameChange(e) }} /></div>;
+        confirm({
+            title: '名称修改',
+            content: <div>{inputHtml}</div>,
             okText: '确认',
             className: 'confirmDialog',
             cancelText: '取消',
             onOk() {
-                const isPublic = _this.state.fileType;
-                _this.modifyFileType(bookId, isPublic);
+
+                _this.changeBookName(item,bookType);
             },
             onCancel() { }
         });
     }
-    handleCheckBox(checkedValues) {
-        console.log('checked = ', checkedValues);
+    changeBookName = (item,bookType) => {
+        const url = `/book/${item.id}/_info`;
+        let bookName = this.state.bookName + '.'+bookType;
+        HTTP.put(url, { title: bookName }).then(response => {
+            const res = response.data;
+            if (res.status === 0) {
+                message.success('修改成功！')
+                this.changeMenu(navList[this.activeMenu])
+            } else {
+                message.error(res.error)
+            }
+        })
+    }
+    readerBook=(bookInfo)=>{
+        util.showReaderTip(bookInfo);
     }
     getBase64 =(img, callback)=> {
         const reader = new FileReader();
@@ -409,7 +538,7 @@ class ManagerPage extends React.Component {
       }
       
      beforeUpload=(file)=> {
-
+         
         const isJPG = file.type === 'image/jpeg'|| file.type === 'image/png';
         if (!isJPG) {
           message.error('图片仅支持jpg、png格式!');
@@ -421,6 +550,7 @@ class ManagerPage extends React.Component {
         return isJPG && isLt10M;
       }
       handleImgChange = info => {
+          
         if (info.file.status === 'uploading') {
           this.setState({ loading: true });
           return;
@@ -445,16 +575,31 @@ class ManagerPage extends React.Component {
             newUserInfo
         });
     };
+    customRequest =(option,item)=>{
+        
+        const formData = new FormData();
+        formData.append('files[]',option.file);
+        const url =`/user/${item.id}/_info`
+        HTTP.put(url,{photo:formData}).then(response=>{
+            console.log(response)
+        })
+    }
     getDialogContent = (oldVal, fileName) => {
+        
         let currHtml = '';
-        const fileType = oldVal[fileName];
+        // if(fileName === 'status'){
+        //     fileType = oldVal[fileName] == 1 ? 2 :1;   
+        // }else{
+        //     fileType = oldVal[fileName];
+        // }
+        let fileType = oldVal[fileName];
         const radioHtml = <div className="radioWarp"><RadioGroup defaultValue={fileType} onChange={(e) => { this.handleModify(e, fileName) }} >
             <div className="radioItem"><Radio value={1}>激活</Radio></div>
             <div className="radioItem"><Radio value={2}>冻结</Radio></div>
         </RadioGroup></div>;
         const inputHtml = <div><Input allowClear defaultValue={oldVal[fileName]} placeholder="" onChange={(e) => { this.handleModify(e, fileName) }} /></div>;
         const pwdHtml = <div className="radioWarp">
-            <div className="radioItem"><Input.Password className="loginInput" autoComplete="off" datasource={[]} type="password" placeholder="原密码" onChange={(e) => { this.handleModify(e, 'old_pwd') }} /></div>
+            {/* <div className="radioItem"><Input.Password className="loginInput" autoComplete="off" datasource={[]} type="password" placeholder="原密码" onChange={(e) => { this.handleModify(e, 'old_pwd') }} /></div> */}
             <div className="radioItem"><Input.Password className="loginInput" autoComplete="off" datasource={[]} type="password" placeholder="新密码" onChange={(e) => { this.handleModify(e, 'new_pwd') }} /></div>
         </div>;
         const uploadButton = (
@@ -465,22 +610,20 @@ class ManagerPage extends React.Component {
         );
         const imageUrl = oldVal[fileName];
         const props = {
-            name: 'file',
-            action:'/user/_photo',
+            name: 'photo',
+            action:`/user/${oldVal.id}/_info`,
             headers: {
-                authorization: cookie.get('Authorization')
+                authorization: cookie.get('Authorization'),
+                method:'put'
             },
             beforeUpload:this.beforeUpload,
             onChange:this.handleImgChange
           };
-        const imgHtml = <Upload
-            name="photo"
-            listType="picture-card"
+        const imgHtml = <Upload 
             className="avatar-uploader userImgUpload"
             showUploadList={false}
-            action={`/user/_photo?access_token=${cookie.get('Authorization')}`}
             beforeUpload={this.beforeUpload}
-            onChange={this.handleImgChange}
+            customRequest={this.customRequest}
         >
             {imageUrl ? <img src={imageUrl} alt="avatar" /> : uploadButton}
         </Upload>
@@ -500,7 +643,6 @@ class ManagerPage extends React.Component {
         return currHtml;
     }
     setDialog = (oldVal, fileName, title) => {
-
         const _this = this;
         const contentHtml = this.getDialogContent(oldVal, fileName)
         confirm({
@@ -510,7 +652,6 @@ class ManagerPage extends React.Component {
             className: 'confirmDialog',
             cancelText: '取消',
             onOk() {
-
                 _this.updateUserInfo(oldVal['id'],fileName);
             },
             onCancel() { }
@@ -534,11 +675,36 @@ class ManagerPage extends React.Component {
                 this.changeMenu(navList[this.activeMenu])
                 message.success('修改成功！')
             } else {
-                message.error(res.error)
+                if(fileName ==='email'){
+                    message.error('已存在相同的邮箱')
+                }else{
+                    message.error(res.error)
+                }
+                
             }
         })
     }
+    pageChange =(current, pageSize)=>{
+        this.setState({
+            pageNum:current
+        },()=>{
+            this.changeMenu(navList[this.activeMenu])
+        });
+    }
     render() {
+        const currPagination =this.state.result>10?{
+            total:this.state.result,
+            pageSize:this.state.pageSize,
+            current:this.state.pageNum,
+            onChange:this.pageChange.bind(this)
+        }:false
+        const currSmallPagination =this.state.result>10?{
+            size:'small',
+            total:this.state.result,
+            pageSize:this.state.pageSize,
+            current:this.state.pageNum,
+            onChange:this.pageChange.bind(this)
+        }:false
         const statisticsCol = [{
             title: '名称',
             dataIndex: 'name',
@@ -587,10 +753,26 @@ class ManagerPage extends React.Component {
             dataIndex: 'opt',
             key: 'opt',
             render: (text, record) => {
+                const props = {
+                    name: 'photo',
+                    action:`/user/${record.id}/_info`,
+                    headers: {
+                        authorization: cookie.get('Authorization'),
+                        method:'put'
+                    },
+                    beforeUpload:this.beforeUpload,
+                    onChange:this.handleImgChange
+                  };
                 const optContent = (
                     <div>
                         {/* onClick={() => { this.edit(record, 'photo', '修改头像') }} */}
-                        <p className="optItem" onClick={() => { this.edit(record, 'photo', '修改头像') }}>修改头像</p> 
+                        <div className="optItem">
+                        <Upload {...props}  className="avatar-uploader userImgUpload"
+                            showUploadList={false}
+                        >
+                            修改头像
+                        </Upload>
+                        </div> 
                         <p className="optItem" onClick={() => { this.edit(record, 'nick_name', '修改用户名') }}>修改用户名</p>
                         <p className="optItem" onClick={() => { this.edit(record, 'email', '修改邮箱') }}>修改邮箱</p>
                         <p className="optItem" onClick={() => { this.edit(record, 'changePWD', '修改密码') }}>修改密码</p>
@@ -615,7 +797,9 @@ class ManagerPage extends React.Component {
                 // width: '50%',
                 render: (text, record) => {
                     let fileIcon = coverPDF;
-                    switch (record.extension) {
+                    const fileSplit = text.split('.');
+                    const fileType = fileSplit[fileSplit.length-1];
+                    switch (fileType) {
                         case 'pdf':
                             fileIcon = coverPDF;
                             break;
@@ -637,7 +821,7 @@ class ManagerPage extends React.Component {
                     }
                     let displayText = <div className="fileName">
                         <img className="fileIcon" src={fileIcon} alt="" />
-                        <span className={`${record.is_owner === 1 ? 'isOwerFile' : ''}`}>{text}</span>
+                        <span style={{cursor:'pointer'}} onClick={()=>{this.readerBook(record)}} className={`${record.is_owner === 1 ? 'isOwerFile' : ''}`}>{text}</span>
                     </div>;
                     return displayText;
                 }
@@ -668,13 +852,11 @@ class ManagerPage extends React.Component {
                 render: (text, record) => {
                     const optContent = (
                         <div>
-                            <p className="optItem" >分享</p>
-                            <p className="optItem">发送至kindle</p>
-                            <p className="optItem">下载</p>
-                            <p className="optItem">修改标签</p>
-                            <p className="optItem">重命名</p>
+                            <p className="optItem" onClick={() => { this.fileShare("row", record.id) }}>分享</p>
+                            <p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>
+                            <p className="optItem" onClick={() => { this.renameDialog(record) }}>重命名</p>
                             <p className="optItem" onClick={() => { this.fileTypeChange('single', record) }}>文件类型</p>
-                            <p className="optItem" onClick={() => { this.showDeleteConfirm('single', record) }}>删除</p>
+                            <p className="optItem" style={{color:'#FF3B30'}} onClick={() => { this.showDeleteConfirm('single', record) }}>删除</p>
                         </div>
                     );
                     const optHtml = <div className="optWarp">
@@ -693,7 +875,7 @@ class ManagerPage extends React.Component {
         smallFileCol.push(fileCol[3]);
         smallUserCol.push(userCol[0]);
         smallUserCol.push(userCol[5]);
-        const userInfo = JSON.parse(sessionStorage.getItem('userInfo'));
+        const userInfo = JSON.parse(localStorage.getItem('userInfo'));
         let isLogin = false; let userName = ''; let photo = ''; let hasPhoto = false;
         if (userInfo) {
             if (userInfo.photo && userInfo.photo.length > 0) {
@@ -715,6 +897,7 @@ class ManagerPage extends React.Component {
         this.activeMenu = sessionStorage.getItem('activeMenu') || '0'
         // const currRowSelection = this.state.activeMenu ==='0'?null:rowSelection;
         return (
+            <Spin tip="正在下载请稍等" spinning={this.state.isLoading}>
             <div className="managerWarp">
                 <Layout>
                     <Header className="publicHeader">
@@ -734,23 +917,26 @@ class ManagerPage extends React.Component {
 
                         <Layout>
                             <Content className="mainContent">
+                            {!this.state.showEmpty?
                                 <div className={`${this.activeMenu === '0' ? 'grayTh' : ''} myTableWarp`}>
                                     <div className="clearFix">
                                         <div className="title ms_fl" style={{ fontSize: '20px', color: '#1B2733' }}>{this.state.tableName}</div>
                                         <div className={`${this.state.showCheckBox ? 'showBtnList' : ''} btn_list ms_fr`}>
                                             {/* {this.state.activeMenu === '1' ? <Button className="btn btn_fileType" type="primary" onClick={this.setFileSize.bind(this)}>存储</Button> : ""} */}
-                                            {/* {this.state.activeMenu === '1'?<Button className="btn btn_fileType" onClick={this.userStatusChange.bind(this)}>状态</Button>:""} */}
+                                            {this.state.activeMenu === '1'?<Button className="btn btn_fileType" onClick={this.userStatusChange.bind(this)}>状态</Button>:""}
                                             {this.activeMenu === '2' ? <Button className="btn btn_fileType" type="primary" onClick={this.fileTypeChange.bind(this)}>类型</Button> : ""}
                                             {this.activeMenu === '2' ? <Button className="btn btn_del" type="danger" onClick={this.showDeleteConfirm}>删除</Button> : ""}
                                         </div>
                                     </div>
                                     {this.activeMenu === '0' ? <Table rowKey={(record, index) => `complete${record.id}${index}`} className={`${this.state.showCheckBox ? 'showCheckBox' : ''} `} pagination={false} columns={statisticsCol} dataSource={this.state.statisticsData} /> : ""}
-                                    {this.activeMenu === '1' ? <Table rowKey={(record, index) => `complete${record.id}${index}`} className={`${this.state.showCheckBox ? 'showCheckBox' : ''} showInBig`} pagination={false} columns={userCol} rowSelection={rowSelection} dataSource={this.state.userTableData} /> : ""}
-                                    {this.activeMenu === '2' ? <Table rowKey={(record, index) => `complete${record.id}${index}`} className={`${this.state.showCheckBox ? 'showCheckBox' : ''} showInBig`} pagination={false} columns={fileCol} rowSelection={rowSelection} dataSource={this.state.fileTableData} /> : ""}
+                                    {this.activeMenu === '1' ? <Table rowKey={(record, index) => `complete${record.id}${index}`} className={`${this.state.showCheckBox ? 'showCheckBox' : ''} showInBig`} pagination={currPagination} columns={userCol} rowSelection={rowSelection} dataSource={this.state.userTableData} /> : ""}
+                                    {this.activeMenu === '2' ? <Table rowKey={(record, index) => `complete${record.id}${index}`} className={`${this.state.showCheckBox ? 'showCheckBox' : ''} showInBig`} pagination={currPagination} columns={fileCol} rowSelection={rowSelection} dataSource={this.state.fileTableData} /> : ""}
 
-                                    {this.activeMenu === '1' ? <Table rowKey={(record, index) => `complete${record.id}${index}`} className={`${this.state.showCheckBox ? 'showCheckBox' : ''} showInSmall`} pagination={false} columns={smallUserCol} rowSelection={rowSelection} dataSource={this.state.userTableData} /> : ""}
-                                    {this.activeMenu === '2' ? <Table rowKey={(record, index) => `complete${record.id}${index}`} className={`${this.state.showCheckBox ? 'showCheckBox' : ''} showInSmall`} pagination={false} columns={smallFileCol} rowSelection={rowSelection} dataSource={this.state.fileTableData} /> : ""}
+                                    {this.activeMenu === '1' ? <Table rowKey={(record, index) => `complete${record.id}${index}`} className={`${this.state.showCheckBox ? 'showCheckBox' : ''} showInSmall`} pagination={currSmallPagination} columns={smallUserCol} rowSelection={rowSelection} dataSource={this.state.userTableData} /> : ""}
+                                    {this.activeMenu === '2' ? <Table rowKey={(record, index) => `complete${record.id}${index}`} className={`${this.state.showCheckBox ? 'showCheckBox' : ''} showInSmall`} pagination={currSmallPagination} columns={smallFileCol} rowSelection={rowSelection} dataSource={this.state.fileTableData} /> : ""}
                                 </div>
+                                :""}
+                                {this.state.showEmpty? <EmptyComp /> :''}
                             </Content>
                         </Layout>
 
@@ -763,6 +949,7 @@ class ManagerPage extends React.Component {
                     </Menu>
                 </Drawer>
             </div>
+            </Spin>
         )
     }
 }

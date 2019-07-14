@@ -33,11 +33,27 @@ HTTP.interceptors.request.use(
 
 HTTP.interceptors.response.use(
     response =>{
-        return response;
+        const status = response && response.data && response.data.status;
+        if(status === 2){
+            confirm({
+                title: "请登录",
+                content: "登录后可使用该功能",
+                okText: '登录',
+                className: 'confirmDialog',
+                cancelText: '取消',
+                onOk() {
+                    location.href = '#/login';
+                },
+                onCancel() { }
+            });
+        }else{
+            return response;
+        }
     },
     error =>{
-        const status = error && error.response && error.response.status;
-        if(status === 401){
+        debugger
+        const status = error && error.data && error.data.status;
+        if(status === 2){
             cookie.remove('Authorization');
             if(!loginout && location.href.indexOf('/login') < 0){
                 loginout = true;

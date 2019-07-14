@@ -73,7 +73,7 @@ class MyUpload extends React.Component {
         const accpetType=['txt','epub','mobi','pdf','azw3'];
         const isValid = accpetType.includes(fileType);
         if (!isValid) {
-            message.error('只能上传txt、epub、mobi、pdf、azw3格式的文件!');
+            message.error('请上传epub、pdf、txt、mobi、azw3格式的文件');
         }
         const isLt200M = file.size / 1024 / 1024 < 200;
         if (!isLt200M) {

@@ -1,8 +1,10 @@
 import React from 'react';
-import { Layout, Menu, Table, Input, Icon, Button, message, Modal, Radio, Popover, Checkbox,Spin, Drawer } from 'antd';
+import { Layout, Menu, Table, Input, Icon, Button, message, Modal, Radio, Popover, Checkbox,Spin,Upload, Drawer } from 'antd';
 import HTTP from '../../httpServer/axiosConfig.js'
+import cookie from 'js-cookie';
+import util from '../../lib/util.js';
 import './style.less'
-
+import EmptyComp from '../../componment/emptyPage/index.jsx'
 import coverPDF from '../../img/coverPDF.svg'
 import coverAZW3 from '../../img/coverAZW3.svg'
 import coverEPUB from '../../img/coverEPUB.svg'
@@ -16,6 +18,9 @@ class SearchResult extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            result:0,
+            showEmpty:false,
+            userStatus:"",
             isLoading:false,
             isAddTag:false,
             editTag:'',//编辑中的标签
@@ -38,10 +43,27 @@ class SearchResult extends React.Component {
             searchBookName: '',
             searchText: '',
             totalNum: 0,
-            tagList: []
+            tagList: [],
+            searchType:'',
+            newUserInfo: {
+                email: '',
+                nick_name: "",
+                new_pwd: '',
+                status: '',
+                kindle_email: '',
+                old_pwd: '',
+                new_pwd: ''
+            }
         }
     }
     componentDidMount() {
+        const urlParams = location.href.split("?")[1];
+        if(urlParams){
+            const searchType = urlParams.split("=")[1];
+            if(searchType === 'user'){
+                this.setState({searchType})
+            }
+        }
         this.getTotal();
         this.getCategory();
     }
@@ -50,12 +72,11 @@ class SearchResult extends React.Component {
         HTTP.get(url, {}).then(response => {
             const res = response.data;
             if (res.status === 0) {
-                console.log(res.data)
-                const newList = this.state.tagList.concat(res.data.list);
-                console.log(newList)
+                const tagList =[];
+                const newList = tagList.concat(res.data.list);
                 this.setState({
                     categoryList:res.data.list,
-                    tagList: newList
+                    tagList: newList.reverse()
                 })
             } else {
                 message.error(res.error);
@@ -77,8 +98,17 @@ class SearchResult extends React.Component {
     }
 
     searchBook = (e, type) => {
+        debugger
+        const searchType = this.state.searchType;
+        let url ='';
+        if(searchType === 'user'){
+            url = '/user';
+        }else{
+            url = '/book/_search';
+        }
+        
+
         const bookName = type === 'search' ? e.target.value : e;
-        const url = '/book/_search';
         const requestJson = {
             keyword: bookName,
             pn: this.state.pageNum,
@@ -86,14 +116,20 @@ class SearchResult extends React.Component {
         }
         if (bookName === '') {
             const searchText = `可搜索 ${this.state.totalNum} 个文件`
-            this.setState({ showTable: false, searchText })
+            let isEmpty = false;
+            if(this.state.totalNum === 0)isEmpty =true;
+            this.setState({ showTable: false, searchText,showEmpty:isEmpty })
         } else {
             HTTP.get(url, { params: requestJson }).then(response => {
                 const res = response.data;
                 if (res.status === 0) {
                     const searchText = `找到约 ${res.data.total} 条结果`
+                    let isEmpty = false;
+                    if(res.data.total === 0)isEmpty =true;
                     this.setState({
+                        result:res.data.total,
                         showTable: true,
+                        showEmpty:isEmpty,
                         searchText: searchText,
                         tableData: res.data.list,
                         searchBookName: bookName
@@ -144,7 +180,7 @@ class SearchResult extends React.Component {
         this.props.history.push('/userInfo')
     }
     toIndex = () => {
-        this.props.history.push('/')
+        this.props.history.go(-1)
     }
     handleRadioChange = e => {
         this.setState({
@@ -239,16 +275,10 @@ class SearchResult extends React.Component {
         })
     }
     readerBook=(bookInfo)=>{
-        if(!bookInfo.url) return message.error('书本链接不存在！')
-        if(bookInfo.extension ==='pdf'){
-            window.open(bookInfo.url,"_blank")
-        }else{
-            sessionStorage.setItem('bookInfo',JSON.stringify(bookInfo));
-            this.props.history.push('/reader')
-        }
+        util.showReaderTip(bookInfo);
     }
     fileClone = (type, item) => {
-        const userInfo = sessionStorage.getItem('userInfo');
+        const userInfo = localStorage.getItem('userInfo');
         if(!userInfo){
             this.unLoginTip();
             return;
@@ -425,8 +455,204 @@ class SearchResult extends React.Component {
             }
         })
     }
-    render() {
+    getBase64 =(img, callback)=> {
+        const reader = new FileReader();
+        reader.addEventListener('load', () => callback(reader.result));
+        reader.readAsDataURL(img);
+      }
+      
+     beforeUpload=(file)=> {
 
+        const isJPG = file.type === 'image/jpeg'|| file.type === 'image/png';
+        if (!isJPG) {
+          message.error('图片仅支持jpg、png格式!');
+        }
+        const isLt10M = file.size / 1024 / 1024 < 10;
+        if (!isLt10M) {
+          message.error('图片大小不能超过10MB!');
+        }
+        return isJPG && isLt10M;
+      }
+      handleImgChange = info => {
+        if (info.file.status === 'uploading') {
+          this.setState({ loading: true });
+          return;
+        }
+        if (info.file.status === 'done') {
+          // Get this url from response in real world.
+          this.getBase64(info.file.originFileObj, imageUrl =>
+            this.setState({
+              imageUrl,
+              loading: false,
+            }),
+          );
+        }
+      };
+    handleStatusChange =(e)=>{
+        const userStatus =e.target.value;
+        this.setState({userStatus})
+    }
+    userStatusChange = () => {
+        let userIdArr = [];
+        let defStatus = 1;
+        this.state.selectedRow.forEach(item=>{
+            userIdArr.push(item.id)
+        });
+        const userId = userIdArr.join(',')
+        const _this = this;
+        confirm({
+            title: '修改账户状态',
+            content: <div className="radioWarp"><RadioGroup defaultValue={defStatus} onChange={this.handleStatusChange} >
+                <div className="radioItem"><Radio value={1}>激活</Radio></div>
+                <div className="radioItem"><Radio value={2}>冻结</Radio></div>
+            </RadioGroup></div>,
+            okText: '确认',
+            className: 'confirmDialog',
+            cancelText: '取消',
+            onOk() {
+                const userStatus = _this.state.userStatus || defStatus;
+                const url = '/user'
+                HTTP.put(url,{user_ids:userId,status:userStatus}).then(response=>{
+                    const res = response.data;
+                    if(res.status === 0){
+                        _this.setState({userStatus:''})
+                        _this.searchBook(_this.state.searchBookName, 'searchUser')
+                        message.success('修改成功！')
+                    }else{
+                        message.error(res.error)
+                    }
+                })
+            },
+            onCancel() { }
+        });
+    }
+    edit = (item, fileName, title) => {
+        this.setDialog(item, fileName, title);
+    }
+    handleModify = (e, fileName) => {
+        const newUserInfo = this.state.newUserInfo;
+        newUserInfo[fileName] = e.target.value;
+        this.setState({
+            newUserInfo
+        });
+    };
+    getDialogContent = (oldVal, fileName) => {
+        let currHtml = '';
+        let fileType = oldVal[fileName];
+        const radioHtml = <div className="radioWarp"><RadioGroup defaultValue={fileType} onChange={(e) => { this.handleModify(e, fileName) }} >
+            <div className="radioItem"><Radio value={1}>激活</Radio></div>
+            <div className="radioItem"><Radio value={2}>冻结</Radio></div>
+        </RadioGroup></div>;
+        const inputHtml = <div><Input allowClear defaultValue={oldVal[fileName]} placeholder="" onChange={(e) => { this.handleModify(e, fileName) }} /></div>;
+        const pwdHtml = <div className="radioWarp">
+            {/* <div className="radioItem"><Input.Password className="loginInput" autoComplete="off" datasource={[]} type="password" placeholder="原密码" onChange={(e) => { this.handleModify(e, 'old_pwd') }} /></div> */}
+            <div className="radioItem"><Input.Password className="loginInput" autoComplete="off" datasource={[]} type="password" placeholder="新密码" onChange={(e) => { this.handleModify(e, 'new_pwd') }} /></div>
+        </div>;
+        const uploadButton = (
+            <div>
+                <Icon type={this.state.loading ? 'loading' : 'plus'} />
+                <div className="ant-upload-text">Upload</div>
+            </div>
+        );
+        const imageUrl = oldVal[fileName];
+        const props = {
+            name: 'file',
+            action:'/user/_photo',
+            headers: {
+                authorization: cookie.get('Authorization')
+            },
+            beforeUpload:this.beforeUpload,
+            onChange:this.handleImgChange
+          };
+        const imgHtml = <Upload
+            name="photo"
+            listType="picture-card"
+            className="avatar-uploader userImgUpload"
+            showUploadList={false}
+            action={`/user/_photo?access_token=${cookie.get('Authorization')}`}
+            beforeUpload={this.beforeUpload}
+            onChange={this.handleImgChange}
+        >
+            {imageUrl ? <img src={imageUrl} alt="avatar" /> : uploadButton}
+        </Upload>
+        switch (fileName) {
+            case 'status':
+                currHtml = radioHtml;
+                break;
+            case 'changePWD':
+                currHtml = pwdHtml;
+                break;
+            case 'photo':
+                currHtml = imgHtml;
+                break;
+            default:
+                currHtml = inputHtml
+        }
+        return currHtml;
+    }
+    setDialog = (oldVal, fileName, title) => {
+        const _this = this;
+        const contentHtml = this.getDialogContent(oldVal, fileName)
+        confirm({
+            title: title,
+            content: <div>{contentHtml}</div>,
+            okText: '确认',
+            className: 'confirmDialog',
+            cancelText: '取消',
+            onOk() {
+                _this.updateUserInfo(oldVal['id'],fileName);
+            },
+            onCancel() { }
+        });
+    }
+    updateUserInfo = (id,fileName) => {
+        const { newUserInfo, userInfo } = this.state;
+        const requestData = {};
+        let url = '';
+        if (fileName === 'changePWD') {
+            requestData['new_pwd'] = newUserInfo['new_pwd'];
+            url = `/user/${id}/_info`
+        } else {
+            requestData[fileName] = newUserInfo[fileName];
+            url = `/user/${id}/_info`
+        }
+        HTTP.put(url, requestData).then(response => {
+            const res = response.data;
+            if (res.status === 0) {
+                this.searchBook(this.state.searchBookName, 'searchUser')
+                message.success('修改成功！')
+            } else {
+                if(fileName ==='email'){
+                    message.error('已存在相同的邮箱')
+                }else{
+                    message.error(res.error)
+                }
+                
+            }
+        })
+    }
+    pageChange =(current, pageSize)=>{
+        this.setState({
+            pageNum:current
+        },()=>{
+            this.searchBook(this.state.searchBookName, 'pageChange')
+        });
+    }
+    render() {
+        const currPagination =this.state.result>10?{
+            total:this.state.result,
+            pageSize:this.state.pageSize,
+            current:this.state.pageNum,
+            onChange:this.pageChange.bind(this)
+        }:false
+        const currSmallPagination =this.state.result>10?{
+            size:'small',
+            total:this.state.result,
+            pageSize:this.state.pageSize,
+            current:this.state.pageNum,
+            onChange:this.pageChange.bind(this)
+        }:false
+        const searchType = this.state.searchType;
         const columns = [
             {
                 title: '名称',
@@ -436,7 +662,7 @@ class SearchResult extends React.Component {
                     const fileIcon = this.getFileIcon(record.extension);
                     let displayText = <div className="fileName">
                         <img className="fileIcon" src={fileIcon} alt="" />
-                        <span className={`${record.is_owner === 1 ? 'isOwerFile' : ''}`}>{text}</span>
+                        <span style={{cursor:'pointer'}} onClick={()=>{this.readerBook(record)}} className={`${record.is_owner === 1 ? 'isOwerFile' : ''}`}>{text}</span>
                     </div>;
                     return displayText;
                 }
@@ -490,7 +716,7 @@ class SearchResult extends React.Component {
                     const fileIcon = this.getFileIcon(record.extension);
                     let displayText = <div className="fileName">
                         <img className="fileIcon" src={fileIcon} alt="" />
-                        <span className={`${record.is_owner === 1 ? 'isOwerFile' : ''} bookName`}>{text}</span>
+                        <span style={{cursor:'pointer'}} onClick={()=>{this.readerBook(record)}} className={`${record.is_owner === 1 ? 'isOwerFile' : ''} bookName`}>{text}</span>
                     </div>;
                     return displayText;
                 }
@@ -518,7 +744,67 @@ class SearchResult extends React.Component {
                 }
             },
         ];
-        const userInfo = JSON.parse(sessionStorage.getItem('userInfo'));
+        const userCol = [{
+            title: '用户名',
+            dataIndex: 'nick_name',
+            key: 'nick_name',
+            render: (text, record) => {
+                return (<div className="tableUserName">{!record.photo ? <span className="name">{text.substr(0, 1)}</span> : <img className="name" src={record.photo} />} {text}</div>)
+            }
+        }, {
+            title: '邮箱',
+            dataIndex: 'email',
+            key: 'email'
+        }, {
+            title: '注册日期',
+            dataIndex: 'add_time',
+            key: 'add_time',
+            render: (text, record) => {
+                return text.substr(0, 10);
+            }
+        }, {
+            title: '存储空间',
+            dataIndex: 'storage_used',
+            key: 'storage_used',
+            render: (text, record) => {
+                return (text + 'MB / ' + record.storage_limit + 'MB')
+            }
+        }, {
+            title: '账户状态',
+            dataIndex: 'status',
+            key: 'status',
+            render: (text, record) => {
+                return <span className={`${record.status === 1 ? 'isActive' : 'unActive'}`}>{text === 1 ? '激活' : '冻结'}</span>
+            }
+        }, {
+            title: '操作',
+            dataIndex: 'opt',
+            key: 'opt',
+            render: (text, record) => {
+                const optContent = (
+                    <div>
+                        {/* onClick={() => { this.edit(record, 'photo', '修改头像') }} */}
+                        <p className="optItem" onClick={() => { this.edit(record, 'photo', '修改头像') }}>修改头像</p> 
+                        <p className="optItem" onClick={() => { this.edit(record, 'nick_name', '修改用户名') }}>修改用户名</p>
+                        <p className="optItem" onClick={() => { this.edit(record, 'email', '修改邮箱') }}>修改邮箱</p>
+                        <p className="optItem" onClick={() => { this.edit(record, 'changePWD', '修改密码') }}>修改密码</p>
+                        <p className="optItem" onClick={() => { this.edit(record, 'status', '修改账户状态') }}>账户状态</p>
+                        <p className="optItem" onClick={() => { this.edit(record, 'storage_limit', '修改存储空间') }}>存储空间</p>
+                    </div>
+                );
+                const optHtml = <div className="optWarp">
+
+                    <Popover placement="rightTop" content={optContent} trigger="focus">
+                        <Button className="btn_more_opt"><Icon style={{ fontSize: '16px' }} type="ellipsis" /></Button>
+                    </Popover>
+                </div>
+                return optHtml;
+            }
+        }]
+        const smallUserCol = [];
+        smallUserCol.push(userCol[0]);
+        smallUserCol.push(userCol[5]);
+        const userInfo = JSON.parse(localStorage.getItem('userInfo'));
         let isLogin = false; let userName = ''; let photo = ''; let hasPhoto = false;let role=1;
         if (userInfo) {
             role = userInfo.role;
@@ -549,21 +835,26 @@ class SearchResult extends React.Component {
                     <Layout className="ant-layout-has-sider">
                         <Layout>
                             <Content className="mainContent">
-                                {this.state.showTable ?
+                                {this.state.showTable && !this.state.showEmpty ?
                                     <div className="myTableWarp">
                                         <div className="clearFix">
                                             <div className="title ms_fl">全部文件</div>
                                             <div className={`${this.state.showCheckBox ? 'showBtnList' : ''} btn_list ms_fr`}>
-                                                {role !== 2 ? <Button className="btn btn_clone" type="primary" onClick={this.fileClone}>克隆</Button> : ""}
-                                                {role !== 2 ? <Button className="btn btn_download" onClick={this.downloadEvent}>下载</Button> : ""}
-                                                {role === 2 ? <Button className="btn btn_fileType" onClick={this.fileTypeChange.bind(this)}>类型</Button> : ""}
-                                                {role === 2 ? <Button className="btn btn_del" type="danger" onClick={this.showDeleteConfirm}>删除</Button> : ""}
+                                                {role === 2 && searchType === 'user'? <Button className="btn btn_fileType" onClick={this.userStatusChange.bind(this)}>状态</Button>:""}
+                                                {role !== 2 && searchType !== 'user'? <Button className="btn btn_clone" type="primary" onClick={this.fileClone}>克隆</Button> : ""}
+                                                {role !== 2 && searchType !== 'user'? <Button className="btn btn_download" onClick={this.downloadEvent}>下载</Button> : ""}
+                                                {role === 2 && searchType !== 'user'? <Button className="btn btn_fileType" onClick={this.fileTypeChange.bind(this)}>类型</Button> : ""}
+                                                {role === 2 && searchType !== 'user'? <Button className="btn btn_del" type="danger" onClick={this.showDeleteConfirm}>删除</Button> : ""}
                                             </div>
                                         </div>
-                                        <Table rowKey={(record, index) => `complete${record.id}${index}`} className={`${this.state.showCheckBox ? 'showCheckBox' : ''} showInBig`} pagination={false} columns={columns} rowSelection={rowSelection} dataSource={this.state.tableData} />
-                                        <Table rowKey={(record, index) => `complete${record.id}${index}`} className={`${this.state.showCheckBox ? 'showCheckBox' : ''} showInSmall`} pagination={false} columns={smallColumns} rowSelection={rowSelection} dataSource={this.state.tableData} />
+                                        {searchType !=='user'?<Table rowKey={(record, index) => `complete${record.id}${index}`} className={`${this.state.showCheckBox ? 'showCheckBox' : ''} showInBig`} pagination={currPagination} columns={columns} rowSelection={rowSelection} dataSource={this.state.tableData} />:""}
+                                        {searchType !=='user'?<Table rowKey={(record, index) => `complete${record.id}${index}`} className={`${this.state.showCheckBox ? 'showCheckBox' : ''} showInSmall`} pagination={currSmallPagination} columns={smallColumns} rowSelection={rowSelection} dataSource={this.state.tableData} />:""}
+
+                                        {searchType ==='user'?<Table rowKey={(record, index) => `complete${record.id}${index}`} className={`${this.state.showCheckBox ? 'showCheckBox' : ''} showInBig`} pagination={currPagination} columns={userCol} rowSelection={rowSelection} dataSource={this.state.tableData} />:""}
+                                        {searchType ==='user'?<Table rowKey={(record, index) => `complete${record.id}${index}`} className={`${this.state.showCheckBox ? 'showCheckBox' : ''} showInSmall`} pagination={currSmallPagination} columns={smallUserCol} rowSelection={rowSelection} dataSource={this.state.tableData} />:""}
                                     </div>
                                     : ''}
+                                    {this.state.showEmpty? <EmptyComp /> :''}
                             </Content>
                         </Layout>
 
@@ -581,7 +872,7 @@ class SearchResult extends React.Component {
                             <i className="icon icon_add" title="新增" onClick={() => { this.setState({ isAddTag: true }) }}></i> 
                             <i className="icon icon_cancel" title="取消" onClick={() => { this.setState({ isAddTag: false }) }}></i>
                             <span className="addText">创建新标签</span>
-                            <Input className="addTag tagInput" defaultValue="" onChange={(value)=>{this.handleTagChange(value,'addTag')}} placeholder="创建标签" />
+                            {this.state.isAddTag ?<Input className="addTag tagInput" defaultValue="" onChange={(value)=>{this.handleTagChange(value,'addTag')}} placeholder="创建标签" />:""}
                             <i className="icon icon_ok ms_fr" title="保存" onClick={()=>{this.addNewTag('create')}}></i>
                         </div>
                         {this.state.tagList.map((item,index) => {

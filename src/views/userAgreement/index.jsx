@@ -1,16 +1,46 @@
 import React from 'react';
+import { Layout, Icon, Drawer } from 'antd';
 import './style.less'
+import SiderMenu from '../../componment/navSider/index.jsx'
+const { Header, Sider, Content } = Layout;
 class UserAgreement extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-
+            collapsed:true,
+            visible: false
         }
     }
+    toggleCollapsed = () => {
+        this.setState({
+            collapsed: !this.state.collapsed,
+        });
+    };
+    onClose = () => {
+        this.setState({
+            visible: false,
+        });
+    };
+    showDrawer = () => {
+        this.setState({
+            visible: true,
+        });
+    };
     render() {
         return (
             <div className="userAgreementWarp">
-                <div className="mainContent">
+                <Layout>
+                    <Header className="publicHeader">
+                        <div className="menuBtn showInBig"><Icon onClick={this.toggleCollapsed} type={this.state.collapsed ? 'menu' : 'arrow-left'} /></div>
+                        <div className="menuBtn showInSmall"><Icon onClick={this.showDrawer} type="menu" /></div>
+                    </Header>
+                    <Layout>
+                        <Sider className="siderWarp mySider" collapsed={this.state.collapsed}>
+                            <SiderMenu defOpenKey="6"></SiderMenu>
+                        </Sider>
+                        <Layout style={{ background: "#ffffff" }}>
+                            <Content className="mainContent">
+                <div>
                     <div className="bigTitle">用户协议</div>
                     <div className="line"></div>
                     <div className="subTitle">特别提示：</div>
@@ -236,6 +266,14 @@ class UserAgreement extends React.Component {
                     <div className="item">请您在发现任何违反本服务协议以及其他任何单项服务的服务条款、阅读链网站(www.yuedu.pro)各类公告之情形时，通知阅读链网站(www.yuedu.pro)。您可以通过如下联络方式同阅读链网站(www.yuedu.pro)联系：famez@qq.com</div>
 
                 </div>
+                            </Content>
+                        </Layout>
+
+                    </Layout>
+                </Layout>
+                <Drawer title="" placement="left" closable={false} onClose={this.onClose} visible={this.state.visible} className="mySider">
+                    <SiderMenu defOpenKey="6"></SiderMenu>
+                </Drawer>
             </div>
         )
     }

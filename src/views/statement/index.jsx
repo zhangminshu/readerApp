@@ -1,16 +1,46 @@
 import React from 'react';
+import { Layout, Icon, Drawer } from 'antd';
 import './style.less'
+import SiderMenu from '../../componment/navSider/index.jsx'
+const { Header, Sider, Content } = Layout;
 class Statement extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-
+            collapsed:true,
+            visible: false
         }
     }
+    toggleCollapsed = () => {
+        this.setState({
+            collapsed: !this.state.collapsed,
+        });
+    };
+    onClose = () => {
+        this.setState({
+            visible: false,
+        });
+    };
+    showDrawer = () => {
+        this.setState({
+            visible: true,
+        });
+    };
     render() {
         return (
             <div className="statementWarp">
-                <div className="mainContent">
+                <Layout>
+                    <Header className="publicHeader">
+                        <div className="menuBtn showInBig"><Icon onClick={this.toggleCollapsed} type={this.state.collapsed ? 'menu' : 'arrow-left'} /></div>
+                        <div className="menuBtn showInSmall"><Icon onClick={this.showDrawer} type="menu" /></div>
+                    </Header>
+                    <Layout>
+                        <Sider className="siderWarp mySider" collapsed={this.state.collapsed}>
+                            <SiderMenu defOpenKey="4"></SiderMenu>
+                        </Sider>
+                        <Layout style={{ background: "#ffffff" }}>
+                            <Content className="mainContent">
+                <div>
                     <div className="bigTitle">权利声明</div>
                     <div className="line"></div>
                     <div className="item">
@@ -88,6 +118,14 @@ class Statement extends React.Component {
                     </div>
                     <div className="item">请您把以上资料和联络方式发往到famez@qq.com</div>
                 </div>
+                </Content>
+                        </Layout>
+
+                    </Layout>
+                </Layout>
+                <Drawer title="" placement="left" closable={false} onClose={this.onClose} visible={this.state.visible} className="mySider">
+                    <SiderMenu defOpenKey="4"></SiderMenu>
+                </Drawer>
             </div>
         )
     }

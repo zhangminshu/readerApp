@@ -2,7 +2,8 @@ import React from 'react';
 import { Layout, Menu, Table, Input, Icon, Button, message, Modal, Radio, Popover, Checkbox,Spin, Drawer } from 'antd';
 import HTTP from '../../httpServer/axiosConfig.js'
 import './style.less'
-
+import cookie from 'js-cookie';
+import util from '../../lib/util.js';
 import coverPDF from '../../img/coverPDF.svg'
 import coverAZW3 from '../../img/coverAZW3.svg'
 import coverEPUB from '../../img/coverEPUB.svg'
@@ -39,8 +40,12 @@ class SharePage extends React.Component {
     }
     componentDidMount() {
         this.getShareBookList()
-        this.getUserInfo();
-        this.getCategory()
+        const Authorization = cookie.get('Authorization')
+        // this.getUserInfo();
+        if(Authorization){
+            this.getCategory()
+        }
+        
     }
     getCategory = () => {
         const url = '/category';
@@ -54,7 +59,7 @@ class SharePage extends React.Component {
                 const newTagList = tagList.concat(res.data.list);
                 this.setState({
                     categoryList:res.data.list,
-                    tagList:newTagList
+                    tagList:newTagList.reverse()
                 })
             }
         })
@@ -97,22 +102,15 @@ class SharePage extends React.Component {
                     userInfo: res.data,
                     role:res.data.role
                 })
-                sessionStorage.setItem('userInfo',JSON.stringify(res.data));
+                localStorage.setItem('userInfo',JSON.stringify(res.data));
             }
         })
     }
     readerBook=(bookInfo)=>{
-        if(!bookInfo.url) return message.error('书本链接不存在！')
-        if(bookInfo.extension ==='pdf'){
-            window.open(bookInfo.url,"_blank")
-        }else{
-            sessionStorage.setItem('bookInfo',JSON.stringify(bookInfo));
-            this.props.history.push('/reader')
-        }
-
+        util.showReaderTip(bookInfo);
     }
     fileClone = (type, item) => {
-        const userInfo = sessionStorage.getItem('userInfo');
+        const userInfo = localStorage.getItem('userInfo');
         if(!userInfo){
             this.unLoginTip();
             return;
@@ -144,10 +142,16 @@ class SharePage extends React.Component {
                 categoryIds.push(item.id)
             }
         })
-        const category_id = categoryIds.join(',')
-        if(category_id ==='')return message.error('标签不能为空！')
-        const url = `/category/${category_id}/_shiftin`;
-        HTTP.post(url,{book_ids:bookid}).then(response=>{
+        const category_id = categoryIds.join(',');
+        // if(category_id ==='')return message.error('标签不能为空！')
+        let requestJson ={};
+        if(category_id === ''){
+            requestJson={book_ids:bookid}
+        }else{
+            requestJson={book_ids:bookid,category_ids:category_id}
+        }
+        const url = `/book/_shiftin`;
+        HTTP.post(url,requestJson).then(response=>{
             const res = response.data;
             if(res.status === 0){
                 this.setState({
@@ -174,13 +178,16 @@ class SharePage extends React.Component {
         })
     }
     unLoginTip=()=>{
+        const _this = this;
         confirm({
             title: '请登录',
             content: "登录后可使用该功能",
-            okText: '确认',
+            okText: '登录',
             className:'confirmDialog',
             cancelText: '取消',
-            onOk() {},
+            onOk() {
+                _this.props.history.push('/login')
+            },
             onCancel() {}
           });
     }
@@ -216,7 +223,7 @@ class SharePage extends React.Component {
         }
     }
     toLogin = () => {
-        const userInfo = sessionStorage.getItem("userInfo")
+        const userInfo = localStorage.getItem("userInfo")
         if(userInfo){
             this.props.history.push('/')
         }else{
@@ -236,7 +243,7 @@ class SharePage extends React.Component {
         this.setState({isLoading:false})
     }
     downloadEvent = (type, item) => {
-        const userInfo = sessionStorage.getItem('userInfo');
+        const userInfo = localStorage.getItem('userInfo');
         if(!userInfo){
             this.unLoginTip();
             return;
@@ -348,19 +355,29 @@ class SharePage extends React.Component {
         })
     }
     render() {
-        const userInfo = this.state.userInfo;
-        const role = this.state.role;
-        let isLogin = false; let userName = '';let photo = '';let hasPhoto =false;
-        if (userInfo) {
-            if(userInfo.photo && userInfo.photo.length > 0){
-                photo = userInfo.photo;
-                hasPhoto = true;
-            }else{
-                userName = userInfo.nick_name[0];
-                isLogin = true;
-            }
-        }
-
+        // const userInfo = this.state.userInfo;
+        // const role = this.state.role;
+        // let isLogin = false; let userName = '';let photo = '';let hasPhoto =false;
+        // if (userInfo) {
+        //     if(userInfo.photo && userInfo.photo.length > 0){
+        //         photo = userInfo.photo;
+        //         hasPhoto = true;
+        //     }else{
+        //         userName = userInfo.nick_name[0];
+        //         isLogin = true;
+        //     }
+        // }
+        // const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+        // let isLogin = false; let userName = ''; let photo = ''; let hasPhoto = false;
+        // if (userInfo) {
+        //     if (userInfo.photo && userInfo.photo.length > 0) {
+        //         photo = userInfo.photo;
+        //         hasPhoto = true;
+        //     } else {
+        //         userName = userInfo.nick_name[0];
+        //         isLogin = true;
+        //     }
+        // }
         const columns = [
             {
                 title: '名称',
@@ -497,7 +514,7 @@ class SharePage extends React.Component {
                             <i className="icon icon_add" title="新增" onClick={() => { this.setState({ isAddTag: true }) }}></i> 
                             <i className="icon icon_cancel" title="取消" onClick={() => { this.setState({ isAddTag: false }) }}></i>
                             <span className="addText">创建新标签</span>
-                            <Input className="addTag tagInput" defaultValue="" onChange={(value)=>{this.handleTagChange(value,'addTag')}} placeholder="创建标签" />
+                            {this.state.isAddTag ?<Input className="addTag tagInput" defaultValue="" onChange={(value)=>{this.handleTagChange(value,'addTag')}} placeholder="创建标签" />:""}
                             <i className="icon icon_ok ms_fr" title="保存" onClick={()=>{this.addNewTag('create')}}></i>
                         </div>
                         {this.state.tagList.map((item,index) => {

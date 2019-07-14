@@ -1,12 +1,13 @@
 import React from 'react';
 import cookie from 'js-cookie'
-import { Table, Input, Icon, Button, message, Modal, Radio, Form, Upload, Popover, Checkbox } from 'antd';
+import { Table, Input, Icon, Button, message, Modal, Radio, Form, Upload,Tooltip, Popover, Checkbox } from 'antd';
 import HTTP from '../../httpServer/axiosConfig.js'
 import './style.less'
 import { debug } from 'util';
 const { confirm } = Modal;
 const RadioGroup = Radio.Group;
 const SUCCESS_CODE = 0;
+const text = <span>请将发送邮箱添加至您的亚马逊-已认可的发件人电子邮箱列表</span>;
 class UserInfo extends React.Component {
     constructor(props) {
         super(props);
@@ -32,6 +33,7 @@ class UserInfo extends React.Component {
         HTTP.get(url, {}).then(response => {
             const res = response.data;
             if (res.status === 0) {
+                localStorage.setItem('userInfo',JSON.stringify(res.data))
                 const days = this.countDay(res.data.update_pwd_time)
                 this.setState({
                     userInfo: res.data,
@@ -42,6 +44,7 @@ class UserInfo extends React.Component {
             }
         })
     }
+
     countDay = (lastDate) => {
         if (lastDate == '') return 0;
         const currDate = new Date();
@@ -138,6 +141,7 @@ class UserInfo extends React.Component {
             onOk() {
                 cookie.remove('Authorization');
                 sessionStorage.removeItem('userInfo');
+                localStorage.clear();
                 sessionStorage.clear();
                 _this.props.history.push('/login');
             },
@@ -171,7 +175,7 @@ class UserInfo extends React.Component {
             return;
         }
         if (info.file.status === 'done') {
-            // Get this url from response in real world.
+            this.getUserInfo();
             this.getBase64(info.file.originFileObj, imageUrl => {
                 const newUserInfo = this.state.userInfo;
                 newUserInfo['photo'] = imageUrl;
@@ -241,8 +245,8 @@ class UserInfo extends React.Component {
                         <div className="title">发送至Kindle</div>
                         <div className="subItem clearFix">
                             <span className="label ms_fl">发送邮箱</span>
-                            <span className="edit ms_fr"></span>
-                            <span className="value ms_fr">{userInfo.email}</span> </div>
+                            <span className="edit ms_fr"><Tooltip overlayClassName="myToolTip"  placement="topRight" title={text}><Icon style={{color: "#333"}} type="info-circle" /></Tooltip></span>
+                            <span className="value ms_fr">kindle@yuedu.pro</span> </div>
                         <div className="subItem clearFix">
                             <span className="label ms_fl">接收邮箱</span>
                             <span className="edit ms_fr" onClick={() => { this.edit(userInfo.kindle_email, 'kindle_email', '修改接收邮箱') }}>编辑</span>
