@@ -1,5 +1,13 @@
 body{
-    font-family: "SegoeUI", "Microsoft YaHei", "Helvetica Neue","Helvetica","Arial",sans-serif
+    font-family: "SegoeUI", "Microsoft YaHei", "Helvetica Neue","Helvetica","Arial",sans-serif;
+    // &::-webkit-scrollbar{
+    //     display: none;
+    //     width: 0px;
+    // }
+    // &::-webkit-scrollbar-thumb{
+    //     display: none;
+    //     width: 0px;
+    // }
 }
 h1, h2, h3, h4, h5, h6{
     margin-bottom: 0
@@ -23,6 +31,9 @@ h1, h2, h3, h4, h5, h6{
 }
 .ant-btn{
     padding: 0 20px;
+}
+.ant-layout.ant-layout-has-sider{
+    background: #ffffff;
 }
 .ant-btn-danger{
     color: #FFFFFF;
@@ -248,6 +259,25 @@ h1, h2, h3, h4, h5, h6{
         border: none;
     }
 }
+.tipDialog{
+    .ant-modal-header{
+        border: none;
+        padding: 24px 24px;
+    }
+    .ant-modal-title{
+        font-size: 20px;
+        color: #3D464D;
+    }
+    .ant-modal-body{
+        padding: 0 24px 24px;
+    }
+    .tipContent{
+        font-size: 18px;
+    }
+    .footer{
+        margin: 24px 0;
+    }
+}
 .myTableWarp{
     width: 95%;
     margin: 0 auto;
@@ -392,6 +422,9 @@ h1, h2, h3, h4, h5, h6{
     }
 }
 .siderWarp{
+    height: calc(100vh - 65px);
+    overflow-y: auto;
+    overflow-x: hidden;
     background: #ffffff;
     &.ant-layout-sider-collapsed{
         flex: 0 0 0px!important;

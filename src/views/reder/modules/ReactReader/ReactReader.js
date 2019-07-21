@@ -42,11 +42,17 @@ class ReactReader extends PureComponent {
 
   next = () => {
     const node = this.readerRef.current;
+    const lastPercent = node.book.locations.percentageFromCfi(node.book.rendition.currentLocation().start.cfi);
+    const currPercent = node.book.locations.percentageFromCfi(node.book.rendition.currentLocation().end.cfi);
+    sessionStorage.setItem('currPercent',currPercent);
     node.nextPage();
   };
 
   prev = () => {
     const node = this.readerRef.current;
+    const lastPercent = node.book.locations.percentageFromCfi(node.book.rendition.currentLocation().start.cfi);
+    const currPercent = node.book.locations.percentageFromCfi(node.book.rendition.currentLocation().end.cfi);
+    sessionStorage.setItem('currPercent',currPercent);
     node.prevPage();
   };
 
@@ -61,7 +67,6 @@ class ReactReader extends PureComponent {
   };
 
   renderToc() {
-    debugger;
     const { toc, expanedToc } = this.state;
     const { styles } = this.props;
     return (

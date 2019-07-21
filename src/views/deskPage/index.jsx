@@ -3,8 +3,6 @@ import { Layout, Menu, Table, Input, Icon, Button, message, Modal, Radio, Popove
 import HTTP from '../../httpServer/axiosConfig.js'
 import MyUpload from '../../componment/myUpload/index.jsx'
 import EmptyComp from '../../componment/emptyPage/index.jsx'
-import util from '../../lib/util.js';
-import axios from 'axios'
 import copy from 'copy-to-clipboard';
 import cookie from 'js-cookie';
 import './style.less'
@@ -22,6 +20,8 @@ class DeskPage extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            currBookUrl:'',
+            showTipModal:false,
             showEmpty:false,
             isLoading:false,
             isAddTag:false,
@@ -43,6 +43,7 @@ class DeskPage extends React.Component {
             pageSize: 10,
             tableData: [],
             tagList:[],
+            fileType: 0,
             editTagInfo:{
                 addTag:'',
                 newTag:''
@@ -146,26 +147,51 @@ class DeskPage extends React.Component {
         const navList = this.state.navList;
         const menuList = [];
         navList.map(item => {
-            menuList.push(<Menu.Item onClick={() => { this.changeMenu(item.id, type) }} key={item.key}> <span>{item.title}</span></Menu.Item>)
+            menuList.push(<Menu.Item onClick={() => { this.changeMenu(item.id, type,'menu') }} key={item.key}> <span>{item.title}</span></Menu.Item>)
         })
         return menuList;
     }
-    getBookListById = (id) => {
+    getBookListById = (id,changeType) => {
         if(id==='all'){
             id = '';
         }
+        let {pageNum,pageSize} = this.state;
         let requestJson = {}
+        if(changeType === 'menu'){
+            pageNum = 1;
+            this.setState({pageNum:1})
+        }
         const url = '/book';
         if (id !== '') {
             requestJson = {
-                category_id: id
+                category_id: id,
+                pn: pageNum,
+                ps: pageSize
+            }
+        }else{
+            requestJson = {
+                pn: pageNum,
+                ps: pageSize
             }
         }
+        // if(changeType === 'menu'){
+        //     requestJson = {
+        //         pn: 1,
+        //         ps: pageSize
+        //     }
+        //     this.setState({pageNum:1})
+        // }else{
+        //     requestJson = {
+        //         keyword: value,
+        //         pn: pageNum,
+        //         ps: pageSize
+        //     }
+        // }
         HTTP.get(url, { params: requestJson }).then(response => {
             const res = response.data;
             if (res.status === 0) {
                 let isEmpty = false;
-                if(res.data.total === 0)isEmpty =true;
+                if(res.data.total === 0 && (this.state.activeItem === 'all' ||this.state.activeItem==="" ))isEmpty =true;
                 this.setState({
                     showTable: true,
                     result: res.data.total,
@@ -177,7 +203,7 @@ class DeskPage extends React.Component {
             }
         })
     }
-    changeMenu = (id, type) => {
+    changeMenu = (id, type,changeType) => {
         if (type === 'small') {
             this.setState({
                 visible: false,
@@ -197,7 +223,7 @@ class DeskPage extends React.Component {
         this.deskActiveMenu = id.toString() || 'all';
         sessionStorage.setItem('deskActiveMenu',this.deskActiveMenu);
 
-        this.getBookListById(id)
+        this.getBookListById(id,changeType)
     }
     showDeleteConfirm = (type, item) => {
         const _this = this;
@@ -238,6 +264,11 @@ class DeskPage extends React.Component {
             }
         })
     }
+    handleRadioChange = e => {
+        this.setState({
+            fileType: e.target.value,
+        });
+    };
     fileTypeChange = (type, item) => {
         const ids = [];
         let defType = 0;
@@ -275,13 +306,12 @@ class DeskPage extends React.Component {
         HTTP.put(url, { book_ids: bookId, is_public: isPublic }).then(response => {
             const res = response.data;
             if (res.status === 0) {
-                const fileTableData = this.state.fileTableData;
-                const ids = bookId.split(",")
-                fileTableData.forEach(item => {
-                    if (ids.includes(item.id.toString())) item.is_public = isPublic;
+                const tableData = this.state.tableData;
+                tableData.forEach(item => {
+                    if (item.id == bookId) item.is_public = isPublic;
                 })
                 this.setState({
-                    fileTableData
+                    tableData
                 })
                 message.success('修改成功！')
             } else {
@@ -537,8 +567,38 @@ class DeskPage extends React.Component {
             }
         })
     }
+    handleTipCheckBox=e=>{
+        if(e.target.checked){
+            sessionStorage.setItem("noMoreTip",'1')
+        }else{
+            sessionStorage.setItem("noMoreTip",'0')
+        }
+    }
+    handleOkTip=()=>{
+        const bookUrl = this.state.currBookUrl;
+        this.setState({showTipModal:false},()=>{
+            window.open(bookUrl, "_blank")
+        })
+    }
     readerBook=(bookInfo)=>{
-        util.showReaderTip(bookInfo);
+        if (!bookInfo.url) return message.error('书本链接不存在！')
+        const userAgent = navigator.userAgent;
+        if (bookInfo.extension === 'pdf') {
+            if (userAgent.indexOf("Chrome") > -1) {
+                window.open(bookInfo.url, "_blank")
+            } else {
+                const noMoreTip = sessionStorage.getItem('noMoreTip')
+                if(noMoreTip==='1'){
+                    window.open(bookInfo.url, "_blank")
+                }else{
+                    this.setState({showTipModal:true,currBookUrl:bookInfo.url})
+                }
+            }
+
+        } else {
+            sessionStorage.setItem('bookInfo', JSON.stringify(bookInfo));
+            location.href = '#/reader';
+        }
     }
     handleTagChange=(e,name)=>{
         const value = e.target.value;
@@ -604,6 +664,11 @@ class DeskPage extends React.Component {
         });
         
     }
+    updateTable=(done)=>{
+        if(done){
+            this.changeMenu(this.deskActiveMenu)
+        }
+    }
     render() {
         const currPagination = this.state.result>10?{
             total:this.state.result,
@@ -618,7 +683,9 @@ class DeskPage extends React.Component {
             current:this.state.pageNum,
             onChange:this.pageChange.bind(this)
         }:false
-        const userInfo = this.state.userInfo;
+        // const userInfo = this.state.userInfo;
+        const cookUserInfo = cookie.get('userInfo') || null
+        const userInfo = JSON.parse(cookUserInfo)
         const role = this.state.role;
         let isLogin = false; let userName = ''; let photo = ''; let hasPhoto = false;
         if (userInfo) {
@@ -652,6 +719,7 @@ class DeskPage extends React.Component {
                 key: 'size',
                 width: '20%',
                 render: (text) => {
+                    if(!text) return text;
                     let val = text.toFixed(2) + 'MB';
                     return val;
                 }
@@ -751,7 +819,7 @@ class DeskPage extends React.Component {
                         <div className="menuBtn showInBig"><Icon onClick={this.toggleCollapsed} type={this.state.collapsed ? 'menu' : 'arrow-left'} /></div>
                         <div className="menuBtn showInSmall"><Icon onClick={this.showDrawer} type="menu" /></div>
                         <div className="searchWarp"><Input allowClear placeholder="搜索" onClick={this.toResultPage} /> <span className="result"></span></div>
-                        <div className="loginInfo" > {hasPhoto ? <img className="userPhoto" onClick={this.toUserInfo} src={photo} alt="" /> : (!isLogin ? <span onClick={this.toLogin}>注册</span> : <span className="userName" onClick={this.toUserInfo}>{userName}</span>)} </div>
+                        <div className="loginInfo" > {hasPhoto ? <img className="userPhoto" onClick={this.toUserInfo} src={photo} alt="" /> : (!isLogin ? <span onClick={this.toLogin}>登录</span> : <span className="userName" onClick={this.toUserInfo}>{userName}</span>)} </div>
                     </Header>
 
                     <Layout>
@@ -763,7 +831,7 @@ class DeskPage extends React.Component {
 
                         <Layout>
                             <Content className="mainContent">
-                                {this.state.showTable && !this.state.showEmpty ?
+                                {this.state.showTable && (!this.state.showEmpty) ?
                                     <div className="myTableWarp">
                                         <div className="clearFix">
                                             <div className="title ms_fl">全部文件</div>
@@ -791,7 +859,7 @@ class DeskPage extends React.Component {
                         {this.getSider("small")}
                     </Menu>
                 </Drawer>
-                <MyUpload />
+                <MyUpload updateTable={this.updateTable} />
 
                 <Modal
                     width="416px" title="" visible={this.state.showTagDialog} className="tagDialog" closable={false}
@@ -816,6 +884,18 @@ class DeskPage extends React.Component {
                                 <i className="icon icon_ok ms_fr" title="保存" onClick={()=>{this.addNewTag('edit',item.id)}}></i>
                                 </div>
                         })}
+                    </div>
+                </Modal>
+                <Modal
+                    width="416px" title="阅读提示" visible={this.state.showTipModal} className="tipDialog" closable={false}
+                    footer={null}
+                >
+                    <div className="tipContent">当前的浏览器可能无法阅读PDF文件，建议<br />使用谷歌浏览器</div>
+                    <div className="footer">
+                        <Checkbox className="tipCheck" onChange={(value)=>{this.handleTipCheckBox(value)}}>不再提示</Checkbox>
+                        
+                        <Button type="primary" className="ms_fr" onClick={this.handleOkTip}>确认</Button>
+                        <Button type="default" className="ms_fr" style={{marginRight:"14px"}} onClick={()=>{this.setState({showTipModal:false})}}>取消</Button>
                     </div>
                 </Modal>
             </div>

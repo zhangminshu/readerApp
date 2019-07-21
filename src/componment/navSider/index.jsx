@@ -12,16 +12,10 @@ const navList = [{
     key: 0
   },
   {
-    name: '注册',
+    name: '注册登录',
     path: '/login',
     jumpType: 1,
     key: 1
-  },
-  {
-    name: '书籍代找',
-    path: '/index',
-    jumpType: 1,
-    key: 2
   },
   {
     name: '问题反馈',

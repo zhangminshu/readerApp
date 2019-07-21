@@ -4,7 +4,6 @@ import HTTP from '../../httpServer/axiosConfig.js'
 import copy from 'copy-to-clipboard';
 import cookie from 'js-cookie';
 import EmptyComp from '../../componment/emptyPage/index.jsx'
-import SiderMenu from '../../componment/navSider/index.jsx'
 import './style.less'
 
 import coverPDF from '../../img/coverPDF.svg'
@@ -12,7 +11,6 @@ import coverAZW3 from '../../img/coverAZW3.svg'
 import coverEPUB from '../../img/coverEPUB.svg'
 import coverMOBI from '../../img/coverMOBI.svg'
 import coverTXT from '../../img/coverTXT.svg'
-import util from '../../lib/util.js';
 const { confirm } = Modal;
 const RadioGroup = Radio.Group;
 const SUCCESS_CODE = 0;
@@ -33,6 +31,8 @@ class ManagerPage extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            currBookUrl:'',
+            showTipModal:false,
             showEmpty:false,
             userStatus:"",
             isLoading:false,
@@ -130,7 +130,7 @@ class ManagerPage extends React.Component {
             const res = response.data;
             if (res.status === 0) {
                 let isEmpty = false;
-                if(res.data.total === 0)isEmpty =true;
+                // if(res.data.total === 0)isEmpty =true;
                 if (url === '/user') {
                     this.setState({
                         result: res.data.total,
@@ -528,8 +528,38 @@ class ManagerPage extends React.Component {
             }
         })
     }
+    handleTipCheckBox=e=>{
+        if(e.target.checked){
+            sessionStorage.setItem("noMoreTip",'1')
+        }else{
+            sessionStorage.setItem("noMoreTip",'0')
+        }
+    }
+    handleOkTip=()=>{
+        const bookUrl = this.state.currBookUrl;
+        this.setState({showTipModal:false},()=>{
+            window.open(bookUrl, "_blank")
+        })
+    }
     readerBook=(bookInfo)=>{
-        util.showReaderTip(bookInfo);
+        if (!bookInfo.url) return message.error('书本链接不存在！')
+        const userAgent = navigator.userAgent;
+        if (bookInfo.extension === 'pdf') {
+            if (userAgent.indexOf("Chrome") > -1) {
+                window.open(bookInfo.url, "_blank")
+            } else {
+                const noMoreTip = sessionStorage.getItem('noMoreTip')
+                if(noMoreTip==='1'){
+                    window.open(bookInfo.url, "_blank")
+                }else{
+                    this.setState({showTipModal:true,currBookUrl:bookInfo.url})
+                }
+            }
+
+        } else {
+            sessionStorage.setItem('bookInfo', JSON.stringify(bookInfo));
+            location.href = '#/reader';
+        }
     }
     getBase64 =(img, callback)=> {
         const reader = new FileReader();
@@ -556,13 +586,15 @@ class ManagerPage extends React.Component {
           return;
         }
         if (info.file.status === 'done') {
+            message.success('修改成功！')
+            this.changeMenu(navList[this.activeMenu])
           // Get this url from response in real world.
-          this.getBase64(info.file.originFileObj, imageUrl =>
-            this.setState({
-              imageUrl,
-              loading: false,
-            }),
-          );
+        //   this.getBase64(info.file.originFileObj, imageUrl =>
+        //     this.setState({
+        //       imageUrl,
+        //       loading: false,
+        //     }),
+        //   );
         }
       };
     edit = (item, fileName, title) => {
@@ -875,7 +907,9 @@ class ManagerPage extends React.Component {
         smallFileCol.push(fileCol[3]);
         smallUserCol.push(userCol[0]);
         smallUserCol.push(userCol[5]);
-        const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+        // const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+        const cookUserInfo = cookie.get('userInfo') || null
+        const userInfo = JSON.parse(cookUserInfo)
         let isLogin = false; let userName = ''; let photo = ''; let hasPhoto = false;
         if (userInfo) {
             if (userInfo.photo && userInfo.photo.length > 0) {
@@ -904,7 +938,7 @@ class ManagerPage extends React.Component {
                         <div className="menuBtn showInBig"><Icon onClick={this.toggleCollapsed} type={this.state.collapsed ? 'menu' : 'arrow-left'} /></div>
                         <div className="menuBtn showInSmall"><Icon onClick={this.showDrawer} type="menu" /></div>
                         <div className="searchWarp"><Input allowClear placeholder="搜索" onClick={this.toResultPage} /> <span className="result"></span></div>
-                        <div className="loginInfo" > {hasPhoto ? <img className="userPhoto" onClick={this.toUserInfo} src={photo} alt="" /> : (!isLogin ? <span onClick={this.toLogin}>注册</span> : <span className="userName" onClick={this.toUserInfo}>{userName}</span>)} </div>
+                        <div className="loginInfo" > {hasPhoto ? <img className="userPhoto" onClick={this.toUserInfo} src={photo} alt="" /> : (!isLogin ? <span onClick={this.toLogin}>登录</span> : <span className="userName" onClick={this.toUserInfo}>{userName}</span>)} </div>
                     </Header>
 
                     <Layout>
@@ -948,6 +982,18 @@ class ManagerPage extends React.Component {
                         {this.getSider("small")}
                     </Menu>
                 </Drawer>
+                <Modal
+                    width="416px" title="阅读提示" visible={this.state.showTipModal} className="tipDialog" closable={false}
+                    footer={null}
+                >
+                    <div className="tipContent">当前的浏览器可能无法阅读PDF文件，建议<br />使用谷歌浏览器</div>
+                    <div className="footer">
+                        <Checkbox className="tipCheck" onChange={(value)=>{this.handleTipCheckBox(value)}}>不再提示</Checkbox>
+                        
+                        <Button type="primary" className="ms_fr" onClick={this.handleOkTip}>确认</Button>
+                        <Button type="default" className="ms_fr" style={{marginRight:"14px"}} onClick={()=>{this.setState({showTipModal:false})}}>取消</Button>
+                    </div>
+                </Modal>
             </div>
             </Spin>
         )

@@ -10,7 +10,7 @@ class LoginPage extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            isRegister:true,
+            isRegister:false,
             showKfModal:false
         }
     }
@@ -34,8 +34,9 @@ class LoginPage extends React.Component {
             HTTP.post(registerUrl,{email,pwd}).then(response=>{
                 const res = response.data;
                 if(res.status === 0){
-                    message.success('注册成功，请重新登录！')
-                    this.setState({isRegister:false})
+                    // message.success('注册成功，请重新登录！')
+                    // this.setState({isRegister:false})
+                    this.login(email,pwd)
                 }else{
                     message.error(res.error);
                 }
@@ -45,8 +46,7 @@ class LoginPage extends React.Component {
             HTTP.post(loginUrl,{email,pwd}).then(response=>{
                 const res = response.data;
                 if(res.status === 0){
-                    console.log('11',res.data.token)
-                    cookie.set('Authorization',res.data.token);
+                    cookie.set('Authorization',res.data.token,{ expires: 7 });
                     this.getUserInfo()
                     // message.success('登录成功！')
                 }else{
@@ -55,6 +55,19 @@ class LoginPage extends React.Component {
             })
         }        
     };
+    login=(email,pwd)=>{
+        const loginUrl = '/user/_signin';
+        HTTP.post(loginUrl,{email,pwd}).then(response=>{
+            const res = response.data;
+            if(res.status === 0){
+                cookie.set('Authorization',res.data.token,{ expires: 7 });
+                this.getUserInfo()
+                // message.success('登录成功！')
+            }else{
+                message.error(res.error);
+            }
+        })
+    }
     getUserInfo = () => {
         const url = '/user/_info';
         HTTP.get(url, {}).then(response => {
@@ -62,6 +75,7 @@ class LoginPage extends React.Component {
             if (res.status === 0) {
                 sessionStorage.setItem('userInfo',JSON.stringify(res.data));
                 localStorage.setItem('userInfo',JSON.stringify(res.data))
+                cookie.set('userInfo',res.data,{ expires: 7 });
                 if(res.data.role === 2){
                     this.props.history.push('/manager')
                 }else{

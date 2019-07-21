@@ -5,6 +5,7 @@ import HTTP from '../../httpServer/axiosConfig.js'
 import SiderMenu from '../../componment/navSider/index.jsx'
 import MyFooter from '../../componment/footer/index.jsx'
 import './style.less'
+import cookie from 'js-cookie';
 import bannerBg from '../../img/banner.svg';
 import bookAdd from '../../img/book_add.svg'
 import onlineReading from '../../img/online_reading.svg'
@@ -61,7 +62,9 @@ class HomePage extends React.Component {
     }
     render() {
         // const userInfo = this.state.userInfo;
-        const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+        // const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+        const cookUserInfo = cookie.get('userInfo') || null
+        const userInfo = JSON.parse(cookUserInfo)
         let isLogin = false; let userName = '';let photo = '';let hasPhoto =false;
         if (userInfo) {
             if(userInfo.photo && userInfo.photo.length > 0){
@@ -79,7 +82,7 @@ class HomePage extends React.Component {
                         <div className="menuBtn showInBig"><Icon onClick={this.toggleCollapsed} type={this.state.collapsed ? 'menu' : 'arrow-left'} /></div>
                         <div className="menuBtn showInSmall"><Icon onClick={this.showDrawer} type="menu"/></div>
                         <div className="searchWarp"><Input allowClear placeholder="搜索" onClick={this.toResultPage} /> <span className="result"></span></div>
-                        <div className="loginInfo" > {hasPhoto? <img className="userPhoto" onClick={this.toUserInfo} src={photo} alt=""/> : (!isLogin ? <span onClick={()=>{this.toLogin(false)}}>注册</span> : <span className="userName" onClick={this.toUserInfo}>{userName}</span>)} </div>
+                        <div className="loginInfo" > {hasPhoto? <img className="userPhoto" onClick={this.toUserInfo} src={photo} alt=""/> : (!isLogin ? <span onClick={()=>{this.toLogin(false)}}>登录</span> : <span className="userName" onClick={this.toUserInfo}>{userName}</span>)} </div>
                     </Header>
 
                     <Layout>

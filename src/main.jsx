@@ -12,8 +12,33 @@ import UserAgreement from './views/userAgreement/index.jsx'
 import Statement from './views/statement/index.jsx'
 import ServerAgreement from './views/serverAgreement/index.jsx'
 import UploadBook from './views/uploadBook/index.jsx'
+import {  Modal,message } from 'antd';
 import './css/main.less'
 import { HashRouter, Route, hashHistory, Switch } from 'react-router-dom';
+const { confirm } = Modal;
+const userAgent = navigator.userAgent;
+//判断是否IE浏览器
+const isIE = userAgent.indexOf("compatible") > -1 && userAgent.indexOf("MSIE") > -1;
+if (isIE) {
+    var reIE = new RegExp("MSIE (\\d+\\.\\d+);");
+    reIE.test(userAgent);
+    var fIEVersion = parseFloat(RegExp["$1"]);
+    if (fIEVersion < 10) {
+        
+        confirm({
+          title: '提示',
+          content: <div>浏览器不兼容，建议使用谷歌浏览器</div>,
+          okText: '确认',
+          className: 'confirmDialog',
+          cancelText: '取消',
+          onOk() {
+              
+          },
+          onCancel() { }
+      });
+    }
+}
+
 
 const SliderComponent = () => (
     <Switch>

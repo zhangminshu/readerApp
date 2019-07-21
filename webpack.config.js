@@ -5,7 +5,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const UglifyjsWebpackPlugin = require('uglifyjs-webpack-plugin');
 module.exports = {
-    entry: './src/main.jsx',//配置入口文件的地址
+    entry: ["babel-polyfill",'./src/main.jsx'],//配置入口文件的地址
     output: {//配置出口文件的地址
         path: path.resolve(__dirname, './dist'),
         filename: 'main.[hash:7].js'//打包后输出的文件名，后面跟7位随机hash值
@@ -21,7 +21,7 @@ module.exports = {
                     }
                 },
                 include: path.resolve(__dirname, './src'),
-                exclude: /node_modules/
+                // exclude: /node_modules/
             },
             {
                 test: /\.css$/,
@@ -78,7 +78,7 @@ module.exports = {
             }
         }),
         new CleanWebpackPlugin([path.join(__dirname, 'dist')]),//打包前先清空输出目录
-        new UglifyjsWebpackPlugin(),//压缩js
+        // new UglifyjsWebpackPlugin(),//压缩js
     ],//配置插件
     devServer: {//配置开发服务器
         contentBase: path.resolve(__dirname, 'dist'),// 配置开发服务运行时的文件根目录

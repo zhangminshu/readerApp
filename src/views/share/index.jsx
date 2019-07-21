@@ -3,7 +3,6 @@ import { Layout, Menu, Table, Input, Icon, Button, message, Modal, Radio, Popove
 import HTTP from '../../httpServer/axiosConfig.js'
 import './style.less'
 import cookie from 'js-cookie';
-import util from '../../lib/util.js';
 import coverPDF from '../../img/coverPDF.svg'
 import coverAZW3 from '../../img/coverAZW3.svg'
 import coverEPUB from '../../img/coverEPUB.svg'
@@ -17,6 +16,8 @@ class SharePage extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            currBookUrl:'',
+            showTipModal:false,
             isLoading:false,
             isAddTag:false,
             editTag:'',//编辑中的标签
@@ -106,8 +107,38 @@ class SharePage extends React.Component {
             }
         })
     }
+    handleTipCheckBox=e=>{
+        if(e.target.checked){
+            sessionStorage.setItem("noMoreTip",'1')
+        }else{
+            sessionStorage.setItem("noMoreTip",'0')
+        }
+    }
+    handleOkTip=()=>{
+        const bookUrl = this.state.currBookUrl;
+        this.setState({showTipModal:false},()=>{
+            window.open(bookUrl, "_blank")
+        })
+    }
     readerBook=(bookInfo)=>{
-        util.showReaderTip(bookInfo);
+        if (!bookInfo.url) return message.error('书本链接不存在！')
+        const userAgent = navigator.userAgent;
+        if (bookInfo.extension === 'pdf') {
+            if (userAgent.indexOf("Chrome") > -1) {
+                window.open(bookInfo.url, "_blank")
+            } else {
+                const noMoreTip = sessionStorage.getItem('noMoreTip')
+                if(noMoreTip==='1'){
+                    window.open(bookInfo.url, "_blank")
+                }else{
+                    this.setState({showTipModal:true,currBookUrl:bookInfo.url})
+                }
+            }
+
+        } else {
+            sessionStorage.setItem('bookInfo', JSON.stringify(bookInfo));
+            location.href = '#/reader';
+        }
     }
     fileClone = (type, item) => {
         const userInfo = localStorage.getItem('userInfo');
@@ -355,29 +386,6 @@ class SharePage extends React.Component {
         })
     }
     render() {
-        // const userInfo = this.state.userInfo;
-        // const role = this.state.role;
-        // let isLogin = false; let userName = '';let photo = '';let hasPhoto =false;
-        // if (userInfo) {
-        //     if(userInfo.photo && userInfo.photo.length > 0){
-        //         photo = userInfo.photo;
-        //         hasPhoto = true;
-        //     }else{
-        //         userName = userInfo.nick_name[0];
-        //         isLogin = true;
-        //     }
-        // }
-        // const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-        // let isLogin = false; let userName = ''; let photo = ''; let hasPhoto = false;
-        // if (userInfo) {
-        //     if (userInfo.photo && userInfo.photo.length > 0) {
-        //         photo = userInfo.photo;
-        //         hasPhoto = true;
-        //     } else {
-        //         userName = userInfo.nick_name[0];
-        //         isLogin = true;
-        //     }
-        // }
         const columns = [
             {
                 title: '名称',
@@ -387,7 +395,7 @@ class SharePage extends React.Component {
                     const fileIcon = this.getFileIcon(record.extension);
                     let displayText = <div className="fileName">
                             <img className="fileIcon" src={fileIcon} alt=""/>
-                            <span className={`${record.is_owner === 1 ? 'isOwerFile':''}`}>{text}</span>
+                            <span style={{cursor:'pointer'}} onClick={()=>{this.readerBook(record)}} className={`${record.is_owner === 1 ? 'isOwerFile':''}`}>{text}</span>
                         </div>;
                     return displayText;
                 }
@@ -419,7 +427,6 @@ class SharePage extends React.Component {
                         <div>
                           <p className="optItem" onClick={() => { this.fileClone('single', record)}}>克隆</p>
                           <p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>
-                          <p className="optItem" onClick={()=>{this.readerBook(record)}}>阅读</p>
                         </div>
                       );
                     const optHtml = <div className="optWarp">
@@ -441,7 +448,7 @@ class SharePage extends React.Component {
                     const fileIcon = this.getFileIcon(record.extension);
                     let displayText = <div className="fileName">
                             <img className="fileIcon" src={fileIcon} alt=""/>
-                            <span className={`${record.is_owner === 1 ? 'isOwerFile':''}`}>{text}</span>
+                            <span style={{cursor:'pointer'}} onClick={()=>{this.readerBook(record)}} className={`${record.is_owner === 1 ? 'isOwerFile':''}`}>{text}</span>
                         </div>;
                     return displayText;
                 }
@@ -455,7 +462,6 @@ class SharePage extends React.Component {
                         <div>
                           <p className="optItem" onClick={() => { this.fileClone('single', record)}}>克隆</p>
                           <p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>
-                          <p className="optItem" onClick={()=>{this.readerBook(record)}}>阅读</p>
                         </div>
                       );
                     const optHtml = <div className="optWarp">
@@ -526,6 +532,18 @@ class SharePage extends React.Component {
                                 <i className="icon icon_ok ms_fr" title="保存" onClick={()=>{this.addNewTag('edit',item.id)}}></i>
                                 </div>
                         })}
+                    </div>
+                </Modal>
+                <Modal
+                    width="416px" title="阅读提示" visible={this.state.showTipModal} className="tipDialog" closable={false}
+                    footer={null}
+                >
+                    <div className="tipContent">当前的浏览器可能无法阅读PDF文件，建议<br />使用谷歌浏览器</div>
+                    <div className="footer">
+                        <Checkbox className="tipCheck" onChange={(value)=>{this.handleTipCheckBox(value)}}>不再提示</Checkbox>
+                        
+                        <Button type="primary" className="ms_fr" onClick={this.handleOkTip}>确认</Button>
+                        <Button type="default" className="ms_fr" style={{marginRight:"14px"}} onClick={()=>{this.setState({showTipModal:false})}}>取消</Button>
                     </div>
                 </Modal>
             </div>

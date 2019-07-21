@@ -5,6 +5,7 @@ import {Modal,Notification} from 'antd';
 
 const confirm = Modal.confirm;
 let loginout =null;
+let hasLoginDialog = false
 const HTTP = axios.create({
     headers:{},
     timeout:60000
@@ -12,6 +13,7 @@ const HTTP = axios.create({
 
 HTTP.interceptors.request.use(
     config =>{
+        // config.url = 'http://47.96.81.45:8080' + config.url
         if(!config.headers.Authorization && cookie.get('Authorization')){
             config.headers.Authorization = cookie.get('Authorization');
         }
@@ -35,6 +37,8 @@ HTTP.interceptors.response.use(
     response =>{
         const status = response && response.data && response.data.status;
         if(status === 2){
+            if(hasLoginDialog) return;
+            hasLoginDialog = true
             confirm({
                 title: "请登录",
                 content: "登录后可使用该功能",
@@ -42,9 +46,12 @@ HTTP.interceptors.response.use(
                 className: 'confirmDialog',
                 cancelText: '取消',
                 onOk() {
+                    hasLoginDialog = false;
                     location.href = '#/login';
                 },
-                onCancel() { }
+                onCancel() {
+                    hasLoginDialog = false;
+                 }
             });
         }else{
             return response;

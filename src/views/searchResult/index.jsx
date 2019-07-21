@@ -4,6 +4,7 @@ import HTTP from '../../httpServer/axiosConfig.js'
 import cookie from 'js-cookie';
 import util from '../../lib/util.js';
 import './style.less'
+import copy from 'copy-to-clipboard';
 import EmptyComp from '../../componment/emptyPage/index.jsx'
 import coverPDF from '../../img/coverPDF.svg'
 import coverAZW3 from '../../img/coverAZW3.svg'
@@ -18,6 +19,8 @@ class SearchResult extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            currBookUrl:'',
+            showTipModal:false,
             result:0,
             showEmpty:false,
             userStatus:"",
@@ -98,7 +101,7 @@ class SearchResult extends React.Component {
     }
 
     searchBook = (e, type) => {
-        debugger
+        
         const searchType = this.state.searchType;
         let url ='';
         if(searchType === 'user'){
@@ -109,11 +112,21 @@ class SearchResult extends React.Component {
         
 
         const bookName = type === 'search' ? e.target.value : e;
+        let pageNum =1;
+        if(type === 'search'){
+            pageNum =1;
+            this.setState({
+                pageNum
+            })
+        }else{
+            pageNum = this.state.pageNum;
+        }
         const requestJson = {
             keyword: bookName,
-            pn: this.state.pageNum,
+            pn: pageNum,
             ps: this.state.pageSize
         }
+
         if (bookName === '') {
             const searchText = `可搜索 ${this.state.totalNum} 个文件`
             let isEmpty = false;
@@ -125,7 +138,7 @@ class SearchResult extends React.Component {
                 if (res.status === 0) {
                     const searchText = `找到约 ${res.data.total} 条结果`
                     let isEmpty = false;
-                    if(res.data.total === 0)isEmpty =true;
+                    // if(res.data.total === 0)isEmpty =true;
                     this.setState({
                         result:res.data.total,
                         showTable: true,
@@ -141,6 +154,26 @@ class SearchResult extends React.Component {
 
             })
         }
+    }
+    sendToKindle = (bid,isOverLimit) => {
+        if(isOverLimit) return message.info('请选择10M以内的文件');
+        const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+        if(userInfo){
+            const kindle_email = userInfo.kindle_email;
+            if(!kindle_email)return message.info('请到设置页面添加您的kindle邮箱')
+        }else{
+            return message.info('请到设置页面添加您的kindle邮箱')
+        }
+
+        const url = `/book/${bid}/_push`;
+        HTTP.post(url, {}).then(response => {
+            const res = response.data;
+            if (res.status === 0) {
+                message.success('推送成功！')
+            } else {
+                message.error(res.error)
+            }
+        })
     }
     handleChange = (selectedRowKeys, selectedRows) => {
         this.setState({
@@ -187,13 +220,18 @@ class SearchResult extends React.Component {
             fileType: e.target.value,
         });
     };
-    showDeleteConfirm = () => {
+    showDeleteConfirm = (type, item) => {
         const _this = this;
         const ids = [];
-        this.state.selectedRow.forEach(item => {
-            ids.push(item.id)
-        })
-        const bookIds = ids.join(',');
+        let bookIds = "";
+        if (type === 'single') {
+            bookIds = item.id.toString();
+        } else {
+            this.state.selectedRow.forEach(item => {
+                ids.push(item.id)
+            })
+            bookIds = ids.join(',');
+        }
         confirm({
             title: '删除文件',
             content: '删除后将不可找回，确认删除？',
@@ -221,28 +259,54 @@ class SearchResult extends React.Component {
             }
         })
     }
-    showShareConfirm = () => {
+    fileShare = (type, id) => {
+        const ids = [];
+        let bookIds = "";
+        if (type === "row") {
+            bookIds = id;
+        } else {
+            this.state.selectedRow.forEach(item => {
+                ids.push(item.id)
+            })
+            bookIds = ids.join(',');
+        }
+        const shareUrl = location.origin + "/#/share?bid=" + bookIds;
+        this.showShareConfirm(shareUrl)
+    }
+    showShareConfirm = (shareUrl) => {
         confirm({
             title: '分享文件',
-            content: <div><Input className="shareUrl" /><p className="desc">把链接通过微信、QQ、微博等方式分享给好友</p></div>,
+            content: <div><Input className="shareUrl" disabled defaultValue={shareUrl} /><p className="desc">把链接通过微信、QQ、微博等方式分享给好友</p></div>,
             okText: '复制',
             className: 'confirmDialog',
             cancelText: '取消',
             onOk() {
-                console.log('OK');
+                copy(shareUrl);
             },
             onCancel() {
                 console.log('Cancel');
             },
         });
     }
-    fileTypeChange = () => {
-        const bookId = this.state.selectedRow[0].id;
-        const fileType = this.state.selectedRow[0].is_public;
+    fileTypeChange = (type, item) => {
+        const ids = [];
+        let defType = 0;
+        let bookId = "";
+
+        if (type === 'single') {
+            bookId = item.id.toString();
+            defType = item.is_public;
+        } else {
+            this.state.selectedRow.forEach(item => {
+                ids.push(item.id);
+                defType = defType || item.is_public;
+            })
+            bookId = ids.join(',')
+        }
         const _this = this;
         confirm({
             title: '修改类型',
-            content: <div className="radioWarp"><RadioGroup defaultValue={fileType} onChange={this.handleRadioChange} >
+            content: <div className="radioWarp"><RadioGroup defaultValue={defType} onChange={this.handleRadioChange} >
                 <div className="radioItem"><Radio value={1}>公开</Radio></div>
                 <div className="radioItem"><Radio value={0}>私有</Radio></div>
             </RadioGroup></div>,
@@ -257,8 +321,8 @@ class SearchResult extends React.Component {
         });
     }
     modifyFileType = (bookId, isPublic) => {
-        const url = `/book/${bookId}/_info`;
-        HTTP.put(url, { is_public: isPublic }).then(response => {
+        const url = '/book/_public';
+        HTTP.put(url, { book_ids: bookId, is_public: isPublic }).then(response => {
             const res = response.data;
             if (res.status === 0) {
                 const tableData = this.state.tableData;
@@ -274,8 +338,76 @@ class SearchResult extends React.Component {
             }
         })
     }
+    handleNameChange = (e) => {
+        const bookName = e.target.value;
+        this.setState({
+            bookName
+        })
+    }
+    renameDialog = (item) => {
+        const nameSplit = item.title.split('.');
+        const bookType = nameSplit.pop();
+        const bookName = nameSplit.join('.');
+        const _this = this;
+        const inputHtml = <div><Input allowClear defaultValue={bookName} placeholder="" onChange={(e) => { this.handleNameChange(e) }} /></div>;
+        confirm({
+            title: '名称修改',
+            content: <div>{inputHtml}</div>,
+            okText: '确认',
+            className: 'confirmDialog',
+            cancelText: '取消',
+            onOk() {
+
+                _this.changeBookName(item,bookType);
+            },
+            onCancel() { }
+        });
+    }
+    changeBookName = (item,bookType) => {
+        const url = `/book/${item.id}/_info`;
+        let bookName = this.state.bookName + '.'+bookType;
+        HTTP.put(url, { title: bookName }).then(response => {
+            const res = response.data;
+            if (res.status === 0) {
+                message.success('修改成功！')
+                this.searchBook(this.state.searchBookName, 'cahngeName')
+            } else {
+                message.error(res.error)
+            }
+        })
+    }
+    handleTipCheckBox=e=>{
+        if(e.target.checked){
+            sessionStorage.setItem("noMoreTip",'1')
+        }else{
+            sessionStorage.setItem("noMoreTip",'0')
+        }
+    }
+    handleOkTip=()=>{
+        const bookUrl = this.state.currBookUrl;
+        this.setState({showTipModal:false},()=>{
+            window.open(bookUrl, "_blank")
+        })
+    }
     readerBook=(bookInfo)=>{
-        util.showReaderTip(bookInfo);
+        if (!bookInfo.url) return message.error('书本链接不存在！')
+        const userAgent = navigator.userAgent;
+        if (bookInfo.extension === 'pdf') {
+            if (userAgent.indexOf("Chrome") > -1) {
+                window.open(bookInfo.url, "_blank")
+            } else {
+                const noMoreTip = sessionStorage.getItem('noMoreTip')
+                if(noMoreTip==='1'){
+                    window.open(bookInfo.url, "_blank")
+                }else{
+                    this.setState({showTipModal:true,currBookUrl:bookInfo.url})
+                }
+            }
+
+        } else {
+            sessionStorage.setItem('bookInfo', JSON.stringify(bookInfo));
+            location.href = '#/reader';
+        }
     }
     fileClone = (type, item) => {
         const userInfo = localStorage.getItem('userInfo');
@@ -639,6 +771,20 @@ class SearchResult extends React.Component {
         });
     }
     render() {
+        // const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+        const cookUserInfo = cookie.get('userInfo') || null
+        const userInfo = JSON.parse(cookUserInfo)
+        let isLogin = false; let userName = ''; let photo = ''; let hasPhoto = false;let role=1;
+        if (userInfo) {
+            role = userInfo.role;
+            if (userInfo.photo && userInfo.photo.length > 0) {
+                photo = userInfo.photo;
+                hasPhoto = true;
+            } else {
+                userName = userInfo.nick_name[0];
+                isLogin = true;
+            }
+        }
         const currPagination =this.state.result>10?{
             total:this.state.result,
             pageSize:this.state.pageSize,
@@ -690,11 +836,17 @@ class SearchResult extends React.Component {
                 dataIndex: 'opt',
                 key: 'opt',
                 render: (text, record) => {
+                    const isOver10M = record.size > 10;
                     const optContent = (
                         <div>
-                            <p className="optItem" onClick={() => { this.fileClone('single', record)}}>克隆</p>
-                            <p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>
-                            <p className="optItem" onClick={()=>{this.readerBook(record)}}>阅读</p>
+                            {role !== 2?<p className="optItem" onClick={() => { this.fileClone('single', record)}}>克隆</p>:""}
+                            {role !== 2?<p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>:""}
+                            {role === 2?<p className="optItem" onClick={() => { this.fileShare("row", record.id) }}>分享</p>:""}
+                            {role === 2?<p className={`${isOver10M ? 'overLimit':''} optItem`} onClick={() => { this.sendToKindle(record.id,isOver10M) }}>kindle</p>:""}
+                            {role === 2?<p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>:""}
+                            {role === 2?<p className="optItem" onClick={() => { this.renameDialog(record) }}>重命名</p>:""}
+                            {role === 2?<p className="optItem" onClick={() => { this.fileTypeChange('single', record) }}>文件类型</p>:""}
+                            {role === 2?<p className="optItem" style={{color:'#FF3B30'}} onClick={() => { this.showDeleteConfirm('single', record) }}>删除</p>:""}
                         </div>
                     );
                     const optHtml = <div className="optWarp">
@@ -727,11 +879,17 @@ class SearchResult extends React.Component {
                 dataIndex: 'opt',
                 key: 'opt',
                 render: (text, record) => {
+                    const isOver10M = record.size > 10;
                     const optContent = (
                         <div>
-                            <p className="optItem" onClick={() => { this.fileClone('single', record)}}>克隆</p>
-                            <p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>
-                            <p className="optItem" onClick={()=>{this.readerBook(record)}}>阅读</p>
+                            {role !== 2?<p className="optItem" onClick={() => { this.fileClone('single', record)}}>克隆</p>:""}
+                            {role !== 2?<p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>:""}
+                            {role === 2?<p className="optItem" onClick={() => { this.fileShare("row", record.id) }}>分享</p>:""}
+                            {role === 2?<p className={`${isOver10M ? 'overLimit':''} optItem`} onClick={() => { this.sendToKindle(record.id,isOver10M) }}>kindle</p>:""}
+                            {role === 2?<p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>:""}
+                            {role === 2?<p className="optItem" onClick={() => { this.renameDialog(record) }}>重命名</p>:""}
+                            {role === 2?<p className="optItem" onClick={() => { this.fileTypeChange('single', record) }}>文件类型</p>:""}
+                            {role === 2?<p className="optItem" style={{color:'#FF3B30'}} onClick={() => { this.showDeleteConfirm('single', record) }}>删除</p>:""}
                         </div>
                     );
                     const optHtml = <div className="optWarp">
@@ -804,18 +962,7 @@ class SearchResult extends React.Component {
         const smallUserCol = [];
         smallUserCol.push(userCol[0]);
         smallUserCol.push(userCol[5]);
-        const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-        let isLogin = false; let userName = ''; let photo = ''; let hasPhoto = false;let role=1;
-        if (userInfo) {
-            role = userInfo.role;
-            if (userInfo.photo && userInfo.photo.length > 0) {
-                photo = userInfo.photo;
-                hasPhoto = true;
-            } else {
-                userName = userInfo.nick_name[0];
-                isLogin = true;
-            }
-        }
+
         const rowSelection = {
             onChange: this.handleChange,
             onSelect: this.handleSelect,
@@ -829,7 +976,7 @@ class SearchResult extends React.Component {
                     <div className="publicHeader">
                         <div className="menuBtn"><Icon onClick={this.toIndex} type={'arrow-left'} /></div>
                         <div className="searchWarp"><Input allowClear placeholder="搜索" onChange={(value) => { this.searchBook(value, 'search') }} /> <span className="result">{this.state.searchText}</span></div>
-                        <div className="loginInfo" > {hasPhoto ? <img className="userPhoto" onClick={this.toUserInfo} src={photo} alt="" /> : (!isLogin ? <span onClick={this.toLogin}>注册</span> : <span className="userName" onClick={this.toUserInfo}>{userName}</span>)} </div>
+                        <div className="loginInfo" > {hasPhoto ? <img className="userPhoto" onClick={this.toUserInfo} src={photo} alt="" /> : (!isLogin ? <span onClick={this.toLogin}>登录</span> : <span className="userName" onClick={this.toUserInfo}>{userName}</span>)} </div>
                     </div>
 
                     <Layout className="ant-layout-has-sider">
@@ -884,6 +1031,18 @@ class SearchResult extends React.Component {
                                 <i className="icon icon_ok ms_fr" title="保存" onClick={()=>{this.addNewTag('edit',item.id)}}></i>
                                 </div>
                         })}
+                    </div>
+                </Modal>
+                <Modal
+                    width="416px" title="阅读提示" visible={this.state.showTipModal} className="tipDialog" closable={false}
+                    footer={null}
+                >
+                    <div className="tipContent">当前的浏览器可能无法阅读PDF文件，建议<br />使用谷歌浏览器</div>
+                    <div className="footer">
+                        <Checkbox className="tipCheck" onChange={(value)=>{this.handleTipCheckBox(value)}}>不再提示</Checkbox>
+                        
+                        <Button type="primary" className="ms_fr" onClick={this.handleOkTip}>确认</Button>
+                        <Button type="default" className="ms_fr" style={{marginRight:"14px"}} onClick={()=>{this.setState({showTipModal:false})}}>取消</Button>
                     </div>
                 </Modal>
             </div>

@@ -2,7 +2,6 @@ import React, { Component } from "react";
 import PropTypes from "prop-types";
 import Epub from "epubjs/lib/index";
 import defaultStyles from "./style";
-
 global.ePub = Epub; // Fix for v3 branch of epub.js -> needs ePub to by a global var
 
 class EpubView extends Component {
@@ -23,12 +22,10 @@ class EpubView extends Component {
     const epubOptions = {};
     this.book = new Epub(url, epubOptions);
     this.book.loaded.navigation.then(({ toc }) => {
-      this.setState(
-        {
+      this.setState({
           isLoaded: true,
           toc: toc
-        },
-        () => {
+        },() => {
           tocChanged && tocChanged(toc);
           this.initReader();
         }
@@ -47,15 +44,13 @@ class EpubView extends Component {
   }
 
   componentDidUpdate(prevProps) {
-    if (
-      prevProps.location !== this.props.location &&
-      this.location !== this.props.location
-    ) {
+    if (prevProps.location !== this.props.location &&this.location !== this.props.location) {
       this.rendition.display(this.props.location);
     }
   }
 
   initReader() {
+    const _this = this;
     const { toc } = this.state;
     const { location, epubOptions, getRendition } = this.props;
     const node = this.viewerRef.current;
@@ -65,12 +60,25 @@ class EpubView extends Component {
       height: "100%",
       ...epubOptions
     });
-    this.rendition.display(
-      typeof location === "string" || typeof location === "number"
-        ? location
-        : toc[0].href
-    );
+    // this.rendition.display(
+    //   typeof location === "string" || typeof location === "number"
+    //     ? location
+    //     : toc[0].href
+    // );
 
+    this.displayed = this.rendition.display();
+    this.book.ready.then(function(){
+      return _this.book.locations.generate(1600);
+    }).then(function(locations){
+      var currentLocation = _this.rendition.currentLocation();
+      var currentPage = _this.book.locations.percentageFromCfi(currentLocation.start.cfi);
+      if(typeof location === "number" && location !==0){
+        const currCfi = _this.book.locations.cfiFromPercentage(location);
+        _this.rendition.display(currCfi)
+      }else if(typeof location ==='string'){
+          _this.rendition.display(location)
+      }
+    })
     this.prevPage = () => {
       this.rendition.prev();
     };
@@ -101,12 +109,14 @@ class EpubView extends Component {
   };
 
   render() {
-    const { isLoaded } = this.state;
+    const { isLoaded} = this.state;
     const { loadingView, styles } = this.props;
     return (
-      <div style={styles.viewHolder}>
-        {(isLoaded && this.renderBook()) || loadingView}
-      </div>
+      
+        <div style={styles.viewHolder}>
+          {(isLoaded && this.renderBook()) || loadingView}
+        </div>
+      
     );
   }
 }
