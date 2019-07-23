@@ -50,6 +50,7 @@ class EpubView extends Component {
   }
 
   initReader() {
+    debugger
     const _this = this;
     const { toc } = this.state;
     const { location, epubOptions, getRendition } = this.props;
@@ -83,20 +84,21 @@ class EpubView extends Component {
       this.rendition.prev();
     };
     this.nextPage = () => {
+      debugger
       this.rendition.next();
     };
-    this.rendition.on("locationChanged", this.onLocationChange);
+    // this.rendition.on("locationChanged", this.onLocationChange);
     getRendition && getRendition(this.rendition);
   }
 
-  onLocationChange = loc => {
-    const { location, locationChanged } = this.props;
-    const newLocation = loc && loc.start;
-    if (location !== newLocation) {
-      this.location = newLocation;
-      locationChanged && locationChanged(newLocation);
-    }
-  };
+  // onLocationChange = loc => {
+  //   const { location, locationChanged } = this.props;
+  //   const newLocation = loc && loc.start;
+  //   if (location !== newLocation) {
+  //     this.location = newLocation;
+  //     locationChanged && locationChanged(newLocation);
+  //   }
+  // };
 
   renderBook() {
     const { styles } = this.props;

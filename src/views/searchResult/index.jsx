@@ -443,15 +443,21 @@ class SearchResult extends React.Component {
             }
         })
         const category_id = categoryIds.join(',')
-        if(category_id ==='')return message.error('标签不能为空！')
-        const url = `/category/${category_id}/_shiftin`;
-        HTTP.post(url,{book_ids:bookid}).then(response=>{
+        // if(category_id ==='')return message.error('标签不能为空！')
+        let requestJson ={};
+        if(category_id === ''){
+            requestJson={book_ids:bookid}
+        }else{
+            requestJson={book_ids:bookid,category_ids:category_id}
+        }
+        const url = `/book/_shiftin`;
+        HTTP.post(url,requestJson).then(response=>{
             const res = response.data;
             if(res.status === 0){
                 this.setState({
                     showTagDialog:false
                 })
-                message.success('克隆成功！')
+                message.success('修改成功！')
             }else{
                 message.error(res.error);
             }
