@@ -488,7 +488,7 @@ class SharePage extends React.Component {
             <div className="deskWarp">
                 <Layout>
                     <Header className="publicHeader">
-                        <div className="menuBtn showInBig"><Icon onClick={this.toLogin} type='arrow-left' /></div>                        
+                        <div className="menuBtn"><Icon onClick={this.toLogin} type='arrow-left' /></div>                        
                     </Header>
 
                         <Layout>
@@ -525,7 +525,7 @@ class SharePage extends React.Component {
                         </div>
                         {this.state.tagList.map((item,index) => {
                             return <div key={`complete${item.id}${index}`} className={`${this.state.editTag === item.id ? 'tagAdding' :''} checkItem clearFix`}>
-                                <Checkbox className="checkItem" onChange={(value)=>{this.handleCheckBox(value,item.id)}}>{item.title}</Checkbox>
+                                <Checkbox className="checkItem" onChange={(value)=>{this.handleCheckBox(value,item.id)}}><span className="tagText">{item.title}</span></Checkbox>
                                 <i className="icon icon_del" title="删除" onClick={() => { this.delTag(item.id) }}></i>
                                 <Input className="addTag tagInput" onChange={(value)=>{this.handleTagChange(value,'newTag')}} placeholder="" defaultValue={item.title} />
                                 <i className="icon icon_edit ms_fr" onClick={()=>{this.setState({editTag:item.id})}}></i>

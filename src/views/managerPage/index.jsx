@@ -701,7 +701,7 @@ class ManagerPage extends React.Component {
             requestData[fileName] = newUserInfo[fileName];
             url = `/user/${id}/_info`
         }
-        HTTP.put(url, requestData).then(response => {
+        HTTP.post(url, requestData).then(response => {
             const res = response.data;
             if (res.status === 0) {
                 this.changeMenu(navList[this.activeMenu])

@@ -46,7 +46,7 @@ class LoginPage extends React.Component {
             HTTP.post(loginUrl,{email,pwd}).then(response=>{
                 const res = response.data;
                 if(res.status === 0){
-                    cookie.set('Authorization',res.data.token,{ expires: 7 });
+                    cookie.set('Authorization',res.data.token,{ expires: 1 });
                     this.getUserInfo()
                     // message.success('登录成功！')
                 }else{
@@ -60,7 +60,7 @@ class LoginPage extends React.Component {
         HTTP.post(loginUrl,{email,pwd}).then(response=>{
             const res = response.data;
             if(res.status === 0){
-                cookie.set('Authorization',res.data.token,{ expires: 7 });
+                cookie.set('Authorization',res.data.token,{ expires: 1 });
                 this.getUserInfo()
                 // message.success('登录成功！')
             }else{
@@ -75,7 +75,7 @@ class LoginPage extends React.Component {
             if (res.status === 0) {
                 sessionStorage.setItem('userInfo',JSON.stringify(res.data));
                 localStorage.setItem('userInfo',JSON.stringify(res.data))
-                cookie.set('userInfo',res.data,{ expires: 7 });
+                cookie.set('userInfo',res.data,{ expires: 1 });
                 if(res.data.role === 2){
                     this.props.history.push('/manager')
                 }else{

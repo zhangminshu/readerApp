@@ -60,6 +60,7 @@ class SearchResult extends React.Component {
         }
     }
     componentDidMount() {
+        this.input.focus()
         const urlParams = location.href.split("?")[1];
         if(urlParams){
             const searchType = urlParams.split("=")[1];
@@ -754,7 +755,7 @@ class SearchResult extends React.Component {
             requestData[fileName] = newUserInfo[fileName];
             url = `/user/${id}/_info`
         }
-        HTTP.put(url, requestData).then(response => {
+        HTTP.post(url, requestData).then(response => {
             const res = response.data;
             if (res.status === 0) {
                 this.searchBook(this.state.searchBookName, 'searchUser')
@@ -843,16 +844,17 @@ class SearchResult extends React.Component {
                 key: 'opt',
                 render: (text, record) => {
                     const isOver10M = record.size > 10;
+                    const isOwner = record.is_owner === 1
                     const optContent = (
                         <div>
-                            {role !== 2?<p className="optItem" onClick={() => { this.fileClone('single', record)}}>克隆</p>:""}
-                            {role !== 2?<p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>:""}
-                            {role === 2?<p className="optItem" onClick={() => { this.fileShare("row", record.id) }}>分享</p>:""}
-                            {role === 2?<p className={`${isOver10M ? 'overLimit':''} optItem`} onClick={() => { this.sendToKindle(record.id,isOver10M) }}>kindle</p>:""}
-                            {role === 2?<p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>:""}
-                            {role === 2?<p className="optItem" onClick={() => { this.renameDialog(record) }}>重命名</p>:""}
-                            {role === 2?<p className="optItem" onClick={() => { this.fileTypeChange('single', record) }}>文件类型</p>:""}
-                            {role === 2?<p className="optItem" style={{color:'#FF3B30'}} onClick={() => { this.showDeleteConfirm('single', record) }}>删除</p>:""}
+                            {role !== 2 && !isOwner?<p className="optItem" onClick={() => { this.fileClone('single', record)}}>克隆</p>:""}
+                            {role !== 2 && !isOwner?<p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>:""}
+                            {role === 2 || isOwner?<p className="optItem" onClick={() => { this.fileShare("row", record.id) }}>分享</p>:""}
+                            {role === 2 || isOwner?<p className={`${isOver10M ? 'overLimit':''} optItem`} onClick={() => { this.sendToKindle(record.id,isOver10M) }}>kindle</p>:""}
+                            {role === 2 || isOwner?<p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>:""}
+                            {role === 2 || isOwner?<p className="optItem" onClick={() => { this.renameDialog(record) }}>重命名</p>:""}
+                            {role === 2 || isOwner?<p className="optItem" onClick={() => { this.fileTypeChange('single', record) }}>文件类型</p>:""}
+                            {role === 2 || isOwner?<p className="optItem" style={{color:'#FF3B30'}} onClick={() => { this.showDeleteConfirm('single', record) }}>删除</p>:""}
                         </div>
                     );
                     const optHtml = <div className="optWarp">
@@ -981,7 +983,7 @@ class SearchResult extends React.Component {
                 <Layout>
                     <div className="publicHeader">
                         <div className="menuBtn"><Icon onClick={this.toIndex} type={'arrow-left'} /></div>
-                        <div className="searchWarp"><Input allowClear placeholder="搜索" onChange={(value) => { this.searchBook(value, 'search') }} /> <span className="result">{this.state.searchText}</span></div>
+                        <div className="searchWarp"><Input ref={(input) => this.input = input} allowClear placeholder="搜索" onChange={(value) => { this.searchBook(value, 'search') }} /> <span className="result">{this.state.searchText}</span></div>
                         <div className="loginInfo" > {hasPhoto ? <img className="userPhoto" onClick={this.toUserInfo} src={photo} alt="" /> : (!isLogin ? <span onClick={this.toLogin}>登录</span> : <span className="userName" onClick={this.toUserInfo}>{userName}</span>)} </div>
                     </div>
 
@@ -1030,7 +1032,7 @@ class SearchResult extends React.Component {
                         </div>
                         {this.state.tagList.map((item,index) => {
                             return <div key={`complete${item.id}${index}`} className={`${this.state.editTag === item.id ? 'tagAdding' :''} checkItem clearFix`}>
-                                <Checkbox className="checkItem" onChange={(value)=>{this.handleCheckBox(value,item.id)}}>{item.title}</Checkbox>
+                                <Checkbox className="checkItem" onChange={(value)=>{this.handleCheckBox(value,item.id)}}><span className="tagText">{item.title}</span></Checkbox>
                                 <i className="icon icon_del" title="删除" onClick={() => { this.delTag(item.id) }}></i>
                                 <Input className="addTag tagInput" onChange={(value)=>{this.handleTagChange(value,'newTag')}} placeholder="" defaultValue={item.title} />
                                 <i className="icon icon_edit ms_fr" onClick={()=>{this.setState({editTag:item.id})}}></i>

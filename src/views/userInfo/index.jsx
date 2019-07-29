@@ -34,7 +34,7 @@ class UserInfo extends React.Component {
             const res = response.data;
             if (res.status === 0) {
                 localStorage.setItem('userInfo',JSON.stringify(res.data))
-                cookie.set('userInfo',res.data,{ expires: 7 });
+                cookie.set('userInfo',res.data,{ expires: 1 });
                 const days = this.countDay(res.data.update_pwd_time)
                 this.setState({
                     userInfo: res.data,
