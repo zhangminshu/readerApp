@@ -516,7 +516,7 @@ class ManagerPage extends React.Component {
         });
     }
     changeBookName = (item,bookType) => {
-        const url = `/book/${item.id}/_info`;
+        const url = `/file/${item.id}/_info`;
         let bookName = this.state.bookName + '.'+bookType;
         HTTP.put(url, { title: bookName }).then(response => {
             const res = response.data;

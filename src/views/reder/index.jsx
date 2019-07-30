@@ -109,9 +109,9 @@ class RederPage extends Component {
    */
   joinTag=()=>{
     const bookInfo = JSON.parse(sessionStorage.getItem('bookInfo'));
-    const url = `/book/_shiftin`;
-    const requestJson={book_ids:bookInfo.id.toString(),category_ids:"-2"}
-    HTTP.post(url,requestJson).then(response=>{
+    const url = `/book/${bookInfo.id}/_info`;
+    // const requestJson={book_ids:bookInfo.id.toString(),category_ids:"-2"}
+    HTTP.get(url,{}).then(response=>{
         const res = response.data;
         if(res.status === 0){
 

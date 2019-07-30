@@ -444,7 +444,7 @@ class SearchResult extends React.Component {
             }
         })
         const category_id = categoryIds.join(',')
-        // if(category_id ==='')return message.error('标签不能为空！')
+        if(category_id ==='')return message.error('标签不能为空！')
         let requestJson ={};
         if(category_id === ''){
             requestJson={book_ids:bookid}
@@ -852,6 +852,7 @@ class SearchResult extends React.Component {
                             {role === 2 || isOwner?<p className="optItem" onClick={() => { this.fileShare("row", record.id) }}>分享</p>:""}
                             {role === 2 || isOwner?<p className={`${isOver10M ? 'overLimit':''} optItem`} onClick={() => { this.sendToKindle(record.id,isOver10M) }}>kindle</p>:""}
                             {role === 2 || isOwner?<p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>:""}
+                            {role === 2 || isOwner?<p className="optItem" onClick={() => { this.fileClone('single', record)}}>标签</p>:""}
                             {role === 2 || isOwner?<p className="optItem" onClick={() => { this.renameDialog(record) }}>重命名</p>:""}
                             {role === 2 || isOwner?<p className="optItem" onClick={() => { this.fileTypeChange('single', record) }}>文件类型</p>:""}
                             {role === 2 || isOwner?<p className="optItem" style={{color:'#FF3B30'}} onClick={() => { this.showDeleteConfirm('single', record) }}>删除</p>:""}
