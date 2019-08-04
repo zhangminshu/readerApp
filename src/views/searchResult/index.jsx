@@ -30,6 +30,7 @@ class SearchResult extends React.Component {
             showTagDialog:false,
             categoryList:[],
             tagList:[],
+            tipType:'single',//single为克隆；singleTip为标签
             editTagInfo:{
                 addTag:'',
                 newTag:''
@@ -418,7 +419,7 @@ class SearchResult extends React.Component {
         }
         const ids = [];
         let bookId = "";
-        if (type === 'single') {
+        if (type === 'single' || type === 'singleTip') {
             bookId = item.id.toString();
         } else {
             this.state.selectedRow.forEach(item => {
@@ -427,6 +428,7 @@ class SearchResult extends React.Component {
             bookId = ids.join(',')
         }
         this.setState({
+            tipType:type,
             selectBookId:bookId,
             showTagDialog:true
         })
@@ -435,30 +437,41 @@ class SearchResult extends React.Component {
      * 保存文件标签
      */
     saveTagChange =()=>{
+        const cloneType = this.state.tipType;
         const bookid = this.state.selectBookId;
         const categoryList = this.state.categoryList;
         const categoryIds =[];
+        let url ='';
+        let succText =''
         categoryList.forEach(item=>{
             if(item.isChecked){
                 categoryIds.push(item.id)
             }
         })
         const category_id = categoryIds.join(',')
-        if(category_id ==='')return message.error('标签不能为空！')
+        if(category_id ==='' && cloneType ==='singleTip')return message.error('标签不能为空！')
         let requestJson ={};
         if(category_id === ''){
-            requestJson={book_ids:bookid}
+            requestJson={book_ids:bookid,is_public:'1'}
         }else{
-            requestJson={book_ids:bookid,category_ids:category_id}
+            requestJson={book_ids:bookid,category_ids:category_id,is_public:'1'}
         }
-        const url = `/book/_shiftin`;
+        debugger
+        if(cloneType !== 'singleTip'){
+            url =`/book/_save`;
+            succText ='克隆成功！'
+        }else{
+            url = `/book/_shiftin`;
+            succText ='修改成功！'
+        }
+        
         HTTP.post(url,requestJson).then(response=>{
             const res = response.data;
             if(res.status === 0){
                 this.setState({
                     showTagDialog:false
                 })
-                message.success('修改成功！')
+                message.success(succText)
             }else{
                 message.error(res.error);
             }
@@ -852,7 +865,7 @@ class SearchResult extends React.Component {
                             {role === 2 || isOwner?<p className="optItem" onClick={() => { this.fileShare("row", record.id) }}>分享</p>:""}
                             {role === 2 || isOwner?<p className={`${isOver10M ? 'overLimit':''} optItem`} onClick={() => { this.sendToKindle(record.id,isOver10M) }}>kindle</p>:""}
                             {role === 2 || isOwner?<p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>:""}
-                            {role === 2 || isOwner?<p className="optItem" onClick={() => { this.fileClone('single', record)}}>标签</p>:""}
+                            {role === 2 || isOwner?<p className="optItem" onClick={() => { this.fileClone('singleTip', record)}}>标签</p>:""}
                             {role === 2 || isOwner?<p className="optItem" onClick={() => { this.renameDialog(record) }}>重命名</p>:""}
                             {role === 2 || isOwner?<p className="optItem" onClick={() => { this.fileTypeChange('single', record) }}>文件类型</p>:""}
                             {role === 2 || isOwner?<p className="optItem" style={{color:'#FF3B30'}} onClick={() => { this.showDeleteConfirm('single', record) }}>删除</p>:""}
@@ -889,16 +902,18 @@ class SearchResult extends React.Component {
                 key: 'opt',
                 render: (text, record) => {
                     const isOver10M = record.size > 10;
+                    const isOwner = record.is_owner === 1
                     const optContent = (
                         <div>
-                            {role !== 2?<p className="optItem" onClick={() => { this.fileClone('single', record)}}>克隆</p>:""}
-                            {role !== 2?<p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>:""}
-                            {role === 2?<p className="optItem" onClick={() => { this.fileShare("row", record.id) }}>分享</p>:""}
-                            {role === 2?<p className={`${isOver10M ? 'overLimit':''} optItem`} onClick={() => { this.sendToKindle(record.id,isOver10M) }}>kindle</p>:""}
-                            {role === 2?<p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>:""}
-                            {role === 2?<p className="optItem" onClick={() => { this.renameDialog(record) }}>重命名</p>:""}
-                            {role === 2?<p className="optItem" onClick={() => { this.fileTypeChange('single', record) }}>文件类型</p>:""}
-                            {role === 2?<p className="optItem" style={{color:'#FF3B30'}} onClick={() => { this.showDeleteConfirm('single', record) }}>删除</p>:""}
+                            {role !== 2 && !isOwner?<p className="optItem" onClick={() => { this.fileClone('single', record)}}>克隆</p>:""}
+                            {role !== 2 && !isOwner?<p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>:""}
+                            {role === 2 || isOwner?<p className="optItem" onClick={() => { this.fileShare("row", record.id) }}>分享</p>:""}
+                            {role === 2 || isOwner?<p className={`${isOver10M ? 'overLimit':''} optItem`} onClick={() => { this.sendToKindle(record.id,isOver10M) }}>kindle</p>:""}
+                            {role === 2 || isOwner?<p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>:""}
+                            {role === 2 || isOwner?<p className="optItem" onClick={() => { this.fileClone('singleTip', record)}}>标签</p>:""}
+                            {role === 2 || isOwner?<p className="optItem" onClick={() => { this.renameDialog(record) }}>重命名</p>:""}
+                            {role === 2 || isOwner?<p className="optItem" onClick={() => { this.fileTypeChange('single', record) }}>文件类型</p>:""}
+                            {role === 2 || isOwner?<p className="optItem" style={{color:'#FF3B30'}} onClick={() => { this.showDeleteConfirm('single', record) }}>删除</p>:""}
                         </div>
                     );
                     const optHtml = <div className="optWarp">

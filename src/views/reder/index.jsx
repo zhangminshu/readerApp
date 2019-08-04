@@ -6,6 +6,7 @@ import cookie from 'js-cookie';
 import { Container, ReaderContainer, Bar, Logo, CloseButton, CloseIcon, FontSizeButton } from "./Components";
 import HTTP from '../../httpServer/axiosConfig.js'
 import copy from 'copy-to-clipboard';
+import './style.less'
 const { confirm } = Modal;
 const storage = global.localStorage || null;
 
@@ -351,8 +352,8 @@ class RederPage extends Component {
         <GlobalStyle />
         <ReaderContainer fullscreen={fullscreen}>
           {/* <Button onClick={() => { this.fileClone('single', bookInfo)}} style={{ position: "absolute", zIndex: "9", right: "100px", top: "10px" }} className="btn_clone" type="primary">克隆</Button> */}
-          <Popover placement="bottomRight" content={optContent} trigger="focus">
-            <Button className="btn_more" style={{position:"absolute",right: "50px","zIndex": "9",top: "10px",padding: "0px 10px",textAlign: "center"}}><Icon style={{ fontSize: '16px' }} type="ellipsis" /></Button>
+          <Popover placement="bottomRight"  content={optContent} trigger="focus">
+            <Button className="btn_more_reader"><Icon style={{ fontSize: '16px' }} type="ellipsis" /></Button>
           </Popover>
           <ReactReader
             url={bookUrl}

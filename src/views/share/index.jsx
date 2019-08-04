@@ -67,8 +67,9 @@ class SharePage extends React.Component {
     }
     getShareBookList=()=>{
         const shareParams = location.href.split("?")[1];
-        if(!shareParams) return;
+        if(!shareParams) return localStorage.setItem('shareIds','');
         const ids = shareParams.split("=")[1];
+        localStorage.setItem('shareIds',ids);
         this.getBookListById(ids);
     }
     getBookListById = (id) => {
@@ -146,6 +147,7 @@ class SharePage extends React.Component {
             this.unLoginTip();
             return;
         }
+        localStorage.setItem('shareIds','')
         const ids = [];
         let bookId = "";
         if (type === 'single') {
@@ -181,7 +183,7 @@ class SharePage extends React.Component {
         }else{
             requestJson={book_ids:bookid,category_ids:category_id}
         }
-        const url = `/book/_shiftin`;
+        const url = `/book/_save`;
         HTTP.post(url,requestJson).then(response=>{
             const res = response.data;
             if(res.status === 0){
@@ -217,7 +219,7 @@ class SharePage extends React.Component {
             className:'confirmDialog',
             cancelText: '取消',
             onOk() {
-                _this.props.history.push('/login')
+                _this.props.history.push('/login?from=sharePage')
             },
             onCancel() {}
           });
@@ -279,6 +281,7 @@ class SharePage extends React.Component {
             this.unLoginTip();
             return;
         }
+        localStorage.setItem('shareIds','')
         let bookIds = "";
         const ids = []
         if (type === 'single') {

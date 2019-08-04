@@ -69,6 +69,18 @@ class LoginPage extends React.Component {
         })
     }
     getUserInfo = () => {
+        let isFromShare = false;
+        let shareIds = '',urlVal=''
+        const urlParams = location.href.split("?")[1];
+        if(!urlParams){
+            isFromShare =false
+        }else{
+            isFromShare =true;
+            urlVal = urlParams.split('=')[1];
+            if(urlVal ==='sharePage'){
+                shareIds = localStorage.getItem('shareIds')
+            }
+        }
         const url = '/user/_info';
         HTTP.get(url, {}).then(response => {
             const res = response.data;
@@ -76,7 +88,9 @@ class LoginPage extends React.Component {
                 sessionStorage.setItem('userInfo',JSON.stringify(res.data));
                 localStorage.setItem('userInfo',JSON.stringify(res.data))
                 cookie.set('userInfo',res.data,{ expires: 7 });
-                if(res.data.role === 2){
+                if(isFromShare){
+                    this.props.history.push(`/share?bid=${shareIds}`)
+                }else if(res.data.role === 2){
                     this.props.history.push('/manager')
                 }else{
                     this.props.history.push('/desk')

@@ -92,7 +92,6 @@ class DeskPage extends React.Component {
         HTTP.get(url, {}).then(response => {
             const res = response.data;
             if (res.status === 0) {
-                console.log(res.data)
                 res.data.list.map(item=>{
                     item.key = item.id;
                 })
@@ -351,7 +350,7 @@ class DeskPage extends React.Component {
             }
         })
         const category_id = categoryIds.join(',')
-        // if(category_id ==='')return message.error('标签不能为空！')
+        if(category_id ==='')return message.error('标签不能为空！')
         let requestJson ={};
         if(category_id === ''){
             requestJson={book_ids:bookid}
@@ -365,6 +364,7 @@ class DeskPage extends React.Component {
                 this.setState({
                     showTagDialog:false
                 })
+                this.changeMenu(this.deskActiveMenu)
                 message.success('修改成功！')
             }else{
                 message.error(res.error);
@@ -670,6 +670,7 @@ class DeskPage extends React.Component {
         }
     }
     render() {
+        const _this = this;
         const currPagination = this.state.result>10?{
             total:this.state.result,
             pageSize:this.state.pageSize,
@@ -860,7 +861,7 @@ class DeskPage extends React.Component {
                     </Menu>
                 </Drawer>
                 <MyUpload updateTable={this.updateTable} />
-
+                {this.state.showTagDialog?
                 <Modal
                     width="416px" title="" visible={this.state.showTagDialog} className="tagDialog" closable={false}
                     cancelText="取消" okText="确定"
@@ -877,7 +878,7 @@ class DeskPage extends React.Component {
                         </div>
                         {this.state.tagList.map((item,index) => {
                             return <div key={`complete${item.id}${index}`} className={`${this.state.editTag === item.id ? 'tagAdding' :''} checkItem clearFix`}>
-                                <Checkbox className="checkItem" onChange={(value)=>{this.handleCheckBox(value,item.id)}}><span className="tagText">{item.title}</span></Checkbox>
+                                <Checkbox defaultChecked={item.id == this.deskActiveMenu} className="checkItem" onChange={(value)=>{this.handleCheckBox(value,item.id)}}><span className="tagText">{item.title}</span></Checkbox>
                                 <i className="icon icon_del" title="删除" onClick={() => { this.delTag(item.id) }}></i>
                                 <Input className="addTag tagInput" onChange={(value)=>{this.handleTagChange(value,'newTag')}} placeholder="" defaultValue={item.title} />
                                 <i className="icon icon_edit ms_fr" onClick={()=>{this.setState({editTag:item.id})}}></i>
@@ -885,7 +886,7 @@ class DeskPage extends React.Component {
                                 </div>
                         })}
                     </div>
-                </Modal>
+                </Modal>:""}
                 <Modal
                     width="416px" title="阅读提示" visible={this.state.showTipModal} className="tipDialog" closable={false}
                     footer={null}
