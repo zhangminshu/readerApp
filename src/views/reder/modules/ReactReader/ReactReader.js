@@ -41,7 +41,7 @@ class ReactReader extends PureComponent {
   };
 
   next = () => {
-    debugger
+    
     const node = this.readerRef.current;
     const lastPercent = node.book.locations.percentageFromCfi(node.book.rendition.currentLocation().start.cfi);
     const currPercent = node.book.locations.percentageFromCfi(node.book.rendition.currentLocation().end.cfi);

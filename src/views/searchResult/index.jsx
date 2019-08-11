@@ -19,6 +19,7 @@ class SearchResult extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            popoverVisible:'',
             currBookUrl:'',
             showTipModal:false,
             result:0,
@@ -366,7 +367,7 @@ class SearchResult extends React.Component {
         });
     }
     changeBookName = (item,bookType) => {
-        const url = `/book/${item.id}/_info`;
+        const url = `/file/${item.id}/_info`;
         let bookName = this.state.bookName + '.'+bookType;
         HTTP.put(url, { title: bookName }).then(response => {
             const res = response.data;
@@ -452,11 +453,11 @@ class SearchResult extends React.Component {
         if(category_id ==='' && cloneType ==='singleTip')return message.error('标签不能为空！')
         let requestJson ={};
         if(category_id === ''){
-            requestJson={book_ids:bookid,is_public:'1'}
+            requestJson={book_ids:bookid,is_public:'0'}
         }else{
-            requestJson={book_ids:bookid,category_ids:category_id,is_public:'1'}
+            requestJson={book_ids:bookid,category_ids:category_id,is_public:'0'}
         }
-        debugger
+        
         if(cloneType !== 'singleTip'){
             url =`/book/_save`;
             succText ='克隆成功！'
@@ -790,6 +791,9 @@ class SearchResult extends React.Component {
             this.searchBook(this.state.searchBookName, 'pageChange')
         });
     }
+    handleVisibleChange = popoverVisible => {
+        this.setState({ popoverVisible });
+    };
     render() {
         // const userInfo = JSON.parse(localStorage.getItem('userInfo'));
         const cookUserInfo = cookie.get('userInfo') || null
@@ -844,10 +848,11 @@ class SearchResult extends React.Component {
             },
             {
                 title: '上传时间',
-                dataIndex: 'address',
-                key: 'address',
+                dataIndex: 'add_time',
+                key: 'add_time',
                 render: (text) => {
-                    let val = '2019/6/5';
+                    text =text||'';
+                    let val = text.substr(0,10);
                     return val;
                 }
             },
@@ -904,7 +909,7 @@ class SearchResult extends React.Component {
                     const isOver10M = record.size > 10;
                     const isOwner = record.is_owner === 1
                     const optContent = (
-                        <div>
+                        <div onClick={()=>{this.setState({popoverVisible:''})}}>
                             {role !== 2 && !isOwner?<p className="optItem" onClick={() => { this.fileClone('single', record)}}>克隆</p>:""}
                             {role !== 2 && !isOwner?<p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>:""}
                             {role === 2 || isOwner?<p className="optItem" onClick={() => { this.fileShare("row", record.id) }}>分享</p>:""}
@@ -918,7 +923,7 @@ class SearchResult extends React.Component {
                     );
                     const optHtml = <div className="optWarp">
 
-                        <Popover placement="rightTop" content={optContent} trigger="focus">
+                        <Popover placement="rightTop" content={optContent} trigger="click" visible={this.state.popoverVisible == record.id} onVisibleChange={()=>{this.handleVisibleChange(record.id)}}>
                             <Button className="btn_more_opt"><Icon style={{ fontSize: '16px' }} type="ellipsis" /></Button>
                         </Popover>
                     </div>
@@ -983,9 +988,40 @@ class SearchResult extends React.Component {
                 return optHtml;
             }
         }]
-        const smallUserCol = [];
-        smallUserCol.push(userCol[0]);
-        smallUserCol.push(userCol[5]);
+        const smallUserCol = [{
+            title: '用户名',
+            dataIndex: 'nick_name',
+            key: 'nick_name',
+            render: (text, record) => {
+                return (<div className="tableUserName">{!record.photo ? <span className="name">{text.substr(0, 1)}</span> : <img className="name" src={record.photo} />} {text}</div>)
+            }
+        },{
+            title: '操作',
+            dataIndex: 'opt',
+            key: 'opt',
+            render: (text, record) => {
+                const optContent = (
+                    <div onClick={()=>{this.setState({popoverVisible:''})}}>
+                        {/* onClick={() => { this.edit(record, 'photo', '修改头像') }} */}
+                        <p className="optItem" onClick={() => { this.edit(record, 'photo', '修改头像') }}>修改头像</p> 
+                        <p className="optItem" onClick={() => { this.edit(record, 'nick_name', '修改用户名') }}>修改用户名</p>
+                        <p className="optItem" onClick={() => { this.edit(record, 'email', '修改邮箱') }}>修改邮箱</p>
+                        <p className="optItem" onClick={() => { this.edit(record, 'changePWD', '修改密码') }}>修改密码</p>
+                        <p className="optItem" onClick={() => { this.edit(record, 'status', '修改账户状态') }}>账户状态</p>
+                        <p className="optItem" onClick={() => { this.edit(record, 'storage_limit', '修改存储空间') }}>存储空间</p>
+                    </div>
+                );
+                const optHtml = <div className="optWarp" onClick={()=>{this.setState({popoverVisible:''})}}>
+
+                    <Popover placement="rightTop" content={optContent} trigger="click" visible={this.state.popoverVisible == record.id} onVisibleChange={()=>{this.handleVisibleChange(record.id)}} >
+                        <Button className="btn_more_opt"><Icon style={{ fontSize: '16px' }} type="ellipsis" /></Button>
+                    </Popover>
+                </div>
+                return optHtml;
+            }
+        }];
+        // smallUserCol.push(userCol[0]);
+        // smallUserCol.push(userCol[5]);
 
         const rowSelection = {
             onChange: this.handleChange,

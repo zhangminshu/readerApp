@@ -109,7 +109,7 @@ class navSider extends React.Component {
         }
     }
   render() {
-    debugger
+    
     const defOpenKey = this.props.defOpenKey || '0'
     return (
       <Menu defaultSelectedKeys={[defOpenKey]} defaultOpenKeys={['sub1']} mode="inline" theme="light">

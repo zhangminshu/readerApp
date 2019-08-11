@@ -58,7 +58,7 @@ HTTP.interceptors.response.use(
         }
     },
     error =>{
-        debugger
+        
         const status = error && error.data && error.data.status;
         if(status === 2){
             cookie.remove('Authorization');

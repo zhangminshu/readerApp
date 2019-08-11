@@ -295,6 +295,25 @@ h1, h2, h3, h4, h5, h6{
     // &.grayTh .ant-table-thead > tr{
     //     background: #F3F4F5;   
     // }
+    .ellTable{
+        .samllFileName{
+            position: relative;
+            .samllFileIcon{
+                position: absolute;
+            }
+        }
+        .textEll{
+            margin-left: 32px;
+            word-break: break-all;
+            white-space: normal;
+            display: -webkit-box;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 1;
+        }
+    }
+
     .ant-table-pagination.ant-pagination{
         float: left;
         margin: 16px 30px;

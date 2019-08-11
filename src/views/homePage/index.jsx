@@ -10,7 +10,7 @@ import bannerBg from '../../img/banner.svg';
 import bookAdd from '../../img/book_add.svg'
 import onlineReading from '../../img/online_reading.svg'
 import bookManager from '../../img/book_manager.svg'
-import { debug } from 'util';
+// import { debug } from 'util';
 
 const { Header, Footer, Sider, Content } = Layout;
 class HomePage extends React.Component {

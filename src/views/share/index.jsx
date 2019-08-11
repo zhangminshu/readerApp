@@ -163,7 +163,7 @@ class SharePage extends React.Component {
             showTagDialog:true
         })
     }
-        /**
+    /**
      * 保存文件标签
      */
     saveTagChange =()=>{
@@ -179,9 +179,9 @@ class SharePage extends React.Component {
         // if(category_id ==='')return message.error('标签不能为空！')
         let requestJson ={};
         if(category_id === ''){
-            requestJson={book_ids:bookid}
+            requestJson={book_ids:bookid,is_public:'0'}
         }else{
-            requestJson={book_ids:bookid,category_ids:category_id}
+            requestJson={book_ids:bookid,category_ids:category_id,is_public:'0'}
         }
         const url = `/book/_save`;
         HTTP.post(url,requestJson).then(response=>{
@@ -256,8 +256,8 @@ class SharePage extends React.Component {
         }
     }
     toLogin = () => {
-        const userInfo = localStorage.getItem("userInfo")
-        if(userInfo){
+        const Authorization = cookie.get('Authorization')
+        if(Authorization){
             this.props.history.push('/')
         }else{
             this.props.history.push('/login')

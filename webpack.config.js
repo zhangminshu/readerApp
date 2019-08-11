@@ -17,10 +17,18 @@ module.exports = {
                 use: {
                     loader: 'babel-loader',
                     options: {
-                        // presets: ["env", "stage-0", "react"]// env --> es6, stage-0 --> es7, react --> react
+//                         presets: ['es2017', 'react'],// env --> es6, stage-0 --> es7, react --> react
+//                          plugins: [//修改这里的
+
+//                                      ["import", {libraryName: "antd","libraryDirectory": "es", style: "css"}]//修改这里的
+
+//                            ] //修改这里的
                     }
                 },
-                include: path.resolve(__dirname, './src'),
+                include: [
+                    path.resolve(__dirname, './src'),
+                    path.resolve('node_modules/browser-md5-file/dist')
+                ],
                 // exclude: /node_modules/
             },
             {
@@ -78,11 +86,11 @@ module.exports = {
             }
         }),
         new CleanWebpackPlugin([path.join(__dirname, 'dist')]),//打包前先清空输出目录
-        // new UglifyjsWebpackPlugin(),//压缩js
+        //new UglifyjsWebpackPlugin(),//压缩js
     ],//配置插件
     devServer: {//配置开发服务器
         contentBase: path.resolve(__dirname, 'dist'),// 配置开发服务运行时的文件根目录
-        host: '192.168.0.106',// 开发服务器监听的主机地址
+        host: '192.168.1.104',// 开发服务器监听的主机地址
         compress: true,   // 开发服务器是否启动gzip等压缩
         port: 8080,        // 开发服务器监听的端口
         proxy: {

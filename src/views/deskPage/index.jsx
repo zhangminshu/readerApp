@@ -21,6 +21,8 @@ class DeskPage extends React.Component {
         super(props);
         this.state = {
             currBookUrl:'',
+            popoverVisible:'',
+            isOpenPop:false,
             showTipModal:false,
             showEmpty:false,
             isLoading:false,
@@ -669,6 +671,17 @@ class DeskPage extends React.Component {
             this.changeMenu(this.deskActiveMenu)
         }
     }
+    handleVisibleChange = popoverVisible => {
+        this.setState({ popoverVisible,isOpenPop:true });
+      };
+    closePop=(popoverVisible)=>{
+        
+        if(this.state.isOpenPop && popoverVisible === this.state.popoverVisible){
+            this.setState({popoverVisible:'',isOpenPop:false})
+        }else{
+            this.setState({ popoverVisible,isOpenPop:true });
+        }
+    }
     render() {
         const _this = this;
         const currPagination = this.state.result>10?{
@@ -766,12 +779,13 @@ class DeskPage extends React.Component {
             {
                 title: '名称',
                 dataIndex: 'title',
+                className:'ellTable',
                 key: 'title',
                 render: (text, record) => {
                     const fileIcon = this.getFileIcon(record.extension);
-                    let displayText = <div className="fileName">
-                        <img className="fileIcon" src={fileIcon} alt="" />
-                        <span style={{cursor:'pointer'}} onClick={()=>{this.readerBook(record)}} className={`${record.is_owner === 1 ? 'isOwerFile' : ''}`}>{text}</span>
+                    let displayText = <div className="fileName samllFileName">
+                        <img  style={{width:'24px'}} className="fileIcon samllFileIcon" src={fileIcon} alt="" />
+                        <span style={{cursor:'pointer'}} onClick={()=>{this.readerBook(record)}} className={`${record.is_owner === 1 ? 'isOwerFile' : ''} textEll ms_fl`}>{text}</span>
                     </div>;
                     return displayText;
                 }
@@ -783,7 +797,7 @@ class DeskPage extends React.Component {
                 render: (text, record) => {
                     const isOver10M = record.size > 10;
                     const optContent = (
-                        <div>
+                        <div onClick={()=>{this.closePop(record.id)}}>
                             <p className="optItem" onClick={() => { this.fileShare("row", record.id) }}>分享</p>
                             <p className={`${isOver10M ? 'overLimit':''} optItem`} onClick={() => { this.sendToKindle(record.id,isOver10M) }}>kindle</p>
                             <p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>
@@ -793,9 +807,9 @@ class DeskPage extends React.Component {
                             <p className="optItem" style={{color:'#FF3B30'}} onClick={() => { this.showDeleteConfirm('single', record) }}>删除</p>
                         </div>
                     );
-                    const optHtml = <div className="optWarp">
+                    const optHtml = <div className="optWarp" onClick={()=>{this.closePop(record.id)}}>
 
-                        <Popover placement="rightTop" content={optContent} trigger="click">
+                        <Popover placement="rightTop" content={optContent} trigger="click" visible={this.state.popoverVisible == record.id} onVisibleChange={()=>{this.handleVisibleChange(record.id)}}>
                             <Button className="btn_more_opt"><Icon style={{ fontSize: '16px' }} type="ellipsis" /></Button>
                         </Popover>
                     </div>

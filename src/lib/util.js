@@ -4,7 +4,7 @@ import HTTP from '../httpServer/axiosConfig.js'
 const { confirm } = Modal;
 const util ={
     showReaderTip:function(bookInfo){
-        debugger
+        
         confirm({
             title: '阅读提示',
             content: <div>当前的浏览器可能无法阅读PDF文件，建议<br />使用谷歌浏览器</div>,

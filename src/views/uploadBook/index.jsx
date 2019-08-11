@@ -8,7 +8,7 @@ class MyUpload extends React.Component {
   };
 
   handleChange = info => {
-      debugger
+      
       console.log(info)
     let fileList = [...info.fileList];
 
