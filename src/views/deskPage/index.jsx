@@ -410,6 +410,7 @@ class DeskPage extends React.Component {
             cancelText: '取消',
             onOk() {
                 copy(shareUrl);
+                message.success('复制成功')
             },
             onCancel() {
                 console.log('Cancel');

@@ -258,9 +258,9 @@ class SharePage extends React.Component {
     toLogin = () => {
         const Authorization = cookie.get('Authorization')
         if(Authorization){
-            this.props.history.push('/')
+            this.props.history.push('/desk')
         }else{
-            this.props.history.push('/login')
+            this.props.history.push('/')
         }
     }
     toUserInfo =()=>{

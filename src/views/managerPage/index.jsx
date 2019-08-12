@@ -320,21 +320,21 @@ class ManagerPage extends React.Component {
             }
         })
     }
-    showShareConfirm = () => {
-        confirm({
-            title: '分享文件',
-            content: <div><Input className="shareUrl" /><p className="desc">把链接通过微信、QQ、微博等方式分享给好友</p></div>,
-            okText: '复制',
-            className: 'confirmDialog',
-            cancelText: '取消',
-            onOk() {
-                console.log('OK');
-            },
-            onCancel() {
-                console.log('Cancel');
-            },
-        });
-    }
+    // showShareConfirm = () => {
+    //     confirm({
+    //         title: '分享文件',
+    //         content: <div><Input className="shareUrl" /><p className="desc">把链接通过微信、QQ、微博等方式分享给好友</p></div>,
+    //         okText: '复制',
+    //         className: 'confirmDialog',
+    //         cancelText: '取消',
+    //         onOk() {
+    //             console.log('OK');
+    //         },
+    //         onCancel() {
+    //             console.log('Cancel');
+    //         },
+    //     });
+    // }
     handleStatusChange =(e)=>{
         const userStatus =e.target.value;
         this.setState({userStatus})
@@ -450,6 +450,7 @@ class ManagerPage extends React.Component {
             cancelText: '取消',
             onOk() {
                 copy(shareUrl);
+                message.success('复制成功')
             },
             onCancel() {
                 console.log('Cancel');

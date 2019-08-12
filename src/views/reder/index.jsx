@@ -256,6 +256,7 @@ class RederPage extends Component {
     rendition.themes.fontSize(largeText ? "140%" : "100%");
   };
   saveRead=(type)=>{
+    debugger
     const bookInfo = JSON.parse(sessionStorage.getItem('bookInfo'));
     const currPer = sessionStorage.getItem('currPercent') *100;
     const url = `/book/${bookInfo.id}/_process`;
@@ -325,6 +326,7 @@ class RederPage extends Component {
           cancelText: '取消',
           onOk() {
               copy(shareUrl);
+              message.success('复制成功')
           },
           onCancel() {
               console.log('Cancel');
@@ -341,7 +343,7 @@ class RederPage extends Component {
     const optContent = (
       <div>
           <p className="optItem" onClick={() => { this.fileShare("row", bookInfo.id) }}>分享</p>
-          <p className="optItem" onClick={() => { this.saveRead }}>保存进度</p>
+          <p className="optItem" onClick={() => { this.saveRead() }}>保存进度</p>
           <p className="optItem" onClick={() => { window.open(bookInfo.url,"_self") }}>下载</p>
           <p className="optItem" onClick={() => { window.open("https://jinshuju.net/f/peZNo8","_blank")}}>用户反馈</p>
           {/* <p className="optItem" onClick={() => { window.open('https://jinshuju.net/f/1xfVB8',"_blank") }}>评价阅读链</p> */}
