@@ -42,6 +42,7 @@ class HomePage extends React.Component {
         });
     };
     toResultPage = () => {
+        sessionStorage.removeItem('searchVal')
         this.props.history.push('/searchResult')
     }
     toLogin = (isLogin) => {

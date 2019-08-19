@@ -54,7 +54,7 @@ class MyUpload extends React.Component {
         return fileIcon;
     }
     handleChange = info => {
-        
+        debugger
         let fileList = [...info.fileList];
         const newFileList = [];
         const newUploadingList =[];
@@ -71,17 +71,22 @@ class MyUpload extends React.Component {
             this.setState({ fileList:newFileList,uploadingList:newUploadingList,visible:true,isFinash:false });
         }else{
             this.setState({ showFinash:true,showDetail:false,isFinash:true });
-            this.props.updateTable(true)
-            message.success('上传成功！')
+            this.props.updateTable(true);
+            const totalList = fileList.length;
+            const unVaildList = this.unVaildList.length;
+            if(totalList !== unVaildList){
+                message.success('上传成功！')
+            }
         }        
     };
     beforeUpload = (file) => {
+        debugger
         const fileName = file.name;
         console.log('beforeUpload:', file)
         const fileSplit = file.name.split('.');
         const fileType = fileSplit[fileSplit.length-1];
         const accpetType=['txt','epub','mobi','pdf','azw3'];
-        const isValid = accpetType.includes(fileType);
+        const isValid = accpetType.includes(fileType.toLocaleLowerCase());
         if (!isValid) {
             message.error('请上传epub、pdf、txt、mobi、azw3格式的文件');
         }
@@ -109,13 +114,15 @@ class MyUpload extends React.Component {
                             resolve(true)
                         }else{
                             message.error(`上传文件${fileName}已存在`)
+                            this.unVaildList.push(file.uid);
                             reject(false)
                         }
                     })
                 })
             })
         }else{
-            return isValid && isLt200M ;
+            let result = isValid && isLt200M
+            return  result;
         }
         
         

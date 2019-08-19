@@ -58,17 +58,22 @@ class SearchResult extends React.Component {
                 kindle_email: '',
                 old_pwd: '',
                 new_pwd: ''
-            }
+            },
+            showBottomTip:true//默认
         }
     }
     componentDidMount() {
+        debugger
         this.input.focus()
         const urlParams = location.href.split("?")[1];
+        const searchVal = sessionStorage.getItem('searchVal')
         if(urlParams){
             const searchType = urlParams.split("=")[1];
             if(searchType === 'user'){
                 this.setState({searchType})
             }
+        }else if(searchVal){
+            this.searchBook(searchVal)
         }
         this.getTotal();
         this.getCategory();
@@ -104,7 +109,6 @@ class SearchResult extends React.Component {
     }
 
     searchBook = (e, type) => {
-        
         const searchType = this.state.searchType;
         let url ='';
         if(searchType === 'user'){
@@ -115,6 +119,8 @@ class SearchResult extends React.Component {
         
 
         const bookName = type === 'search' ? e.target.value : e;
+        this.setState({searchBookName:bookName})
+        sessionStorage.setItem('searchVal',bookName)
         let pageNum =1;
         if(type === 'search'){
             pageNum =1;
@@ -143,12 +149,12 @@ class SearchResult extends React.Component {
                     let isEmpty = false;
                     // if(res.data.total === 0)isEmpty =true;
                     this.setState({
+                        showBottomTip:false,
                         result:res.data.total,
                         showTable: true,
                         showEmpty:isEmpty,
                         searchText: searchText,
-                        tableData: res.data.list,
-                        searchBookName: bookName
+                        tableData: res.data.list
                     })
                 } else {
                     message.error(res.error)
@@ -410,7 +416,7 @@ class SearchResult extends React.Component {
 
         } else {
             sessionStorage.setItem('bookInfo', JSON.stringify(bookInfo));
-            location.href = '#/reader';
+            location.href = '#/reader?search='+this.state.searchBookName;
         }
     }
     fileClone = (type, item) => {
@@ -867,9 +873,9 @@ class SearchResult extends React.Component {
                     const optContent = (
                         <div>
                             {role !== 2 && !isOwner?<p className="optItem" onClick={() => { this.fileClone('single', record)}}>克隆</p>:""}
+                            <p className="optItem" onClick={() => { this.fileShare("row", record.id) }}>分享</p>
+                            <p className={`${isOver10M ? 'overLimit':''} optItem`} onClick={() => { this.sendToKindle(record.id,isOver10M) }}>kindle</p>
                             {role !== 2 && !isOwner?<p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>:""}
-                            {role === 2 || isOwner?<p className="optItem" onClick={() => { this.fileShare("row", record.id) }}>分享</p>:""}
-                            {role === 2 || isOwner?<p className={`${isOver10M ? 'overLimit':''} optItem`} onClick={() => { this.sendToKindle(record.id,isOver10M) }}>kindle</p>:""}
                             {role === 2 || isOwner?<p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>:""}
                             {role === 2 || isOwner?<p className="optItem" onClick={() => { this.fileClone('singleTip', record)}}>标签</p>:""}
                             {role === 2 || isOwner?<p className="optItem" onClick={() => { this.renameDialog(record) }}>重命名</p>:""}
@@ -912,9 +918,9 @@ class SearchResult extends React.Component {
                     const optContent = (
                         <div onClick={()=>{this.setState({popoverVisible:''})}}>
                             {role !== 2 && !isOwner?<p className="optItem" onClick={() => { this.fileClone('single', record)}}>克隆</p>:""}
+                            <p className="optItem" onClick={() => { this.fileShare("row", record.id) }}>分享</p>
+                            <p className={`${isOver10M ? 'overLimit':''} optItem`} onClick={() => { this.sendToKindle(record.id,isOver10M) }}>kindle</p>
                             {role !== 2 && !isOwner?<p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>:""}
-                            {role === 2 || isOwner?<p className="optItem" onClick={() => { this.fileShare("row", record.id) }}>分享</p>:""}
-                            {role === 2 || isOwner?<p className={`${isOver10M ? 'overLimit':''} optItem`} onClick={() => { this.sendToKindle(record.id,isOver10M) }}>kindle</p>:""}
                             {role === 2 || isOwner?<p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>:""}
                             {role === 2 || isOwner?<p className="optItem" onClick={() => { this.fileClone('singleTip', record)}}>标签</p>:""}
                             {role === 2 || isOwner?<p className="optItem" onClick={() => { this.renameDialog(record) }}>重命名</p>:""}
@@ -1032,11 +1038,11 @@ class SearchResult extends React.Component {
         };
         return (
             <Spin tip="正在下载请稍等" spinning={this.state.isLoading}>
-            <div className="deskWarp">
+            <div className="searchResultWarp">
                 <Layout>
                     <div className="publicHeader">
                         <div className="menuBtn"><Icon onClick={this.toIndex} type={'arrow-left'} /></div>
-                        <div className="searchWarp"><Input ref={(input) => this.input = input} allowClear placeholder="搜索" onChange={(value) => { this.searchBook(value, 'search') }} /> <span className="result">{this.state.searchText}</span></div>
+                        <div className="searchWarp"><Input ref={(input) => this.input = input} allowClear placeholder="搜索" value={this.state.searchBookName} onChange={(value) => { this.searchBook(value, 'search') }} /> <span className="result">{this.state.searchText}</span></div>
                         <div className="loginInfo" > {hasPhoto ? <img className="userPhoto" onClick={this.toUserInfo} src={photo} alt="" /> : (!isLogin ? <span onClick={this.toLogin}>登录</span> : <span className="userName" onClick={this.toUserInfo}>{userName}</span>)} </div>
                     </div>
 
@@ -1106,7 +1112,11 @@ class SearchResult extends React.Component {
                         <Button type="default" className="ms_fr" style={{marginRight:"14px"}} onClick={()=>{this.setState({showTipModal:false})}}>取消</Button>
                     </div>
                 </Modal>
-                {/* <div className="bottomTip"></div> */}
+                {this.state.showBottomTip?
+                <div className="bottomTip">
+                    <div className="title">温馨提示：</div>
+                    <div className="tipContent">阅读链仅提供信息存储空间服务，所有内容仅供个人交流与学习使用，均由用户自行上传，如有侵权，将依法对被投诉内容做删除或断开链接的处理</div>
+                </div>:""}
             </div>
             </Spin>
         )

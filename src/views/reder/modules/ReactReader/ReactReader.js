@@ -31,8 +31,12 @@ class ReactReader extends PureComponent {
     this.readerRef = React.createRef();
     this.state = {
       expanedToc: false,
-      toc: false
+      toc: false,
+      readProcess:JSON.parse(sessionStorage.getItem('bookInfo')).process || 0.00
     };
+  }
+  componentDidMount(){
+    const node = this.readerRef.current;
   }
   toggleToc = () => {
     this.setState({
@@ -41,12 +45,14 @@ class ReactReader extends PureComponent {
   };
 
   next = () => {
-    
     const node = this.readerRef.current;
     const lastPercent = node.book.locations.percentageFromCfi(node.book.rendition.currentLocation().start.cfi);
     const currPercent = node.book.locations.percentageFromCfi(node.book.rendition.currentLocation().end.cfi);
     sessionStorage.setItem('currPercent',currPercent);
     node.nextPage();
+    this.setState({
+      readProcess:(currPercent*100).toFixed(2)
+    })
   };
 
   prev = () => {
@@ -55,9 +61,13 @@ class ReactReader extends PureComponent {
     const currPercent = node.book.locations.percentageFromCfi(node.book.rendition.currentLocation().end.cfi);
     sessionStorage.setItem('currPercent',currPercent);
     node.prevPage();
+    this.setState({
+      readProcess:(currPercent*100).toFixed(2)
+    })
   };
 
   onTocChange = toc => {
+    debugger
     const { tocChanged } = this.props;
     this.setState(
       {
@@ -92,6 +102,7 @@ class ReactReader extends PureComponent {
   }
 
   setLocation = loc => {
+    debugger
     const { locationChanged } = this.props;
     this.setState(
       {
@@ -124,18 +135,7 @@ class ReactReader extends PureComponent {
   }
 
   render() {
-    const {
-      url,
-      title,
-      showToc,
-      loadingView,
-      epubOptions,
-      styles,
-      getRendition,
-      locationChanged,
-      location,
-      swipeable
-    } = this.props;
+    const {url,title,showToc,loadingView,epubOptions,styles,getRendition,locationChanged,location,swipeable} = this.props;
     const { toc, expanedToc } = this.state;
     return (
       <div style={styles.container}>
@@ -144,27 +144,14 @@ class ReactReader extends PureComponent {
             {},
             styles.readerArea,
             expanedToc ? styles.containerExpaned : {}
-          )}
-        >
+          )}>
           {showToc && this.renderTocToggle()}
           <div style={styles.titleArea}>{title}</div>
-          <Swipeable
-            onSwipedRight={this.prev}
-            onSwipedLeft={this.next}
-            trackMouse
-          >
+          <Swipeable onSwipedRight={this.prev} onSwipedLeft={this.next} trackMouse>
             <div style={styles.reader}>
-              <EpubView
-                ref={this.readerRef}
-                url={url}
-                location={location}
-                loadingView={loadingView}
-                tocChanged={this.onTocChange}
-                locationChanged={locationChanged}
-                epubOptions={epubOptions}
-                getRendition={getRendition}
-              />
-              {swipeable && <div style={styles.swipeWrapper} />}
+              <EpubView ref={this.readerRef} url={url} location={location} loadingView={loadingView}
+                tocChanged={this.onTocChange} locationChanged={locationChanged} epubOptions={epubOptions} getRendition={getRendition}/>
+               {swipeable && <div style={styles.swipeWrapper} />}
             </div>
           </Swipeable>
           <button
@@ -181,6 +168,7 @@ class ReactReader extends PureComponent {
           </button>
         </div>
         {showToc && toc && this.renderToc()}
+        <div className="readProcess">当前阅读进度：{this.state.readProcess || 0.00}%</div>
       </div>
     );
   }

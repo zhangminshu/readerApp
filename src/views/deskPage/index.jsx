@@ -132,6 +132,7 @@ class DeskPage extends React.Component {
         });
     };
     toResultPage = () => {
+        sessionStorage.removeItem('searchVal')
         this.props.history.push('/searchResult')
     }
     onClose = () => {
@@ -584,7 +585,11 @@ class DeskPage extends React.Component {
         })
     }
     readerBook=(bookInfo)=>{
-        if (!bookInfo.url) return message.error('书本链接不存在！')
+        if(bookInfo.encode_status !== 2){
+            return message.error('书本正在转码中，请稍后再试')
+        }else if(!bookInfo.url){
+            return message.error('书本链接不存在！')
+        }
         const userAgent = navigator.userAgent;
         if (bookInfo.extension === 'pdf') {
             if (userAgent.indexOf("Chrome") > -1) {

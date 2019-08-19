@@ -154,6 +154,7 @@ class ManagerPage extends React.Component {
     }
     toResultPage = () => {
         const activeMenu = this.state.activeMenu;
+        sessionStorage.removeItem('searchVal')
         if(activeMenu === '1'){
             // this.props.history.push({pathname:'/searchResult?type=user'})
             location.href = '#/searchResult?type=user'

@@ -62,16 +62,24 @@ class RederPage extends Component {
   }
 
   componentDidMount() {
+    let isFirst = true;
     const Authorization = cookie.get('Authorization')
-    // this.getUserInfo();
+    const hashname = location.hash;
+    const searchVal = hashname.split('?search=')[1];
     if(Authorization){
         this.getCategory()
         this.joinTag()
+        const _this = this;
+        // history.pushState(null, null, document.URL);
+        if(isFirst){
+          window.addEventListener('popstate', function () {
+            isFirst = false;
+            _this.saveRead('leave');
+        },false);
+        }
     }
   }
-  componentWillUnmount(){
-    this.saveRead('leave');
-  }
+
   getCategory = () => {
     const url = '/category';
     HTTP.get(url, {}).then(response => {
@@ -256,17 +264,24 @@ class RederPage extends Component {
     rendition.themes.fontSize(largeText ? "140%" : "100%");
   };
   saveRead=(type)=>{
-    debugger
+    const _this = this;
     const bookInfo = JSON.parse(sessionStorage.getItem('bookInfo'));
     const currPer = sessionStorage.getItem('currPercent') *100;
     const url = `/book/${bookInfo.id}/_process`;
+    window.removeEventListener('popstate', function () {_this.saveRead('leave')},false)
     HTTP.put(url,{process:currPer}).then(response=>{
       const res = response.data;
-      if(res.status === 0){
-        if(type !=='leave'){
+      if(type !=='leave'){
+        if(res.status === 0){
           message.success('保存成功！') 
         }
+      }else{
+        // _this.props.history.push('/desk')
+        // window.removeEventListener('popstate', function () {
+        //   history.pushState(null, null, document.URL);
+        // })
       }
+
     })
   }
   fileDownload = (href) => {
