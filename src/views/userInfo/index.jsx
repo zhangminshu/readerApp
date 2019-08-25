@@ -141,6 +141,7 @@ class UserInfo extends React.Component {
             cancelText: '取消',
             onOk() {
                 cookie.remove('Authorization');
+                cookie.remove('userInfo');
                 sessionStorage.removeItem('userInfo');
                 localStorage.clear();
                 sessionStorage.clear();

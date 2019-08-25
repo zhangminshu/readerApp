@@ -366,6 +366,7 @@ class RederPage extends Component {
   );
     return (
       <Container>
+        <div className="readerMask"><div className="loadingTxt"><Icon type="loading" /> loading</div></div>
         <GlobalStyle />
         <ReaderContainer fullscreen={fullscreen}>
           {/* <Button onClick={() => { this.fileClone('single', bookInfo)}} style={{ position: "absolute", zIndex: "9", right: "100px", top: "10px" }} className="btn_clone" type="primary">克隆</Button> */}

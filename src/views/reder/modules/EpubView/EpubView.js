@@ -1,5 +1,4 @@
 import React, { Component } from "react";
-import {Spin} from 'antd'
 import PropTypes from "prop-types";
 import Epub from "epubjs/lib/index";
 import defaultStyles from "./style";
@@ -10,7 +9,6 @@ class EpubView extends Component {
     super(props);
     this.state = {
       isLoaded: false,
-      isloading:true,
       toc: []
     };
     this.viewerRef = React.createRef();
@@ -52,7 +50,7 @@ class EpubView extends Component {
   }
 
   initReader() {
-    debugger
+    
     const _this = this;
     const { toc } = this.state;
     const { location, epubOptions, getRendition } = this.props;
@@ -81,8 +79,8 @@ class EpubView extends Component {
       }else if(typeof location ==='string'){
           _this.rendition.display(location)
       }
-      _this.setState({isLoaded: true,isloading:false,timp:new Date()})
-      console.log('false')
+  
+      document.getElementsByClassName('readerMask')[0].remove()
     })
     this.prevPage = () => {
       this.rendition.prev();
@@ -115,15 +113,14 @@ class EpubView extends Component {
   };
 
   render() {
-    const { isLoaded,isloading} = this.state;
+    const { isLoaded} = this.state;
     const { loadingView, styles } = this.props;
     return (
-      <Spin spinning={isloading}>
+      
         <div style={styles.viewHolder}>
-        {this.renderBook()}
-          {/* {(isLoaded && this.renderBook()) || loadingView} */}
+          {(isLoaded && this.renderBook()) || loadingView}
         </div>
-      </Spin>
+      
     );
   }
 }

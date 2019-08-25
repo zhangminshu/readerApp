@@ -849,7 +849,12 @@ class SearchResult extends React.Component {
                 dataIndex: 'size',
                 key: 'size',
                 render: (text) => {
-                    let val = text.toFixed(2) + 'MB';
+                    let val
+                    if(!text){
+                        val ='0MB'
+                    }else{
+                        val= text.toFixed(2) + 'MB';
+                    }
                     return val;
                 }
             },

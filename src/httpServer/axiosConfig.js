@@ -36,8 +36,9 @@ HTTP.interceptors.request.use(
 HTTP.interceptors.response.use(
     response =>{
         const status = response && response.data && response.data.status;
+        const isSearchPage = location.href.indexOf('searchResult')>0;
         if(status === 2){
-            if(hasLoginDialog) return;
+            if(hasLoginDialog || isSearchPage) return;
             hasLoginDialog = true
             confirm({
                 title: "请登录",
@@ -58,7 +59,7 @@ HTTP.interceptors.response.use(
         }
     },
     error =>{
-        
+         
         const status = error && error.data && error.data.status;
         if(status === 2){
             cookie.remove('Authorization');
