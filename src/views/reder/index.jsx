@@ -59,6 +59,7 @@ class RederPage extends Component {
       largeText: false
     };
     this.rendition = null;
+    this.unLogin = false;
   }
 
   componentDidMount() {
@@ -67,6 +68,7 @@ class RederPage extends Component {
     const hashname = location.hash;
     const searchVal = hashname.split('?search=')[1];
     if(Authorization){
+        this.unLogin = false;
         this.getCategory()
         this.joinTag()
         const _this = this;
@@ -77,6 +79,8 @@ class RederPage extends Component {
             _this.saveRead('leave');
         },false);
         }
+    }else{
+      this.unLogin = true;
     }
   }
 
@@ -348,6 +352,26 @@ class RederPage extends Component {
           },
       });
   }
+  downloadBook=(url)=>{
+    if(this.unLogin){
+      return this.unLoginTip();
+    }
+    window.open(url,"_self")
+  }
+  unLoginTip=()=>{
+    const _this = this;
+    confirm({
+        title: '请登录',
+        content: "登录后可使用该功能",
+        okText: '登录',
+        className:'confirmDialog',
+        cancelText: '取消',
+        onOk() {
+            _this.props.history.push('/login')
+        },
+        onCancel() {}
+      });
+}
   render() {
     const { fullscreen } = this.state;
     const bookInfo = JSON.parse(sessionStorage.getItem('bookInfo'));
@@ -359,7 +383,7 @@ class RederPage extends Component {
       <div>
           <p className="optItem" onClick={() => { this.fileShare("row", bookInfo.id) }}>分享</p>
           <p className="optItem" onClick={() => { this.saveRead() }}>保存进度</p>
-          <p className="optItem" onClick={() => { window.open(bookInfo.url,"_self") }}>下载</p>
+          <p className="optItem" onClick={() => { this.downloadBook(bookInfo.url) }}>下载</p>
           <p className="optItem" onClick={() => { window.open("https://jinshuju.net/f/peZNo8","_blank")}}>用户反馈</p>
           {/* <p className="optItem" onClick={() => { window.open('https://jinshuju.net/f/1xfVB8',"_blank") }}>评价阅读链</p> */}
       </div>

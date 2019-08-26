@@ -38,7 +38,7 @@ HTTP.interceptors.response.use(
         const status = response && response.data && response.data.status;
         const isSearchPage = location.href.indexOf('searchResult')>0;
         if(status === 2){
-            if(hasLoginDialog || isSearchPage) return;
+            if(hasLoginDialog ) return;
             hasLoginDialog = true
             confirm({
                 title: "请登录",

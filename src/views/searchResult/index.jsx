@@ -61,9 +61,9 @@ class SearchResult extends React.Component {
             },
             showBottomTip:true//默认
         }
+        this.unLogin = false;
     }
     componentDidMount() {
-        debugger
         this.input.focus()
         const urlParams = location.href.split("?")[1];
         const searchVal = sessionStorage.getItem('searchVal')
@@ -75,8 +75,15 @@ class SearchResult extends React.Component {
         }else if(searchVal){
             this.searchBook(searchVal)
         }
-        this.getTotal();
-        this.getCategory();
+        const Authorization = cookie.get('Authorization')
+        if(Authorization){
+            this.unLogin = false;
+            this.getTotal();
+            this.getCategory();
+        }else{
+            this.unLogin = true;
+        }
+
     }
     getCategory = () => {
         const url = '/category';
@@ -165,6 +172,9 @@ class SearchResult extends React.Component {
         }
     }
     sendToKindle = (bid,isOverLimit) => {
+        if(this.unLogin){
+            return this.unLoginTip();
+        }
         if(isOverLimit) return message.info('请选择10M以内的文件');
         const userInfo = JSON.parse(localStorage.getItem('userInfo'));
         if(userInfo){
@@ -441,6 +451,20 @@ class SearchResult extends React.Component {
             showTagDialog:true
         })
     }
+    unLoginTip=()=>{
+        const _this = this;
+        confirm({
+            title: '请登录',
+            content: "登录后可使用该功能",
+            okText: '登录',
+            className:'confirmDialog',
+            cancelText: '取消',
+            onOk() {
+                _this.props.history.push('/login?from=searchPage')
+            },
+            onCancel() {}
+          });
+    }
         /**
      * 保存文件标签
      */
@@ -509,6 +533,9 @@ class SearchResult extends React.Component {
         this.setState({isLoading:false})
     }
     downloadEvent = (type, item) => {
+        if(this.unLogin){
+            return this.unLoginTip();
+        }
         let bookIds = "";
         const ids = []
         if (type === 'single') {
