@@ -132,7 +132,7 @@ class LoginPage extends React.Component {
                             </FormItem>
                             <FormItem >
                                 {getFieldDecorator('password', {
-                                    rules: [{ required: true, message: '请输入登陆密码!' }],
+                                    rules: [{ required: true, message: '请输入登录密码!' }],
                                 })(
                                     <Input.Password className="loginInput" autoComplete="off" datasource={[]} type="password" placeholder="密码"/>,
                                 )}

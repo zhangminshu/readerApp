@@ -97,7 +97,7 @@ class HomePage extends React.Component {
                                     <div className="solgan  ">
                                         
                                         <h1 className="bigDesc">你要的书， 这里都有</h1>
-                                        <h3 className="smallDesc">找书，用阅读链</h3>
+                                        <h3 className="smallDesc">找书，就用阅读链</h3>
                                         <Button className="btn_login" type="primary" onClick={()=>{this.toLogin(isLogin)}}>立即体验</Button>
                                         <img className="bannerBg" src={bannerBg} alt="" />
                                     </div>
