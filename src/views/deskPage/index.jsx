@@ -20,6 +20,7 @@ class DeskPage extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            title:'全部书籍',
             currBookUrl:'',
             popoverVisible:'',
             isOpenPop:false,
@@ -206,20 +207,28 @@ class DeskPage extends React.Component {
         })
     }
     changeMenu = (id, type,changeType) => {
+        let title = '全部书籍';
+        this.state.navList.forEach(item=>{
+            if(item.id == id){
+                title = item.title
+            }
+        })
         if (type === 'small') {
             this.setState({
                 visible: false,
                 tableSelectedRowKeys: [],
                 selectedRow: [],
                 showCheckBox: false,
-                activeItem: id.toString()
+                activeItem: id.toString(),
+                title
             })
         } else {
             this.setState({
                 tableSelectedRowKeys: [],
                 selectedRow: [],
                 showCheckBox: false,
-                activeItem: id.toString()
+                activeItem: id.toString(),
+                title
             })
         }
         this.deskActiveMenu = id.toString() || 'all';
@@ -773,7 +782,7 @@ class DeskPage extends React.Component {
                     );
                     const optHtml = <div className="optWarp">
 
-                        <Popover placement="rightTop" content={optContent} trigger="focus">
+                        <Popover placement="rightTop" content={optContent} trigger="focus" >
                             <Button className="btn_more_opt"><Icon style={{ fontSize: '16px' }} type="ellipsis" /></Button>
                         </Popover>
                     </div>
@@ -855,7 +864,7 @@ class DeskPage extends React.Component {
                                 {this.state.showTable && (!this.state.showEmpty) ?
                                     <div className="myTableWarp">
                                         <div className="clearFix">
-                                            <div className="title ms_fl">全部文件</div>
+                                            <div className="title ms_fl">{this.state.title}</div>
                                             <div className={`${this.state.showCheckBox ? 'showBtnList' : ''} btn_list ms_fr`}>
                                                 {role !== 2 ? <Button className="btn btn_share" type="primary" onClick={this.fileShare}>分享</Button> : ''}
                                                 {role !== 2 ? <Button className="btn btn_download" onClick={this.fileClone}>标签</Button> : ""}
