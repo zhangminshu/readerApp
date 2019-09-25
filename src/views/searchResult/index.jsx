@@ -20,6 +20,7 @@ class SearchResult extends React.Component {
         super(props);
         this.state = {
             popoverVisible:'',
+            popoverPcVisible:'',
             currBookUrl:'',
             showTipModal:false,
             result:0,
@@ -828,6 +829,9 @@ class SearchResult extends React.Component {
     handleVisibleChange = popoverVisible => {
         this.setState({ popoverVisible });
     };
+    handlePcVisibleChange = popoverPcVisible => {
+        this.setState({ popoverPcVisible });
+    };
     render() {
         // const userInfo = JSON.parse(localStorage.getItem('userInfo'));
         const cookUserInfo = cookie.get('userInfo') || null
@@ -903,7 +907,7 @@ class SearchResult extends React.Component {
                     const isOver10M = record.size > 10;
                     const isOwner = record.is_owner === 1
                     const optContent = (
-                        <div>
+                        <div onClick={()=>{this.setState({popoverPcVisible:''})}}>
                             {role !== 2 && !isOwner?<p className="optItem" onClick={() => { this.fileClone('single', record)}}>克隆</p>:""}
                             <p className="optItem" onClick={() => { this.fileShare("row", record.id) }}>分享</p>
                             <p className={`${isOver10M ? 'overLimit':''} optItem`} onClick={() => { this.sendToKindle(record.id,isOver10M) }}>kindle</p>
@@ -917,8 +921,8 @@ class SearchResult extends React.Component {
                     );
                     const optHtml = <div className="optWarp">
 
-                        <Popover placement="rightTop" content={optContent} trigger="focus">
-                            <Button className="btn_more_opt"><Icon style={{fontSize:'16px'}} type="ellipsis" /></Button> 
+                        <Popover placement="rightTop" content={optContent} trigger="click" visible={this.state.popoverPcVisible == record.id} onVisibleChange={()=>{this.handlePcVisibleChange(record.id)}}>
+                            <Button className="btn_more_opt" onBlur={()=>{this.setState({popoverPcVisible:''})}}><Icon style={{fontSize:'16px'}} type="ellipsis"  /></Button> 
                         </Popover>
                     </div>
                     return optHtml;
@@ -1008,7 +1012,7 @@ class SearchResult extends React.Component {
             key: 'opt',
             render: (text, record) => {
                 const optContent = (
-                    <div>
+                    <div onClick={()=>{this.setState({popoverPcVisible:''})}}>
                         {/* onClick={() => { this.edit(record, 'photo', '修改头像') }} */}
                         <p className="optItem" onClick={() => { this.edit(record, 'photo', '修改头像') }}>修改头像</p> 
                         <p className="optItem" onClick={() => { this.edit(record, 'nick_name', '修改用户名') }}>修改用户名</p>
@@ -1020,8 +1024,8 @@ class SearchResult extends React.Component {
                 );
                 const optHtml = <div className="optWarp">
 
-                    <Popover placement="rightTop" content={optContent} trigger="focus">
-                        <Button className="btn_more_opt"><Icon style={{ fontSize: '16px' }} type="ellipsis" /></Button>
+                    <Popover placement="rightTop" content={optContent} trigger="click" visible={this.state.popoverPcVisible == record.id} onVisibleChange={()=>{this.handlePcVisibleChange(record.id)}}>
+                        <Button className="btn_more_opt" onBlur={()=>{this.setState({popoverPcVisible:''})}}><Icon style={{ fontSize: '16px' }} type="ellipsis" /></Button>
                     </Popover>
                 </div>
                 return optHtml;
