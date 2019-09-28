@@ -46,6 +46,7 @@ class DeskPage extends React.Component {
             pageSize: 10,
             tableData: [],
             tagList:[],
+            selectedTag:[],//默认所在的标签
             fileType: 0,
             editTagInfo:{
                 addTag:'',
@@ -71,6 +72,7 @@ class DeskPage extends React.Component {
         this.deskActiveMenu =''
     }
     componentDidMount() {    
+        document.title = '阅读链 - 我的文件'
         this.deskActiveMenu = sessionStorage.getItem('deskActiveMenu') || 'all';
         const currId = this.deskActiveMenu === 'all'?'':this.deskActiveMenu;
         this.getUserInfo();
@@ -177,19 +179,6 @@ class DeskPage extends React.Component {
                 ps: pageSize
             }
         }
-        // if(changeType === 'menu'){
-        //     requestJson = {
-        //         pn: 1,
-        //         ps: pageSize
-        //     }
-        //     this.setState({pageNum:1})
-        // }else{
-        //     requestJson = {
-        //         keyword: value,
-        //         pn: pageNum,
-        //         ps: pageSize
-        //     }
-        // }
         HTTP.get(url, { params: requestJson }).then(response => {
             const res = response.data;
             if (res.status === 0) {
@@ -330,6 +319,22 @@ class DeskPage extends React.Component {
             }
         })
     }
+    //
+    getBookC =(book_id)=>{
+        const bookId = book_id.toString();
+        const url =`/book/${bookId}/_category`;
+        
+        HTTP.get(url,{}).then(response=>{
+            const res = response.data;
+            if(res.status === 0){
+                this.setState({
+                    selectedTag:res.data.split(','),
+                    selectBookId:bookId,
+                    showTagDialog:true
+                })
+            }
+        })
+    }
     /**
      * 标签修改
      */
@@ -337,17 +342,20 @@ class DeskPage extends React.Component {
         const ids = [];
         let bookId = "";
         if (type === 'single') {
-            bookId = item.id.toString();
+            this.getBookC(item.id)
+            
         } else {
             this.state.selectedRow.forEach(item => {
                 ids.push(item.id);
             })
             bookId = ids.join(',')
+            this.setState({
+                selectedTag:[],
+                selectBookId:bookId,
+                showTagDialog:true
+            })
         }
-        this.setState({
-            selectBookId:bookId,
-            showTagDialog:true
-        })
+
     }
     /**
      * 保存文件标签
@@ -362,7 +370,7 @@ class DeskPage extends React.Component {
             }
         })
         const category_id = categoryIds.join(',')
-        if(category_id ==='')return message.error('标签不能为空！')
+        // if(category_id ==='')return message.error('标签不能为空！')
         let requestJson ={};
         if(category_id === ''){
             requestJson={book_ids:bookid}
@@ -906,8 +914,9 @@ class DeskPage extends React.Component {
                             <i className="icon icon_ok ms_fr" title="保存" onClick={()=>{this.addNewTag('create')}}></i>
                         </div>
                         {this.state.tagList.map((item,index) => {
+                            
                             return <div key={`complete${item.id}${index}`} className={`${this.state.editTag === item.id ? 'tagAdding' :''} checkItem clearFix`}>
-                                <Checkbox defaultChecked={item.id == this.deskActiveMenu} className="checkItem" onChange={(value)=>{this.handleCheckBox(value,item.id)}}><span className="tagText">{item.title}</span></Checkbox>
+                                <Checkbox defaultChecked={this.state.selectedTag.includes(item.id.toString())} className="checkItem" onChange={(value)=>{this.handleCheckBox(value,item.id)}}><span className="tagText">{item.title}</span></Checkbox>
                                 <i className="icon icon_del" title="删除" onClick={() => { this.delTag(item.id) }}></i>
                                 <Input className="addTag tagInput" onChange={(value)=>{this.handleTagChange(value,'newTag')}} placeholder="" defaultValue={item.title} />
                                 <i className="icon icon_edit ms_fr" onClick={()=>{this.setState({editTag:item.id})}}></i>

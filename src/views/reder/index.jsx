@@ -379,6 +379,7 @@ class RederPage extends Component {
     const bookUrl = "https://" + bookInfo.url.split("://")[1];
     const bookTitle = bookInfo.title;
     const location = locationPre || bookInfo.process/100 || 0;
+    document.title = '阅读链 - ' + bookInfo.title
     const optContent = (
       <div>
           <p className="optItem" onClick={() => { this.fileShare("row", bookInfo.id) }}>分享</p>

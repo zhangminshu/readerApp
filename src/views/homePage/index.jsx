@@ -7,8 +7,8 @@ import MyFooter from '../../componment/footer/index.jsx'
 import './style.less'
 import cookie from 'js-cookie';
 import bannerBg from '../../img/banner.svg';
-import bookAdd from '../../img/book_add.svg'
-import onlineReading from '../../img/online_reading.svg'
+import download from '../../img/download.svg'
+import kindle from '../../img/kindle.svg'
 import bookManager from '../../img/book_manager.svg'
 // import { debug } from 'util';
 
@@ -110,27 +110,27 @@ class HomePage extends React.Component {
                                     </div>
                                     <div className="introWarp">
                                         <div className="item">
-                                            <div className="itemImg"><img src={bookAdd} alt="" /></div>
-                                            <div className="title">添加电子书</div>
+                                            <div className="itemImg"><img src={download} alt="" /></div>
+                                            <div className="title">免费下载</div>
                                             <div className="desc">
-                                                <div>支持文件搜索、站内文件分享和本</div>
-                                                <div>地上传三种方式</div>
+                                                <div>所有电子书免费下载，并且可以转</div>
+                                                <div>码为其他格式后下载</div>
                                             </div>
                                         </div>
                                         <div className="item">
-                                            <div className="itemImg"><img src={onlineReading} alt="" /></div>
-                                            <div className="title">在线阅读</div>
+                                            <div className="itemImg"><img src={kindle} alt="" /></div>
+                                            <div className="title">kindle推送</div>
                                             <div className="desc">
-                                                <div>支持mobi 、epub 、azw3 、txt、pdf</div>
-                                                <div>文件在线阅读</div>
+                                                <div>EPUB 和 AZW3 格式的文件也能推</div>
+                                                <div>送到kindle</div>
                                             </div>
                                         </div>
                                         <div className="item">
                                             <div className="itemImg"><img src={bookManager} alt="" /></div>
                                             <div className="title">书籍管理</div>
                                             <div className="desc">
-                                                <div>自定义标签，灵活管理每一本书,还</div>
-                                                <div>可以分享电子书</div>
+                                                <div>自定义标签，灵活管理每一本书,快</div>
+                                                <div>把收藏的书分享给朋友们吧</div>
                                             </div>
                                         </div>
                                     </div>

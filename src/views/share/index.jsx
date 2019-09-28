@@ -40,6 +40,7 @@ class SharePage extends React.Component {
         }
     }
     componentDidMount() {
+        document.title = '阅读链 - 分享'
         this.getShareBookList()
         const Authorization = cookie.get('Authorization')
         // this.getUserInfo();

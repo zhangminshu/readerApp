@@ -65,6 +65,7 @@ class SearchResult extends React.Component {
         this.unLogin = false;
     }
     componentDidMount() {
+        document.title = '阅读链 - 搜索'
         this.input.focus()
         const urlParams = location.href.split("?")[1];
         const searchVal = sessionStorage.getItem('searchVal')
