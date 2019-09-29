@@ -327,8 +327,9 @@ class DeskPage extends React.Component {
         HTTP.get(url,{}).then(response=>{
             const res = response.data;
             if(res.status === 0){
+                const selectedTag = res.data === '' ? [] :res.data.split(',');
                 this.setState({
-                    selectedTag:res.data.split(','),
+                    selectedTag:selectedTag,
                     selectBookId:bookId,
                     showTagDialog:true
                 })
@@ -362,23 +363,23 @@ class DeskPage extends React.Component {
      */
     saveTagChange =()=>{
         const bookid = this.state.selectBookId;
-        const categoryList = this.state.categoryList;
-        const categoryIds =[];
-        categoryList.forEach(item=>{
-            if(item.isChecked){
-                categoryIds.push(item.id)
-            }
-        })
-        const category_id = categoryIds.join(',')
+        const categoryList = this.state.selectedTag;
+        // const categoryIds =[];
+        // categoryList.forEach(item=>{
+        //     if(item.isChecked){
+        //         categoryIds.push(item.id)
+        //     }
+        // })
+        const category_id = categoryList.join(',')
         // if(category_id ==='')return message.error('标签不能为空！')
-        let requestJson ={};
-        if(category_id === ''){
-            requestJson={book_ids:bookid}
-        }else{
-            requestJson={book_ids:bookid,category_ids:category_id}
-        }
-        const url = `/book/_shiftin`;
-        HTTP.post(url,requestJson).then(response=>{
+        let requestJson ={category_ids:category_id};
+        // if(category_id === ''){
+        //     requestJson={book_ids:bookid}
+        // }else{
+        //     requestJson={book_ids:bookid,category_ids:category_id}
+        // }
+        const url = `/book/${bookid}/_category`;
+        HTTP.put(url,requestJson).then(response=>{
             const res = response.data;
             if(res.status === 0){
                 this.setState({
@@ -394,15 +395,18 @@ class DeskPage extends React.Component {
     }
     handleCheckBox(e,id) {
         const isChecked = e.target.checked;
-        const newList =[]
-        this.state.categoryList.forEach(item=>{
-            if(item.id === id){
-                item.isChecked = isChecked
-            }
-            newList.push(item);
-        })
+        const selectedTag = this.state.selectedTag;
+        let currSelectedTag = [];
+        if(isChecked){
+            selectedTag.push(id.toString());
+            currSelectedTag = selectedTag;
+        }else{
+            currSelectedTag = selectedTag.filter(item=>{
+                return item !== id.toString();
+            })
+        }
         this.setState({
-            categoryList:newList
+            selectedTag:currSelectedTag
         })
     }
     fileShare = (type, id) => {
@@ -602,6 +606,7 @@ class DeskPage extends React.Component {
         })
     }
     readerBook=(bookInfo)=>{
+        const unAllowOnline = ['txt','mobi','azw3']
         if(bookInfo.encode_status !== 2){
             return message.error('书本正在转码中，请稍后再试')
         }else if(!bookInfo.url){
@@ -620,6 +625,8 @@ class DeskPage extends React.Component {
                 }
             }
 
+        }else if(unAllowOnline.includes(bookInfo.extension)){
+            return message.error('txt、mobi、azw3格式不支持在线查看，请下载后查看')
         } else {
             sessionStorage.setItem('bookInfo', JSON.stringify(bookInfo));
             location.href = '#/reader';

@@ -73,6 +73,8 @@ class SearchResult extends React.Component {
             const searchType = urlParams.split("=")[1];
             if(searchType === 'user'){
                 this.setState({searchType})
+            }else{
+                this.searchBook(searchType)
             }
         }else if(searchVal){
             this.searchBook(searchVal)
@@ -116,18 +118,28 @@ class SearchResult extends React.Component {
             }
         })
     }
-
+    /**
+     * 文件搜索时 根据查询内容更新浏览器URL
+     */
+    resetUrl =(searchVal)=>{
+        let newUrl ='';
+        if(searchVal !==''){
+            newUrl = location.origin + '/#/searchResult?search=' + searchVal
+        }else{
+            newUrl = location.origin + '/#/searchResult'
+        }
+        location.href = newUrl
+    }
     searchBook = (e, type) => {
         const searchType = this.state.searchType;
         let url ='';
+        const bookName = type === 'search' ? e.target.value : e;
         if(searchType === 'user'){
             url = '/user';
         }else{
             url = '/book/_search';
+            this.resetUrl(bookName)
         }
-        
-
-        const bookName = type === 'search' ? e.target.value : e;
         this.setState({searchBookName:bookName})
         sessionStorage.setItem('searchVal',bookName)
         let pageNum =1;
@@ -414,6 +426,7 @@ class SearchResult extends React.Component {
     readerBook=(bookInfo)=>{
         if (!bookInfo.url) return message.error('书本链接不存在！')
         const userAgent = navigator.userAgent;
+        const unAllowOnline = ['txt','mobi','azw3']
         if (bookInfo.extension === 'pdf') {
             if (userAgent.indexOf("Chrome") > -1) {
                 window.open(bookInfo.url, "_blank")
@@ -426,6 +439,8 @@ class SearchResult extends React.Component {
                 }
             }
 
+        }else if(unAllowOnline.includes(bookInfo.extension)){
+            return message.error('txt、mobi、azw3格式不支持在线查看，请下载后查看')
         } else {
             sessionStorage.setItem('bookInfo', JSON.stringify(bookInfo));
             location.href = '#/reader?search='+this.state.searchBookName;

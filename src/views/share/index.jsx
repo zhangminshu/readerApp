@@ -125,6 +125,7 @@ class SharePage extends React.Component {
     readerBook=(bookInfo)=>{
         if (!bookInfo.url) return message.error('书本链接不存在！')
         const userAgent = navigator.userAgent;
+        const unAllowOnline = ['txt','mobi','azw3']
         if (bookInfo.extension === 'pdf') {
             if (userAgent.indexOf("Chrome") > -1) {
                 window.open(bookInfo.url, "_blank")
@@ -137,6 +138,8 @@ class SharePage extends React.Component {
                 }
             }
 
+        }else if(unAllowOnline.includes(bookInfo.extension)){
+            return message.error('txt、mobi、azw3格式不支持在线查看，请下载后查看')
         } else {
             sessionStorage.setItem('bookInfo', JSON.stringify(bookInfo));
             location.href = '#/reader';
