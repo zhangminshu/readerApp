@@ -26,6 +26,7 @@ class UserInfo extends React.Component {
         }
     }
     componentDidMount() {
+        document.title = '阅读链 - 个人中心'
         this.getUserInfo();
     }
     getUserInfo = () => {

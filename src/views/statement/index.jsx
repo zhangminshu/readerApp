@@ -11,6 +11,9 @@ class Statement extends React.Component {
             visible: false
         }
     }
+    componentDidMount(){
+        document.title = '阅读链 - 权利声明'
+    }
     toggleCollapsed = () => {
         this.setState({
             collapsed: !this.state.collapsed,

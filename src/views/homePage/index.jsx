@@ -22,6 +22,7 @@ class HomePage extends React.Component {
         }
     }
     componentDidMount(){
+        document.title = '阅读链 - 找书就用阅读链'
         // this.getUserInfo();
     }
 

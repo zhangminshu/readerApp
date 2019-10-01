@@ -11,6 +11,9 @@ class ServerAgreement extends React.Component {
             visible: false
         }
     }
+    componentDidMount(){
+        document.title = '阅读链 - 服务协议'
+    }
     toggleCollapsed = () => {
         this.setState({
             collapsed: !this.state.collapsed,

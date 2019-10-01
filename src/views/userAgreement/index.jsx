@@ -11,6 +11,9 @@ class UserAgreement extends React.Component {
             visible: false
         }
     }
+    componentDidMount(){
+        document.title = '阅读链 - 用户协议'
+    }
     toggleCollapsed = () => {
         this.setState({
             collapsed: !this.state.collapsed,

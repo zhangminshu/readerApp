@@ -74,7 +74,7 @@ class SearchResult extends React.Component {
             if(searchType === 'user'){
                 this.setState({searchType})
             }else{
-                this.searchBook(searchType)
+                this.searchBook(searchVal)
             }
         }else if(searchVal){
             this.searchBook(searchVal)
@@ -443,7 +443,7 @@ class SearchResult extends React.Component {
             return message.error('txt、mobi、azw3格式不支持在线查看，请下载后查看')
         } else {
             sessionStorage.setItem('bookInfo', JSON.stringify(bookInfo));
-            location.href = '#/reader?search='+this.state.searchBookName;
+            location.href = '#/reader?search='+JSON.stringify(this.state.searchBookName);
         }
     }
     fileClone = (type, item) => {
