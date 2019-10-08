@@ -184,7 +184,7 @@ h1, h2, h3, h4, h5, h6{
                 display: inline-block;
             }
             .tagText{
-                width: 250px;
+                width: 240px;
                 display: inline-block;
                 text-overflow: ellipsis;
                 overflow: hidden;
@@ -445,6 +445,9 @@ h1, h2, h3, h4, h5, h6{
 .ant-popover-inner-content{
     padding: 6px 4px;
 }
+.readerOptWarp{
+    z-index: 999;
+}
 .optItem{
     cursor: pointer;
     padding: 6px 10px;
@@ -549,6 +552,7 @@ h1, h2, h3, h4, h5, h6{
             text-align: center;
         }
         .userPhoto{
+            display: inline-block;
             width: 32px;
             height: 32px;
             border-radius: 50%;
@@ -630,6 +634,13 @@ h1, h2, h3, h4, h5, h6{
                 white-space: nowrap;
                 display: inline-block;
             }
+        }
+    }
+}
+@media (max-width: 375px){
+    .tipDialog{
+        .tipContent{
+            font-size: 15px;
         }
     }
 }

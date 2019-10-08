@@ -31,6 +31,8 @@ class ManagerPage extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            popoverPcVisible:'',
+            popoverVisible:'',
             currBookUrl:'',
             showTipModal:false,
             showEmpty:false,
@@ -728,6 +730,23 @@ class ManagerPage extends React.Component {
             this.changeMenu(navList[this.activeMenu])
         });
     }
+    handlePcVisibleChange = popoverPcVisible => {
+        const lastVal = this.state.popoverPcVisible;
+        if(lastVal === popoverPcVisible){
+            this.setState({ popoverPcVisible:'' });
+        }else{
+            this.setState({ popoverPcVisible });
+        }
+        
+    };
+    handleVisibleChange = popoverVisible => {
+        const lastVal = this.state.popoverVisible;
+        if(lastVal === popoverVisible){
+            this.setState({ popoverVisible:'' });
+        }else{
+            this.setState({ popoverVisible });
+        }
+    };
     render() {
         const currPagination =this.state.result>10?{
             total:this.state.result,
@@ -819,13 +838,77 @@ class ManagerPage extends React.Component {
                 );
                 const optHtml = <div className="optWarp">
 
-                    <Popover placement="rightTop" content={optContent} trigger="focus">
-                        <Button className="btn_more_opt"><Icon style={{ fontSize: '16px' }} type="ellipsis" /></Button>
+                    <Popover placement="rightTop" content={optContent} trigger="click" visible={this.state.popoverPcVisible == record.id} onVisibleChange={()=>{this.handlePcVisibleChange(record.id)}}>
+                        <Button className="btn_more_opt"  onBlur={()=>{this.setState({popoverPcVisible:''})}}><Icon style={{ fontSize: '16px' }} type="ellipsis" /></Button>
                     </Popover>
                 </div>
                 return optHtml;
             }
         }]
+        const smallUserOpt ={
+            title: '操作',
+            dataIndex: 'opt',
+            key: 'opt',
+            render: (text, record) => {
+                const props = {
+                    name: 'photo',
+                    action:`/user/${record.id}/_info`,
+                    headers: {
+                        authorization: cookie.get('Authorization'),
+                        method:'put'
+                    },
+                    beforeUpload:this.beforeUpload,
+                    onChange:this.handleImgChange
+                  };
+                const optContent = (
+                    <div>
+                        {/* onClick={() => { this.edit(record, 'photo', '修改头像') }} */}
+                        <div className="optItem">
+                        <Upload {...props}  className="avatar-uploader userImgUpload"
+                            showUploadList={false}
+                        >
+                            修改头像
+                        </Upload>
+                        </div> 
+                        <p className="optItem" onClick={() => { this.edit(record, 'nick_name', '修改用户名') }}>修改用户名</p>
+                        <p className="optItem" onClick={() => { this.edit(record, 'email', '修改邮箱') }}>修改邮箱</p>
+                        <p className="optItem" onClick={() => { this.edit(record, 'changePWD', '修改密码') }}>修改密码</p>
+                        <p className="optItem" onClick={() => { this.edit(record, 'status', '修改账户状态') }}>账户状态</p>
+                        <p className="optItem" onClick={() => { this.edit(record, 'storage_limit', '修改存储空间') }}>存储空间</p>
+                    </div>
+                );
+                const optHtml = <div className="optWarp">
+
+                    <Popover placement="rightTop" content={optContent} trigger="click" visible={this.state.popoverVisible == record.id} onVisibleChange={()=>{this.handleVisibleChange(record.id)}}>
+                        <Button className="btn_more_opt"  onBlur={()=>{this.setState({popoverVisible:''})}}><Icon style={{ fontSize: '16px' }} type="ellipsis" /></Button>
+                    </Popover>
+                </div>
+                return optHtml;
+            }
+        }
+        const smallFileOpt={
+            title: '操作',
+            dataIndex: 'opt',
+            key: 'opt',
+            render: (text, record) => {
+                const optContent = (
+                    <div>
+                        <p className="optItem" onClick={() => { this.fileShare("row", record.id) }}>分享</p>
+                        <p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>
+                        <p className="optItem" onClick={() => { this.renameDialog(record) }}>重命名</p>
+                        <p className="optItem" onClick={() => { this.fileTypeChange('single', record) }}>文件类型</p>
+                        <p className="optItem" style={{color:'#FF3B30'}} onClick={() => { this.showDeleteConfirm('single', record) }}>删除</p>
+                    </div>
+                );
+                const optHtml = <div className="optWarp">
+
+                    <Popover placement="rightTop" content={optContent} trigger="click" visible={this.state.popoverVisible == record.id} onVisibleChange={()=>{this.handleVisibleChange(record.id)}}>
+                        <Button className="btn_more_opt"  onBlur={()=>{this.setState({popoverVisible:''})}}><Icon style={{ fontSize: '16px' }} type="ellipsis" /></Button>
+                    </Popover>
+                </div>
+                return optHtml;
+            }
+        }
         const fileCol = [
             {
                 title: '名称',
@@ -898,8 +981,8 @@ class ManagerPage extends React.Component {
                     );
                     const optHtml = <div className="optWarp">
 
-                        <Popover placement="rightTop" content={optContent} trigger="focus">
-                            <Button className="btn_more_opt"><Icon style={{ fontSize: '16px' }} type="ellipsis" /></Button>
+                        <Popover placement="rightTop" content={optContent} trigger="click" visible={this.state.popoverPcVisible == record.id} onVisibleChange={()=>{this.handlePcVisibleChange(record.id)}}>
+                            <Button className="btn_more_opt"  onBlur={()=>{this.setState({popoverPcVisible:''})}}><Icon style={{ fontSize: '16px' }} type="ellipsis" /></Button>
                         </Popover>
                     </div>
                     return optHtml;
@@ -909,9 +992,9 @@ class ManagerPage extends React.Component {
         const smallFileCol = [];
         const smallUserCol = [];
         smallFileCol.push(fileCol[0]);
-        smallFileCol.push(fileCol[3]);
+        smallFileCol.push(smallFileOpt);
         smallUserCol.push(userCol[0]);
-        smallUserCol.push(userCol[5]);
+        smallUserCol.push(smallUserOpt);
         // const userInfo = JSON.parse(localStorage.getItem('userInfo'));
         const cookUserInfo = cookie.get('userInfo') || null
         const userInfo = JSON.parse(cookUserInfo)

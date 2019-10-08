@@ -41,6 +41,7 @@ class RederPage extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      popoverPcVisible:false,
       isAddTag: false,
       editTag: '',//编辑中的标签
       showTagDialog: false,
@@ -372,6 +373,15 @@ class RederPage extends Component {
         onCancel() {}
       });
 }
+handlePcVisibleChange = popoverPcVisible => {
+  this.setState({ popoverPcVisible:!this.state.popoverPcVisible });
+  // const lastVal = this.state.popoverPcVisible;
+  // if(lastVal === popoverPcVisible){
+  //     this.setState({ popoverPcVisible:'' });
+  // }else{
+  //     this.setState({ popoverPcVisible });
+  // }
+};
   render() {
     const { fullscreen } = this.state;
     const bookInfo = JSON.parse(sessionStorage.getItem('bookInfo'));
@@ -381,7 +391,7 @@ class RederPage extends Component {
     const location = locationPre || bookInfo.process/100 || 0;
     document.title = '阅读链 - ' + bookInfo.title
     const optContent = (
-      <div>
+      <div className="readerOptWarp" onClick={()=>{this.setState({popoverPcVisible:false})}}>
           <p className="optItem" onClick={() => { this.fileShare("row", bookInfo.id) }}>分享</p>
           <p className="optItem" onClick={() => { this.saveRead() }}>保存进度</p>
           <p className="optItem" onClick={() => { this.downloadBook(bookInfo.url) }}>下载</p>
@@ -395,8 +405,8 @@ class RederPage extends Component {
         <GlobalStyle />
         <ReaderContainer fullscreen={fullscreen}>
           {/* <Button onClick={() => { this.fileClone('single', bookInfo)}} style={{ position: "absolute", zIndex: "9", right: "100px", top: "10px" }} className="btn_clone" type="primary">克隆</Button> */}
-          <Popover placement="bottomRight"  content={optContent} trigger="focus">
-            <Button className="btn_more_reader"><Icon style={{ fontSize: '16px' }} type="ellipsis" /></Button>
+          <Popover placement="bottomRight"  content={optContent} trigger="click" visible={this.state.popoverPcVisible} onVisibleChange={()=>{this.handlePcVisibleChange()}}>
+            <Button className="btn_more_reader" ><Icon style={{ fontSize: '16px' }} type="ellipsis" /></Button>
           </Popover>
           <ReactReader
             url={bookUrl}

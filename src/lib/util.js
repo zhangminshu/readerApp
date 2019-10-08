@@ -7,7 +7,7 @@ const util ={
         
         confirm({
             title: '阅读提示',
-            content: <div>当前的浏览器可能无法阅读PDF文件，建议<br />使用谷歌浏览器</div>,
+            content: <div>当前的浏览器可能无法阅读PDF文件，建议使用谷歌浏览器</div>,
             okText: '确认',
             className: 'confirmDialog',
             cancelText: '取消',

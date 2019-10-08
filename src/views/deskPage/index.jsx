@@ -364,20 +364,8 @@ class DeskPage extends React.Component {
     saveTagChange =()=>{
         const bookid = this.state.selectBookId;
         const categoryList = this.state.selectedTag;
-        // const categoryIds =[];
-        // categoryList.forEach(item=>{
-        //     if(item.isChecked){
-        //         categoryIds.push(item.id)
-        //     }
-        // })
         const category_id = categoryList.join(',')
-        // if(category_id ==='')return message.error('标签不能为空！')
         let requestJson ={category_ids:category_id};
-        // if(category_id === ''){
-        //     requestJson={book_ids:bookid}
-        // }else{
-        //     requestJson={book_ids:bookid,category_ids:category_id}
-        // }
         const url = `/book/${bookid}/_category`;
         HTTP.put(url,requestJson).then(response=>{
             const res = response.data;
@@ -702,16 +690,21 @@ class DeskPage extends React.Component {
         }
     }
     handleVisibleChange = popoverVisible => {
-        this.setState({ popoverVisible,isOpenPop:true });
-      };
-    closePop=(popoverVisible)=>{
-        
-        if(this.state.isOpenPop && popoverVisible === this.state.popoverVisible){
-            this.setState({popoverVisible:'',isOpenPop:false})
-        }else{
-            this.setState({ popoverVisible,isOpenPop:true });
+        const lastVal = this.state.popoverVisible;
+        if (lastVal === popoverVisible) {
+            this.setState({ popoverVisible: '' });
+        } else {
+            this.setState({ popoverVisible });
         }
-    }
+    };
+    handlePcVisibleChange = popoverPcVisible => {
+        const lastVal = this.state.popoverPcVisible;
+        if (lastVal === popoverPcVisible) {
+            this.setState({ popoverPcVisible: '' });
+        } else {
+            this.setState({ popoverPcVisible });
+        }
+    };
     render() {
         const _this = this;
         const currPagination = this.state.result>10?{
@@ -785,7 +778,7 @@ class DeskPage extends React.Component {
                 render: (text, record) => {
                     const isOver10M = record.size > 10;
                     const optContent = (
-                        <div>
+                        <div onClick={()=>{this.setState({popoverPcVisible:''})}}>
                             <p className="optItem" onClick={() => { this.fileShare("row", record.id) }}>分享</p>
                             <p className={`${isOver10M ? 'overLimit':''} optItem`} onClick={() => { this.sendToKindle(record.id,isOver10M) }}>kindle</p>
                             <p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>
@@ -797,8 +790,8 @@ class DeskPage extends React.Component {
                     );
                     const optHtml = <div className="optWarp">
 
-                        <Popover placement="rightTop" content={optContent} trigger="focus" >
-                            <Button className="btn_more_opt"><Icon style={{ fontSize: '16px' }} type="ellipsis" /></Button>
+                        <Popover placement="rightTop" content={optContent} trigger="click" visible={this.state.popoverPcVisible == record.id} onVisibleChange={()=>{this.handlePcVisibleChange(record.id)}}>
+                            <Button className="btn_more_opt" onBlur={()=>{this.setState({popoverPcVisible:''})}}><Icon style={{ fontSize: '16px' }} type="ellipsis" /></Button>
                         </Popover>
                     </div>
                     return optHtml;
@@ -827,7 +820,7 @@ class DeskPage extends React.Component {
                 render: (text, record) => {
                     const isOver10M = record.size > 10;
                     const optContent = (
-                        <div onClick={()=>{this.closePop(record.id)}}>
+                        <div onClick={()=>{this.setState({popoverVisible:''})}}>
                             <p className="optItem" onClick={() => { this.fileShare("row", record.id) }}>分享</p>
                             <p className={`${isOver10M ? 'overLimit':''} optItem`} onClick={() => { this.sendToKindle(record.id,isOver10M) }}>kindle</p>
                             <p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>
@@ -837,10 +830,10 @@ class DeskPage extends React.Component {
                             <p className="optItem" style={{color:'#FF3B30'}} onClick={() => { this.showDeleteConfirm('single', record) }}>删除</p>
                         </div>
                     );
-                    const optHtml = <div className="optWarp" onClick={()=>{this.closePop(record.id)}}>
+                    const optHtml = <div className="optWarp" >
 
                         <Popover placement="rightTop" content={optContent} trigger="click" visible={this.state.popoverVisible == record.id} onVisibleChange={()=>{this.handleVisibleChange(record.id)}}>
-                            <Button className="btn_more_opt"><Icon style={{ fontSize: '16px' }} type="ellipsis" /></Button>
+                            <Button className="btn_more_opt" onBlur={()=>{this.setState({popoverVisible:''})}}><Icon style={{ fontSize: '16px' }} type="ellipsis" /></Button>
                         </Popover>
                     </div>
                     return optHtml;

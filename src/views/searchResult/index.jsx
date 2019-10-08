@@ -73,8 +73,6 @@ class SearchResult extends React.Component {
             const searchType = urlParams.split("=")[1];
             if(searchType === 'user'){
                 this.setState({searchType})
-            }else{
-                this.searchBook(searchVal)
             }
         }else if(searchVal){
             this.searchBook(searchVal)
@@ -124,7 +122,7 @@ class SearchResult extends React.Component {
     resetUrl =(searchVal)=>{
         let newUrl ='';
         if(searchVal !==''){
-            newUrl = location.origin + '/#/searchResult?search=' + searchVal
+            newUrl = location.origin + '/#/searchResult?search=' + encodeURI(searchVal)
         }else{
             newUrl = location.origin + '/#/searchResult'
         }
@@ -133,13 +131,12 @@ class SearchResult extends React.Component {
     searchBook = (e, type) => {
         const searchType = this.state.searchType;
         let url ='';
-        const bookName = type === 'search' ? e.target.value : e;
         if(searchType === 'user'){
             url = '/user';
         }else{
             url = '/book/_search';
-            this.resetUrl(bookName)
         }
+        const bookName = type === 'search' ? e.target.value : e;
         this.setState({searchBookName:bookName})
         sessionStorage.setItem('searchVal',bookName)
         let pageNum =1;
@@ -843,10 +840,20 @@ class SearchResult extends React.Component {
         });
     }
     handleVisibleChange = popoverVisible => {
-        this.setState({ popoverVisible });
+        const lastVal = this.state.popoverVisible;
+        if(lastVal === popoverVisible){
+            this.setState({ popoverVisible:'' });
+        }else{
+            this.setState({ popoverVisible });
+        }
     };
     handlePcVisibleChange = popoverPcVisible => {
-        this.setState({ popoverPcVisible });
+        const lastVal = this.state.popoverPcVisible;
+        if(lastVal === popoverPcVisible){
+            this.setState({ popoverPcVisible:'' });
+        }else{
+            this.setState({ popoverPcVisible });
+        }
     };
     render() {
         // const userInfo = JSON.parse(localStorage.getItem('userInfo'));
@@ -1156,7 +1163,7 @@ class SearchResult extends React.Component {
                     width="416px" title="阅读提示" visible={this.state.showTipModal} className="tipDialog" closable={false}
                     footer={null}
                 >
-                    <div className="tipContent">当前的浏览器可能无法阅读PDF文件，建议<br />使用谷歌浏览器</div>
+                    <div className="tipContent">当前的浏览器可能无法阅读PDF文件，建议使用谷歌浏览器</div>
                     <div className="footer">
                         <Checkbox className="tipCheck" onChange={(value)=>{this.handleTipCheckBox(value)}}>不再提示</Checkbox>
                         
