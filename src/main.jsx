@@ -12,6 +12,7 @@ import UserAgreement from './views/userAgreement/index.jsx'
 import Statement from './views/statement/index.jsx'
 import ServerAgreement from './views/serverAgreement/index.jsx'
 import UploadBook from './views/uploadBook/index.jsx'
+import DownloadCenter from './views/downloadCenter/index.jsx';
 import {  Modal,message } from 'antd';
 import './css/main.less'
 import { HashRouter, Route, hashHistory, Switch } from 'react-router-dom';
@@ -54,6 +55,7 @@ const SliderComponent = () => (
       <Route path="/statement" component={Statement}/>
       <Route path="/serverAgreement" component={ServerAgreement}/>
       <Route path="/uploadBook" component={UploadBook}/>
+      <Route path="/downloadCenter" component={DownloadCenter}/>
     </Switch>
   )
   ReactDOM.render((

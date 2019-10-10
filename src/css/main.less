@@ -55,7 +55,46 @@ h1, h2, h3, h4, h5, h6{
         color: #FFFFFF;
     }
 }
-
+.downloadDialog{
+    .ant-modal-header{
+        border-bottom: none;
+    }
+    .ant-modal-title{
+        font-size: 18px;
+        color: #3D464D;
+    }
+    .ant-modal-body{
+        padding: 0 0 24px 0;
+    }
+    .content{
+        .item{
+            font-size: 16px;
+            height: 42px;
+            line-height: 42px;
+            padding: 0 24px;
+            position: relative;
+            .fileIcon{
+                width: 16px;
+                position: relative;
+                top: -3px;
+                display: inline-block;
+                margin-right: 15px;
+            }
+            .iconFast{
+                width: 20px;
+                position: absolute;
+                top: 10px;
+                display: inline-block;
+                margin-right: 10px;
+                right: 15px;
+            }
+            &:hover{
+                cursor: pointer;
+                background: #F3F4F5;
+            }
+        }
+    }
+}
 .confirmDialog{
     .ant-btn{
         padding: 0 20px;

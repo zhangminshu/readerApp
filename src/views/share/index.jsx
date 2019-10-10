@@ -16,6 +16,8 @@ class SharePage extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            popoverVisible:'',
+            popoverPcVisible:'',
             currBookUrl:'',
             showTipModal:false,
             isLoading:false,
@@ -392,6 +394,22 @@ class SharePage extends React.Component {
             }
         })
     }
+    handleVisibleChange = popoverVisible => {
+        const lastVal = this.state.popoverVisible;
+        if (lastVal === popoverVisible) {
+            this.setState({ popoverVisible: '' });
+        } else {
+            this.setState({ popoverVisible });
+        }
+    };
+    handlePcVisibleChange = popoverPcVisible => {
+        const lastVal = this.state.popoverPcVisible;
+        if (lastVal === popoverPcVisible) {
+            this.setState({ popoverPcVisible: '' });
+        } else {
+            this.setState({ popoverPcVisible });
+        }
+    };
     render() {
         const columns = [
             {
@@ -431,14 +449,14 @@ class SharePage extends React.Component {
                 key: 'opt',
                 render:(text,record)=>{
                     const optContent = (
-                        <div>
+                        <div onClick={()=>{this.setState({popoverPcVisible:''})}}>
                           <p className="optItem" onClick={() => { this.fileClone('single', record)}}>克隆</p>
                           <p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>
                         </div>
                       );
                     const optHtml = <div className="optWarp">
                     
-                    <Popover placement="rightTop" content={optContent} trigger="focus">
+                    <Popover placement="rightTop" content={optContent} trigger="click" visible={this.state.popoverPcVisible == record.id} onVisibleChange={()=>{this.handlePcVisibleChange(record.id)}}>
                     <Button className="btn_more_opt"><Icon style={{fontSize:'16px'}} type="ellipsis" /></Button> 
                     </Popover>
                         </div>
@@ -466,14 +484,14 @@ class SharePage extends React.Component {
                 key: 'opt',
                 render:(text,record)=>{
                     const optContent = (
-                        <div>
+                        <div onClick={()=>{this.setState({popoverVisible:''})}}>
                           <p className="optItem" onClick={() => { this.fileClone('single', record)}}>克隆</p>
                           <p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>
                         </div>
                       );
                     const optHtml = <div className="optWarp">
                     
-                    <Popover placement="rightTop" content={optContent} trigger="focus">
+                    <Popover placement="rightTop" content={optContent} trigger="click" visible={this.state.popoverVisible == record.id} onVisibleChange={()=>{this.handleVisibleChange(record.id)}}>
                     <Button className="btn_more_opt"><Icon style={{fontSize:'16px'}} type="ellipsis" /></Button> 
                     </Popover>
                         </div>

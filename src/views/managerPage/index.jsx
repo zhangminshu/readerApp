@@ -820,7 +820,7 @@ class ManagerPage extends React.Component {
                     onChange:this.handleImgChange
                   };
                 const optContent = (
-                    <div>
+                    <div onClick={()=>{this.setState({popoverPcVisible:''})}}>
                         {/* onClick={() => { this.edit(record, 'photo', '修改头像') }} */}
                         <div className="optItem">
                         <Upload {...props}  className="avatar-uploader userImgUpload"
@@ -839,7 +839,7 @@ class ManagerPage extends React.Component {
                 const optHtml = <div className="optWarp">
 
                     <Popover placement="rightTop" content={optContent} trigger="click" visible={this.state.popoverPcVisible == record.id} onVisibleChange={()=>{this.handlePcVisibleChange(record.id)}}>
-                        <Button className="btn_more_opt"  onBlur={()=>{this.setState({popoverPcVisible:''})}}><Icon style={{ fontSize: '16px' }} type="ellipsis" /></Button>
+                        <Button className="btn_more_opt"><Icon style={{ fontSize: '16px' }} type="ellipsis" /></Button>
                     </Popover>
                 </div>
                 return optHtml;
@@ -861,7 +861,7 @@ class ManagerPage extends React.Component {
                     onChange:this.handleImgChange
                   };
                 const optContent = (
-                    <div>
+                    <div onClick={()=>{this.setState({popoverVisible:''})}}>
                         {/* onClick={() => { this.edit(record, 'photo', '修改头像') }} */}
                         <div className="optItem">
                         <Upload {...props}  className="avatar-uploader userImgUpload"
@@ -880,7 +880,7 @@ class ManagerPage extends React.Component {
                 const optHtml = <div className="optWarp">
 
                     <Popover placement="rightTop" content={optContent} trigger="click" visible={this.state.popoverVisible == record.id} onVisibleChange={()=>{this.handleVisibleChange(record.id)}}>
-                        <Button className="btn_more_opt"  onBlur={()=>{this.setState({popoverVisible:''})}}><Icon style={{ fontSize: '16px' }} type="ellipsis" /></Button>
+                        <Button className="btn_more_opt"><Icon style={{ fontSize: '16px' }} type="ellipsis" /></Button>
                     </Popover>
                 </div>
                 return optHtml;
@@ -892,7 +892,7 @@ class ManagerPage extends React.Component {
             key: 'opt',
             render: (text, record) => {
                 const optContent = (
-                    <div>
+                    <div onClick={()=>{this.setState({popoverVisible:''})}}>
                         <p className="optItem" onClick={() => { this.fileShare("row", record.id) }}>分享</p>
                         <p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>
                         <p className="optItem" onClick={() => { this.renameDialog(record) }}>重命名</p>
@@ -903,7 +903,7 @@ class ManagerPage extends React.Component {
                 const optHtml = <div className="optWarp">
 
                     <Popover placement="rightTop" content={optContent} trigger="click" visible={this.state.popoverVisible == record.id} onVisibleChange={()=>{this.handleVisibleChange(record.id)}}>
-                        <Button className="btn_more_opt"  onBlur={()=>{this.setState({popoverVisible:''})}}><Icon style={{ fontSize: '16px' }} type="ellipsis" /></Button>
+                        <Button className="btn_more_opt"><Icon style={{ fontSize: '16px' }} type="ellipsis" /></Button>
                     </Popover>
                 </div>
                 return optHtml;
@@ -971,7 +971,7 @@ class ManagerPage extends React.Component {
                 key: 'opt',
                 render: (text, record) => {
                     const optContent = (
-                        <div>
+                        <div onClick={()=>{this.setState({popoverPcVisible:''})}}>
                             <p className="optItem" onClick={() => { this.fileShare("row", record.id) }}>分享</p>
                             <p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>
                             <p className="optItem" onClick={() => { this.renameDialog(record) }}>重命名</p>
@@ -982,7 +982,7 @@ class ManagerPage extends React.Component {
                     const optHtml = <div className="optWarp">
 
                         <Popover placement="rightTop" content={optContent} trigger="click" visible={this.state.popoverPcVisible == record.id} onVisibleChange={()=>{this.handlePcVisibleChange(record.id)}}>
-                            <Button className="btn_more_opt"  onBlur={()=>{this.setState({popoverPcVisible:''})}}><Icon style={{ fontSize: '16px' }} type="ellipsis" /></Button>
+                            <Button className="btn_more_opt"><Icon style={{ fontSize: '16px' }} type="ellipsis" /></Button>
                         </Popover>
                     </div>
                     return optHtml;

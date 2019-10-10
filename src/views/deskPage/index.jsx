@@ -12,6 +12,7 @@ import coverAZW3 from '../../img/coverAZW3.svg'
 import coverEPUB from '../../img/coverEPUB.svg'
 import coverMOBI from '../../img/coverMOBI.svg'
 import coverTXT from '../../img/coverTXT.svg'
+import iconFast from '../../img/icon_fast.svg'
 const { confirm } = Modal;
 const RadioGroup = Radio.Group;
 const SUCCESS_CODE = 0;
@@ -24,6 +25,7 @@ class DeskPage extends React.Component {
             currBookUrl:'',
             popoverVisible:'',
             isOpenPop:false,
+            downloadModal:false,
             showTipModal:false,
             showEmpty:false,
             isLoading:false,
@@ -436,6 +438,26 @@ class DeskPage extends React.Component {
         a.dispatchEvent(e); //给指定的元素，执行事件click事件
         this.setState({isLoading:false})
     }
+    showDownloadDialog =(type, item)=>{
+        const bookId = item.id;
+        const format = item.extension;
+        this.setState({
+            currBookId:bookId,
+            format,
+            downloadModal:true
+        })
+    }
+    createDownload=(type)=>{
+        debugger
+        const currBookId = this.state.currBookId;
+        const url =`/book/${currBookId}/_download`
+        HTTP.post(url,{format:type}).then(response=>{
+            const res = response.data;
+            if(res.status === SUCCESS_CODE){
+
+            }
+        })
+    }
     downloadEvent = (type, item) => {
         let bookIds = "";
         const ids = []
@@ -781,7 +803,7 @@ class DeskPage extends React.Component {
                         <div onClick={()=>{this.setState({popoverPcVisible:''})}}>
                             <p className="optItem" onClick={() => { this.fileShare("row", record.id) }}>分享</p>
                             <p className={`${isOver10M ? 'overLimit':''} optItem`} onClick={() => { this.sendToKindle(record.id,isOver10M) }}>kindle</p>
-                            <p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>
+                            <p className="optItem" onClick={() => { this.showDownloadDialog('single', record) }}>下载</p>
                             <p className="optItem" onClick={() => { this.fileClone('single', record)}}>标签</p>
                             <p className="optItem" onClick={() => { this.renameDialog(record) }}>重命名</p>
                             <p className="optItem" onClick={() => { this.fileTypeChange('single', record) }}>文件类型</p>
@@ -791,7 +813,7 @@ class DeskPage extends React.Component {
                     const optHtml = <div className="optWarp">
 
                         <Popover placement="rightTop" content={optContent} trigger="click" visible={this.state.popoverPcVisible == record.id} onVisibleChange={()=>{this.handlePcVisibleChange(record.id)}}>
-                            <Button className="btn_more_opt" onBlur={()=>{this.setState({popoverPcVisible:''})}}><Icon style={{ fontSize: '16px' }} type="ellipsis" /></Button>
+                            <Button className="btn_more_opt"><Icon style={{ fontSize: '16px' }} type="ellipsis" /></Button>
                         </Popover>
                     </div>
                     return optHtml;
@@ -823,7 +845,7 @@ class DeskPage extends React.Component {
                         <div onClick={()=>{this.setState({popoverVisible:''})}}>
                             <p className="optItem" onClick={() => { this.fileShare("row", record.id) }}>分享</p>
                             <p className={`${isOver10M ? 'overLimit':''} optItem`} onClick={() => { this.sendToKindle(record.id,isOver10M) }}>kindle</p>
-                            <p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>
+                            <p className="optItem" onClick={() => { this.showDownloadDialog('single', record) }}>下载</p>
                             <p className="optItem" onClick={() => { this.fileClone('single', record)}}>标签</p>
                             <p className="optItem" onClick={() => { this.renameDialog(record) }}>重命名</p>
                             <p className="optItem" onClick={() => { this.fileTypeChange('single', record) }}>文件类型</p>
@@ -833,7 +855,7 @@ class DeskPage extends React.Component {
                     const optHtml = <div className="optWarp" >
 
                         <Popover placement="rightTop" content={optContent} trigger="click" visible={this.state.popoverVisible == record.id} onVisibleChange={()=>{this.handleVisibleChange(record.id)}}>
-                            <Button className="btn_more_opt" onBlur={()=>{this.setState({popoverVisible:''})}}><Icon style={{ fontSize: '16px' }} type="ellipsis" /></Button>
+                            <Button className="btn_more_opt"><Icon style={{ fontSize: '16px' }} type="ellipsis" /></Button>
                         </Popover>
                     </div>
                     return optHtml;
@@ -876,7 +898,7 @@ class DeskPage extends React.Component {
                                             <div className={`${this.state.showCheckBox ? 'showBtnList' : ''} btn_list ms_fr`}>
                                                 {role !== 2 ? <Button className="btn btn_share" type="primary" onClick={this.fileShare}>分享</Button> : ''}
                                                 {role !== 2 ? <Button className="btn btn_download" onClick={this.fileClone}>标签</Button> : ""}
-                                                {role !== 2 ? <Button className="btn btn_download" onClick={this.downloadEvent}>下载</Button> : ""}
+                                                {/* {role !== 2 ? <Button className="btn btn_download" onClick={this.showDownloadDialog}>下载</Button> : ""} */}
                                                 {role === 2 ? <Button className="btn btn_fileType" onClick={this.fileTypeChange.bind(this)}>类型</Button> : ""}
                                                 {role === 2 ? <Button className="btn btn_del" type="danger" onClick={this.showDeleteConfirm}>删除</Button> : ""}
                                             </div>
@@ -935,6 +957,38 @@ class DeskPage extends React.Component {
                         
                         <Button type="primary" className="ms_fr" onClick={this.handleOkTip}>确认</Button>
                         <Button type="default" className="ms_fr" style={{marginRight:"14px"}} onClick={()=>{this.setState({showTipModal:false})}}>取消</Button>
+                    </div>
+                </Modal>
+                <Modal
+                    width="416px" title="请选择需要下载的格式" visible={this.state.downloadModal} className="downloadDialog" closable={true}
+                    footer={null} onCancel={()=>{this.setState({downloadModal:false})}}
+                >
+                    <div className="content">
+                        <div className="item" onClick={()=>{this.createDownload('txt')}}>
+                            <img className="fileIcon" src={coverTXT} alt="" />
+                            <span>TXT</span>
+                            {this.state.format === 'txt' ?<img className="iconFast" src={iconFast} alt="" /> :''}
+                        </div>
+                        <div className="item" onClick={()=>{this.createDownload('pdf')}}>
+                            <img className="fileIcon" src={coverPDF} alt="" />
+                            <span>PDF</span>
+                            {this.state.format === 'pdf' ?<img className="iconFast" src={iconFast} alt="" /> :''}
+                        </div>
+                        <div className="item" onClick={()=>{this.createDownload('mobi')}}>
+                            <img className="fileIcon" src={coverMOBI} alt="" />
+                            <span>MOBI</span>
+                            {this.state.format === 'mobi' ?<img className="iconFast" src={iconFast} alt="" /> :''}
+                        </div>
+                        <div className="item" onClick={()=>{this.createDownload('epub')}}>
+                            <img className="fileIcon" src={coverEPUB} alt="" />
+                            <span>EPUB</span>
+                            {this.state.format === 'epub' ?<img className="iconFast" src={iconFast} alt="" /> :''}
+                        </div>
+                        <div className="item" onClick={()=>{this.createDownload('azw3')}}>
+                            <img className="fileIcon" src={coverAZW3} alt="" />
+                            <span>AZW3</span>
+                            {this.state.format === 'azw3' ?<img className="iconFast" src={iconFast} alt="" /> :''}
+                        </div>
                     </div>
                 </Modal>
             </div>

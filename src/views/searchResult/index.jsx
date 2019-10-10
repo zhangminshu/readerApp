@@ -945,7 +945,7 @@ class SearchResult extends React.Component {
                     const optHtml = <div className="optWarp">
 
                         <Popover placement="rightTop" content={optContent} trigger="click" visible={this.state.popoverPcVisible == record.id} onVisibleChange={()=>{this.handlePcVisibleChange(record.id)}}>
-                            <Button className="btn_more_opt" onBlur={()=>{this.setState({popoverPcVisible:''})}}><Icon style={{fontSize:'16px'}} type="ellipsis"  /></Button> 
+                            <Button className="btn_more_opt"><Icon style={{fontSize:'16px'}} type="ellipsis"  /></Button> 
                         </Popover>
                     </div>
                     return optHtml;
@@ -1048,7 +1048,7 @@ class SearchResult extends React.Component {
                 const optHtml = <div className="optWarp">
 
                     <Popover placement="rightTop" content={optContent} trigger="click" visible={this.state.popoverPcVisible == record.id} onVisibleChange={()=>{this.handlePcVisibleChange(record.id)}}>
-                        <Button className="btn_more_opt" onBlur={()=>{this.setState({popoverPcVisible:''})}}><Icon style={{ fontSize: '16px' }} type="ellipsis" /></Button>
+                        <Button className="btn_more_opt" ><Icon style={{ fontSize: '16px' }} type="ellipsis" /></Button>
                     </Popover>
                 </div>
                 return optHtml;
