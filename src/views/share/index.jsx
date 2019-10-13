@@ -8,6 +8,7 @@ import coverAZW3 from '../../img/coverAZW3.svg'
 import coverEPUB from '../../img/coverEPUB.svg'
 import coverMOBI from '../../img/coverMOBI.svg'
 import coverTXT from '../../img/coverTXT.svg'
+import iconFast from '../../img/icon_fast.svg'
 const { confirm } = Modal;
 const RadioGroup = Radio.Group;
 const SUCCESS_CODE = 0;
@@ -42,7 +43,7 @@ class SharePage extends React.Component {
         }
     }
     componentDidMount() {
-        document.title = '阅读链 - 分享'
+        document.title = '阅读链 - 分享文件'
         this.getShareBookList()
         const Authorization = cookie.get('Authorization')
         // this.getUserInfo();
@@ -272,48 +273,128 @@ class SharePage extends React.Component {
     toUserInfo =()=>{
         this.props.history.push('/userInfo')
     }
-    fileDownload = (href) => {
-        const a = document.createElement("a"), //创建a标签
-            e = document.createEvent("MouseEvents"); //创建鼠标事件对象
-        e.initEvent("click", false, false); //初始化事件对象
-        a.href = href; //设置下载地址
-        // a.download = name; //设置下载文件名
-        a.dispatchEvent(e); //给指定的元素，执行事件click事件
-        this.setState({isLoading:false})
-    }
-    downloadEvent = (type, item) => {
+    showDownloadDialog =(type, item)=>{
         const userInfo = localStorage.getItem('userInfo');
         if(!userInfo){
             this.unLoginTip();
             return;
         }
-        localStorage.setItem('shareIds','')
-        let bookIds = "";
-        const ids = []
-        if (type === 'single') {
-            bookIds = item.id;
-        } else {
-            const fileList = this.state.selectedRow;
-            fileList.forEach(item => {
-                ids.push(item.id)
-                // download(item.title, item.url);
+        let secondsToGo = 3;
+        const _this = this;
+        const bookId = item.id;
+        const format = item.extension;
+        if(format === 'pdf'){            
+            this.setState({currBookId:bookId},()=>{
+                this.createDownload(format)
             })
-            bookIds = ids.join(",");
+            
+        }else{
+            _this.setState({
+                currBookId:bookId,
+                format,
+                downloadModal:true
+            })
         }
-        this.getDownUrl(bookIds)
+        // let timer = null;
+        // let timer2 = null;
+        // timer = setInterval(() => {
+        //     secondsToGo -= 1;
+        //     modal.update({
+        //         content: `${secondsToGo}秒后开始自动下载`,
+        //     });
+        //   }, 1000);
+        // const modal = confirm({
+        //     title: '下载文件',
+        //     content: `${secondsToGo}秒后开始自动下载`,
+        //     okText: '   直接下载',
+        //     className: 'confirmDialog',
+        //     cancelText: '转码下载',
+        //     onOk() {
+        //         clearInterval(timer);
+        //         clearTimeout(timer2);
+        //         _this.setState({
+        //             currBookId:bookId
+        //         },()=>{
+        //             _this.createDownload(format)
+        //         })
+        //     },
+        //     onCancel() { 
+        //         clearInterval(timer);
+        //         clearTimeout(timer2);
+        //         _this.setState({
+        //             currBookId:bookId,
+        //             format,
+        //             downloadModal:true
+        //         })
+        //     }
+        // });
+
+        // timer2 = setTimeout(() => {
+        //     clearInterval(timer);
+        //     _this.setState({
+        //         currBookId:bookId
+        //     },()=>{
+        //         _this.createDownload(format)
+        //     })
+        //     modal.destroy();
+        //   }, secondsToGo * 1000);
     }
-    getDownUrl = (ids) => {
-        this.setState({isLoading:true})
-        const url = "/book/_package";
-        HTTP.get(url, { params: { book_ids: ids } }).then(response => {
+    //创建下载
+    createDownload=(type)=>{
+        const currBookId = this.state.currBookId;
+        const url =`/book/${currBookId}/_download`
+        HTTP.post(url,{format:type}).then(response=>{
             const res = response.data;
-            if (res.status === 0) {
-                this.fileDownload(res.data)
+            if(res.status === SUCCESS_CODE){
+                this.setState({downloadModal:false,showDownloadTip:true,showPoint:true})
+                message.success('下载文件处理中，请到下载中心查看详情')
             }else{
                 message.error(res.error);
             }
         })
     }
+    // fileDownload = (href) => {
+    //     const a = document.createElement("a"), //创建a标签
+    //         e = document.createEvent("MouseEvents"); //创建鼠标事件对象
+    //     e.initEvent("click", false, false); //初始化事件对象
+    //     a.href = href; //设置下载地址
+    //     // a.download = name; //设置下载文件名
+    //     a.dispatchEvent(e); //给指定的元素，执行事件click事件
+    //     this.setState({isLoading:false})
+    // }
+    // downloadEvent = (type, item) => {
+    //     const userInfo = localStorage.getItem('userInfo');
+    //     if(!userInfo){
+    //         this.unLoginTip();
+    //         return;
+    //     }
+    //     localStorage.setItem('shareIds','')
+    //     let bookIds = "";
+    //     const ids = []
+    //     if (type === 'single') {
+    //         bookIds = item.id;
+    //     } else {
+    //         const fileList = this.state.selectedRow;
+    //         fileList.forEach(item => {
+    //             ids.push(item.id)
+    //             // download(item.title, item.url);
+    //         })
+    //         bookIds = ids.join(",");
+    //     }
+    //     this.getDownUrl(bookIds)
+    // }
+    // getDownUrl = (ids) => {
+    //     this.setState({isLoading:true})
+    //     const url = "/book/_package";
+    //     HTTP.get(url, { params: { book_ids: ids } }).then(response => {
+    //         const res = response.data;
+    //         if (res.status === 0) {
+    //             this.fileDownload(res.data)
+    //         }else{
+    //             message.error(res.error);
+    //         }
+    //     })
+    // }
     getFileIcon =(type)=>{
         let fileIcon = coverPDF;
         switch(type){
@@ -451,7 +532,7 @@ class SharePage extends React.Component {
                     const optContent = (
                         <div onClick={()=>{this.setState({popoverPcVisible:''})}}>
                           <p className="optItem" onClick={() => { this.fileClone('single', record)}}>克隆</p>
-                          <p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>
+                          <p className="optItem" onClick={() => { this.showDownloadDialog('single', record) }}>下载</p>
                         </div>
                       );
                     const optHtml = <div className="optWarp">
@@ -486,7 +567,7 @@ class SharePage extends React.Component {
                     const optContent = (
                         <div onClick={()=>{this.setState({popoverVisible:''})}}>
                           <p className="optItem" onClick={() => { this.fileClone('single', record)}}>克隆</p>
-                          <p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>
+                          <p className="optItem" onClick={() => { this.showDownloadDialog('single', record) }}>下载</p>
                         </div>
                       );
                     const optHtml = <div className="optWarp">
@@ -521,10 +602,10 @@ class SharePage extends React.Component {
                                 {/* {this.state.showTable ? */}
                                     <div className="myTableWarp">
                                         <div className="clearFix">
-                                            <div className="title ms_fl">全部文件</div>
+                                            <div className="title ms_fl">分享文件</div>
                                             <div className={`${this.state.showCheckBox ? 'showBtnList' : ''} btn_list ms_fr`}>
                                                 <Button className="btn btn_clone" type="primary" onClick={this.fileClone}>克隆</Button>
-                                                <Button className="btn btn_download" onClick={this.downloadEvent}>下载</Button>
+                                                {/* <Button className="btn btn_download" onClick={this.showDownloadDialog}>下载</Button> */}
                                             </div>
                                         </div>
                                         <Table rowKey={(record, index) => `complete${record.id}${index}`} className={`${this.state.showCheckBox ? 'showCheckBox' : ''} showInBig`} pagination={false} columns={columns} rowSelection={rowSelection} dataSource={this.state.tableData} />
@@ -569,6 +650,38 @@ class SharePage extends React.Component {
                         
                         <Button type="primary" className="ms_fr" onClick={this.handleOkTip}>确认</Button>
                         <Button type="default" className="ms_fr" style={{marginRight:"14px"}} onClick={()=>{this.setState({showTipModal:false})}}>取消</Button>
+                    </div>
+                </Modal>
+                <Modal
+                    width="416px" title="请选择需要下载的格式" visible={this.state.downloadModal} className="downloadDialog" closable={true}
+                    footer={null} onCancel={()=>{this.setState({downloadModal:false})}}
+                >
+                    <div className="content">
+                        <div className="item" onClick={()=>{this.createDownload('txt')}}>
+                            <img className="fileIcon" src={coverTXT} alt="" />
+                            <span>TXT</span>
+                            {this.state.format === 'txt' ?<img className="iconFast" src={iconFast} alt="" /> :''}
+                        </div>
+                        <div className="item" onClick={()=>{this.createDownload('pdf')}}>
+                            <img className="fileIcon" src={coverPDF} alt="" />
+                            <span>PDF</span>
+                            {this.state.format === 'pdf' ?<img className="iconFast" src={iconFast} alt="" /> :''}
+                        </div>
+                        <div className="item" onClick={()=>{this.createDownload('mobi')}}>
+                            <img className="fileIcon" src={coverMOBI} alt="" />
+                            <span>MOBI</span>
+                            {this.state.format === 'mobi' ?<img className="iconFast" src={iconFast} alt="" /> :''}
+                        </div>
+                        <div className="item" onClick={()=>{this.createDownload('epub')}}>
+                            <img className="fileIcon" src={coverEPUB} alt="" />
+                            <span>EPUB</span>
+                            {this.state.format === 'epub' ?<img className="iconFast" src={iconFast} alt="" /> :''}
+                        </div>
+                        <div className="item" onClick={()=>{this.createDownload('azw3')}}>
+                            <img className="fileIcon" src={coverAZW3} alt="" />
+                            <span>AZW3</span>
+                            {this.state.format === 'azw3' ?<img className="iconFast" src={iconFast} alt="" /> :''}
+                        </div>
                     </div>
                 </Modal>
             </div>

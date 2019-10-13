@@ -8,73 +8,82 @@ import coverAZW3 from '../../img/coverAZW3.svg'
 import coverEPUB from '../../img/coverEPUB.svg'
 import coverMOBI from '../../img/coverMOBI.svg'
 import coverTXT from '../../img/coverTXT.svg'
-import iconLoading from '../../img/loading.gif'
 const { confirm } = Modal;
 const SUCCESS_CODE = 0;
-const { Header, Footer, Sider, Content } = Layout;
+const { Header, Content } = Layout;
 class DownloadCenter extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
             tableData:[],
-            isLoading:false
+            isLoading:false,
+            pageNum: 1,
+            pageSize: 10,
         }
+        this.timer =null;
     }
     componentDidMount() {
-        document.title = '阅读链 - 下载中心'
+        document.title = '阅读链 - 下载中心';
+        const _this = this;
         const Authorization = cookie.get('Authorization')
         if(Authorization){
             this.getDownloadList()
+            _this.timer = setInterval(()=>{
+                _this.getDownloadList();
+            },10000)
         }
         
     }
+    componentWillUnmount(){
+        clearInterval(this.timer)
+        this.setState = (state, callback) => {
+            return
+          }
+    }
     getDownloadList =()=>{
+        let {pageNum,pageSize} = this.state;
+        let requestJson = {
+            pn: pageNum,
+            ps: pageSize
+        }
         const url= '/book/_download'
-        HTTP.get(url,{}).then(response=>{
+        HTTP.get(url,{ params: requestJson }).then(response=>{
             const res = response.data;
             if(res.status === SUCCESS_CODE){
                 this.setState({
-                    tableData:res.data.list
+                    tableData:res.data.list,
+                    result:res.data.list.length || 0
                 })
             }
         })
     }
-    getDownUrl = (ids) => {
-        this.setState({isLoading:true})
-        const url = "/book/_download_link";
-        HTTP.get(url, { params: { download_id: ids } }).then(response => {
-            const res = response.data;
-            if (res.status === 0) {
-                this.fileDownload(res.data)
-            }else{
-                message.error(res.error);
-            }
-        })
-    }
-    fileDownload = (href) => {
-        const a = document.createElement("a"), //创建a标签
-            e = document.createEvent("MouseEvents"); //创建鼠标事件对象
-        e.initEvent("click", false, false); //初始化事件对象
-        a.href = href; //设置下载地址
-        // a.download = name; //设置下载文件名
-        a.dispatchEvent(e); //给指定的元素，执行事件click事件
-        this.setState({isLoading:false})
+    pageChange =(current, pageSize)=>{
+        this.setState({
+            pageNum:current
+        },()=>{
+            this.getDownloadList()
+        });
+        
     }
     delDownload =(id)=>{
         const _this = this;
         const url = `/book/_download/${id}`;
-        HTTP.put(url,{download_id:id}).then(response=>{
+        HTTP.delete(url,{}).then(response=>{
             const res = response.data;
             if(res.status === SUCCESS_CODE){
+                message.success('删除成功！');
                 this.getDownloadList();
             }else{
                 message.error(res.error);
             }
         })
     }
+    toIndex = () => {
+        this.props.history.go(-1)
+    }
     getFileIcon =(type)=>{
         let fileIcon = coverPDF;
-        switch(type){
+        switch(type.toLocaleLowerCase()){
             case 'pdf':
             fileIcon =coverPDF;
             break;
@@ -97,16 +106,31 @@ class DownloadCenter extends React.Component {
         return fileIcon;
     }
     render() {
+        const currPagination = this.state.result>10?{
+            total:this.state.result,
+            pageSize:this.state.pageSize,
+            current:this.state.pageNum,
+            onChange:this.pageChange.bind(this)
+        }:false
+        const currSmallPagination =this.state.result>10?{
+            size:'small',
+            total:this.state.result,
+            pageSize:this.state.pageSize,
+            current:this.state.pageNum,
+            onChange:this.pageChange.bind(this)
+        }:false
         const columns = [
             {
                 title: '名称',
                 dataIndex: 'title',
                 key: 'title',
                 render:(text,record)=>{
-                    const fileIcon = this.getFileIcon(record.extension);
+                    const fileSplit = text.split('.');
+                    const fileType = fileSplit[fileSplit.length-1];
+                    const fileIcon = this.getFileIcon(fileType);
                     let displayText = <div className="fileName">
                             <img className="fileIcon" src={fileIcon} alt=""/>
-                            <span style={{cursor:'pointer'}} onClick={()=>{this.readerBook(record)}} className={`${record.is_owner === 1 ? 'isOwerFile':''}`}>{text}</span>
+                            <span>{text}</span>
                         </div>;
                     return displayText;
                 }
@@ -139,19 +163,19 @@ class DownloadCenter extends React.Component {
                 title: '操作',
                 dataIndex: 'opt',
                 key: 'opt',
+                className:'downloadOpt',
                 render:(text,record)=>{
-                    debugger
                     let displayText =''
                     if(!record.expired){
                         if(record.status === 1){
-                            displayText = <img src={iconLoading} alt="" style={{display:'inlineBlock',width: '16px'}}/>
+                            displayText = <div style={{minWidth:'35px',display:'inlineBlock'}}><Icon style={{color: '#1890ff'}} className="" type="loading-3-quarters" spin  /></div>
                         }else if(record.status === 2){
-                            displayText = <span style={{color:'#0070E0',cursor: 'pointer'}} onClick={()=>{this.getDownUrl(record.id)}}>保存</span>
+                            displayText =  <a style={{minWidth:'35px',display:'inlineBlock'}} download href={`/book/_download_link?download_id=${record.id}`}>保存</a>
                         }else{
-                            displayText = <span style={{color:'#FF3B30',cursor: 'pointer'}} onClick={()=>{this.delDownload(record.id)}}>删除</span>
+                            displayText = <span style={{color:'#FF3B30',cursor: 'pointer',minWidth:'35px',display:'inlineBlock'}} onClick={()=>{this.delDownload(record.id)}}>删除</span>
                         }
                     }else{
-                        displayText = <span style={{color:'#FF3B30',cursor: 'pointer'}} onClick={()=>{this.delDownload(record.id)}}>删除</span>
+                        displayText = <span style={{color:'#FF3B30',cursor: 'pointer',minWidth:'35px',display:'inlineBlock'}} onClick={()=>{this.delDownload(record.id)}}>删除</span>
                     }
                     return displayText;
                 }
@@ -165,7 +189,7 @@ class DownloadCenter extends React.Component {
             <div className="deskWarp">
                 <Layout>
                     <Header className="publicHeader">
-                        <div className="menuBtn"><Icon onClick={this.toLogin} type='arrow-left' /></div>                        
+                        <div className="menuBtn"><Icon onClick={this.toIndex} type='arrow-left' /></div>                        
                     </Header>
 
                         <Layout>
@@ -173,10 +197,10 @@ class DownloadCenter extends React.Component {
                                 {/* {this.state.showTable ? */}
                                     <div className="myTableWarp">
                                         <div className="clearFix">
-                                            <div className="title ms_fl">下载中心</div>
+                                            <div className="downloadTitle ms_fl">下载中心</div>
                                         </div>
-                                        <Table rowKey={(record, index) => `complete${record.id}${index}`} className={`showInBig`} pagination={false} columns={columns} dataSource={this.state.tableData} />
-                                        <Table rowKey={(record, index) => `complete${record.id}${index}`} className={`showInSmall`} pagination={false} columns={smallColumns}  dataSource={this.state.tableData} />
+                                        <Table rowKey={(record, index) => `complete${record.id}${index}`} pagination={currPagination} className={`showInBig`}  columns={columns} dataSource={this.state.tableData} />
+                                        <Table rowKey={(record, index) => `complete${record.id}${index}`} pagination={currSmallPagination} className={`showInSmall`}  columns={smallColumns}  dataSource={this.state.tableData} />
                                     </div>
                                     {/* : ''} */}
                             </Content>

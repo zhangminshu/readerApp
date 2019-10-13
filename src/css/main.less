@@ -227,7 +227,8 @@ h1, h2, h3, h4, h5, h6{
                 display: inline-block;
                 text-overflow: ellipsis;
                 overflow: hidden;
-                height: 32px;
+                height: 16px;
+                line-height: 16px;
                 white-space: nowrap;  
             }
             .addTag{
@@ -301,7 +302,7 @@ h1, h2, h3, h4, h5, h6{
         .ant-checkbox{
             margin-right: 8px;
             position: relative;
-            top: -16px;
+            // top: -16px;
         }
 
     }
@@ -334,6 +335,12 @@ h1, h2, h3, h4, h5, h6{
     // &.grayTh .ant-table-thead > tr{
     //     background: #F3F4F5;   
     // }
+    .downloadOpt{
+        min-width: 70px;
+    }
+    .downloadTitle{
+        margin-left: 16px;
+    }
     .ellTable{
         .samllFileName{
             position: relative;
@@ -575,9 +582,11 @@ h1, h2, h3, h4, h5, h6{
         }
     }
     .loginInfo{
-        width: 69px;
+        // width: 69px;
+        
         text-align: right;
-        padding-right: 8px;
+        margin-left: 8px;
+        margin-right: 8px;
         color: #0070E0;
         cursor: pointer;
         .userName{
@@ -596,6 +605,32 @@ h1, h2, h3, h4, h5, h6{
             height: 32px;
             border-radius: 50%;
             cursor: pointer;
+        }
+        span{
+            width: 34px;
+            display: inline-block;
+        }
+    }
+    .downloadMark{
+        margin-left: 8px;
+        position: relative;
+        .iconDownload{
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .point{
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: red;
+            position: absolute;
+            margin-top: 0px;
+            top: 27%;
+            right: 0;
+            border-radius: 50%;
         }
     }
 }
@@ -705,7 +740,8 @@ h1, h2, h3, h4, h5, h6{
                     display: inline-block;
                     text-overflow: ellipsis;
                     overflow: hidden;
-                    height: 32px;
+                    height: 16px;
+                    line-height: 16px;
                     white-space: nowrap;  
                 }
             }

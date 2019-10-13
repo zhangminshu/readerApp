@@ -11,6 +11,8 @@ import coverAZW3 from '../../img/coverAZW3.svg'
 import coverEPUB from '../../img/coverEPUB.svg'
 import coverMOBI from '../../img/coverMOBI.svg'
 import coverTXT from '../../img/coverTXT.svg'
+import iconDownload from '../../img/icon_download.svg'
+import iconFast from '../../img/icon_fast.svg'
 const { confirm } = Modal;
 const RadioGroup = Radio.Group;
 const SUCCESS_CODE = 0;
@@ -22,6 +24,7 @@ class SearchResult extends React.Component {
             popoverVisible:'',
             popoverPcVisible:'',
             currBookUrl:'',
+            showPoint:false,
             showTipModal:false,
             result:0,
             showEmpty:false,
@@ -82,10 +85,23 @@ class SearchResult extends React.Component {
             this.unLogin = false;
             this.getTotal();
             this.getCategory();
+            this.getDownloadCount();
         }else{
             this.unLogin = true;
         }
-
+    }
+    getDownloadCount=()=>{
+        const url ='/book/_download_count';
+        HTTP.get(url,{}).then((response)=>{
+            const res = response.data;
+            if(res.status === SUCCESS_CODE){
+                if(res.data > 0){
+                    this.setState({showPoint:true})
+                }else{
+                    this.setState({showPoint:false})
+                }
+            }
+        })
     }
     getCategory = () => {
         const url = '/category';
@@ -420,6 +436,9 @@ class SearchResult extends React.Component {
             window.open(bookUrl, "_blank")
         })
     }
+    toDownloadCenter=()=>{
+        this.props.history.push('/downloadCenter')
+    }
     readerBook=(bookInfo)=>{
         if (!bookInfo.url) return message.error('书本链接不存在！')
         const userAgent = navigator.userAgent;
@@ -537,45 +556,122 @@ class SearchResult extends React.Component {
             categoryList:newList
         })
     }
-    fileDownload = (href) => {
-        const a = document.createElement("a"), //创建a标签
-            e = document.createEvent("MouseEvents"); //创建鼠标事件对象
-        e.initEvent("click", false, false); //初始化事件对象
-        a.href = href; //设置下载地址
-        // a.download = name; //设置下载文件名
-        a.dispatchEvent(e); //给指定的元素，执行事件click事件
-        this.setState({isLoading:false})
-    }
-    downloadEvent = (type, item) => {
+    // fileDownload = (href) => {
+    //     const a = document.createElement("a"), //创建a标签
+    //         e = document.createEvent("MouseEvents"); //创建鼠标事件对象
+    //     e.initEvent("click", false, false); //初始化事件对象
+    //     a.href = href; //设置下载地址
+    //     // a.download = name; //设置下载文件名
+    //     a.dispatchEvent(e); //给指定的元素，执行事件click事件
+    //     this.setState({isLoading:false})
+    // }
+    showDownloadDialog =(type, item)=>{
         if(this.unLogin){
             return this.unLoginTip();
         }
-        let bookIds = "";
-        const ids = []
-        if (type === 'single') {
-            bookIds = item.id;
-        } else {
-            const fileList = this.state.selectedRow;
-            fileList.forEach(item => {
-                ids.push(item.id)
-                // download(item.title, item.url);
+        let secondsToGo = 3;
+        const _this = this;
+        const bookId = item.id;
+        const format = item.extension;
+        if(format === 'pdf'){
+            this.setState({currBookId:bookId},()=>{
+                this.createDownload(format)
             })
-            bookIds = ids.join(",");
+        }else{
+            _this.setState({
+                currBookId:bookId,
+                format,
+                downloadModal:true
+            })
         }
-        this.getDownUrl(bookIds)
+        // let timer = null;
+        // let timer2 = null;
+        // timer = setInterval(() => {
+        //     secondsToGo -= 1;
+        //     modal.update({
+        //         content: `${secondsToGo}秒后开始自动下载`,
+        //     });
+        //   }, 1000);
+        // const modal = confirm({
+        //     title: '下载文件',
+        //     content: `${secondsToGo}秒后开始自动下载`,
+        //     okText: '   直接下载',
+        //     className: 'confirmDialog',
+        //     cancelText: '转码下载',
+        //     onOk() {
+        //         clearInterval(timer);
+        //         clearTimeout(timer2);
+        //         _this.setState({
+        //             currBookId:bookId
+        //         },()=>{
+        //             _this.createDownload(format)
+        //         })
+        //     },
+        //     onCancel() { 
+        //         clearInterval(timer);
+        //         clearTimeout(timer2);
+        //         _this.setState({
+        //             currBookId:bookId,
+        //             format,
+        //             downloadModal:true
+        //         })
+        //     }
+        // });
+
+        // timer2 = setTimeout(() => {
+        //     clearInterval(timer);
+        //     _this.setState({
+        //         currBookId:bookId
+        //     },()=>{
+        //         _this.createDownload(format)
+        //     })
+        //     modal.destroy();
+        //   }, secondsToGo * 1000);
     }
-    getDownUrl = (ids) => {
-        this.setState({isLoading:true})
-        const url = "/book/_package";
-        HTTP.get(url, { params: { book_ids: ids } }).then(response => {
+    //创建下载
+    createDownload=(type)=>{
+        const currBookId = this.state.currBookId;
+        const url =`/book/${currBookId}/_download`
+        HTTP.post(url,{format:type}).then(response=>{
             const res = response.data;
-            if (res.status === 0) {
-                this.fileDownload(res.data)
+            if(res.status === SUCCESS_CODE){
+                this.setState({downloadModal:false,showDownloadTip:true,showPoint:true})
+                setTimeout(()=>{this.setState({showDownloadTip:false})},3000)
             }else{
                 message.error(res.error);
             }
         })
     }
+    // downloadEvent = (type, item) => {
+    //     if(this.unLogin){
+    //         return this.unLoginTip();
+    //     }
+    //     let bookIds = "";
+    //     const ids = []
+    //     if (type === 'single') {
+    //         bookIds = item.id;
+    //     } else {
+    //         const fileList = this.state.selectedRow;
+    //         fileList.forEach(item => {
+    //             ids.push(item.id)
+    //             // download(item.title, item.url);
+    //         })
+    //         bookIds = ids.join(",");
+    //     }
+    //     this.getDownUrl(bookIds)
+    // }
+    // getDownUrl = (ids) => {
+    //     this.setState({isLoading:true})
+    //     const url = "/book/_package";
+    //     HTTP.get(url, { params: { book_ids: ids } }).then(response => {
+    //         const res = response.data;
+    //         if (res.status === 0) {
+    //             this.fileDownload(res.data)
+    //         }else{
+    //             message.error(res.error);
+    //         }
+    //     })
+    // }
     getFileIcon = (type) => {
         let fileIcon = coverPDF;
         switch (type) {
@@ -934,8 +1030,8 @@ class SearchResult extends React.Component {
                             {role !== 2 && !isOwner?<p className="optItem" onClick={() => { this.fileClone('single', record)}}>克隆</p>:""}
                             <p className="optItem" onClick={() => { this.fileShare("row", record.id) }}>分享</p>
                             <p className={`${isOver10M ? 'overLimit':''} optItem`} onClick={() => { this.sendToKindle(record.id,isOver10M) }}>kindle</p>
-                            {role !== 2 && !isOwner?<p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>:""}
-                            {role === 2 || isOwner?<p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>:""}
+                            {role !== 2 && !isOwner?<p className="optItem" onClick={() => { this.showDownloadDialog('single', record) }}>下载</p>:""}
+                            {role === 2 || isOwner?<p className="optItem" onClick={() => { this.showDownloadDialog('single', record) }}>下载</p>:""}
                             {role === 2 || isOwner?<p className="optItem" onClick={() => { this.fileClone('singleTip', record)}}>标签</p>:""}
                             {role === 2 || isOwner?<p className="optItem" onClick={() => { this.renameDialog(record) }}>重命名</p>:""}
                             {role === 2 || isOwner?<p className="optItem" onClick={() => { this.fileTypeChange('single', record) }}>文件类型</p>:""}
@@ -979,8 +1075,8 @@ class SearchResult extends React.Component {
                             {role !== 2 && !isOwner?<p className="optItem" onClick={() => { this.fileClone('single', record)}}>克隆</p>:""}
                             <p className="optItem" onClick={() => { this.fileShare("row", record.id) }}>分享</p>
                             <p className={`${isOver10M ? 'overLimit':''} optItem`} onClick={() => { this.sendToKindle(record.id,isOver10M) }}>kindle</p>
-                            {role !== 2 && !isOwner?<p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>:""}
-                            {role === 2 || isOwner?<p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>:""}
+                            {role !== 2 && !isOwner?<p className="optItem" onClick={() => { this.showDownloadDialog('single', record) }}>下载</p>:""}
+                            {role === 2 || isOwner?<p className="optItem" onClick={() => { this.showDownloadDialog('single', record) }}>下载</p>:""}
                             {role === 2 || isOwner?<p className="optItem" onClick={() => { this.fileClone('singleTip', record)}}>标签</p>:""}
                             {role === 2 || isOwner?<p className="optItem" onClick={() => { this.renameDialog(record) }}>重命名</p>:""}
                             {role === 2 || isOwner?<p className="optItem" onClick={() => { this.fileTypeChange('single', record) }}>文件类型</p>:""}
@@ -1095,6 +1191,7 @@ class SearchResult extends React.Component {
             onSelectAll: this.handleSelectAll,
             selectedRowKeys: this.state.tableSelectedRowKeys
         };
+        const contentTip ='下载文件处理中，请点击查看详情'
         return (
             <Spin tip="正在下载请稍等" spinning={this.state.isLoading}>
             <div className="searchResultWarp">
@@ -1102,6 +1199,12 @@ class SearchResult extends React.Component {
                     <div className="publicHeader">
                         <div className="menuBtn"><Icon onClick={this.toIndex} type={'arrow-left'} /></div>
                         <div className="searchWarp"><Input ref={(input) => this.input = input} allowClear placeholder="搜索" value={this.state.searchBookName} onChange={(value) => { this.searchBook(value, 'search') }} /> <span className="result">{this.state.searchText}</span></div>
+                        {isLogin || hasPhoto?<div className="downloadMark" onClick={this.toDownloadCenter}>
+                        <Popover  placement="bottomRight" content={contentTip} visible={this.state.showDownloadTip}>
+                            <img className="iconDownload" src={iconDownload} alt=""/>
+                            {this.state.showPoint?<i className="point"></i>:""}
+                        </Popover>
+                        </div>:""}
                         <div className="loginInfo" > {hasPhoto ? <img className="userPhoto" onClick={this.toUserInfo} src={photo} alt="" /> : (!isLogin ? <span onClick={this.toLogin}>登录</span> : <span className="userName" onClick={this.toUserInfo}>{userName}</span>)} </div>
                     </div>
 
@@ -1115,7 +1218,7 @@ class SearchResult extends React.Component {
                                             <div className={`${this.state.showCheckBox ? 'showBtnList' : ''} btn_list ms_fr`}>
                                                 {role === 2 && searchType === 'user'? <Button className="btn btn_fileType" onClick={this.userStatusChange.bind(this)}>状态</Button>:""}
                                                 {role !== 2 && searchType !== 'user'? <Button className="btn btn_clone" type="primary" onClick={this.fileClone}>克隆</Button> : ""}
-                                                {role !== 2 && searchType !== 'user'? <Button className="btn btn_download" onClick={this.downloadEvent}>下载</Button> : ""}
+                                                {/* {role !== 2 && searchType !== 'user'? <Button className="btn btn_download" onClick={this.showDownloadDialog}>下载</Button> : ""} */}
                                                 {role === 2 && searchType !== 'user'? <Button className="btn btn_fileType" onClick={this.fileTypeChange.bind(this)}>类型</Button> : ""}
                                                 {role === 2 && searchType !== 'user'? <Button className="btn btn_del" type="danger" onClick={this.showDeleteConfirm}>删除</Button> : ""}
                                             </div>
@@ -1169,6 +1272,38 @@ class SearchResult extends React.Component {
                         
                         <Button type="primary" className="ms_fr" onClick={this.handleOkTip}>确认</Button>
                         <Button type="default" className="ms_fr" style={{marginRight:"14px"}} onClick={()=>{this.setState({showTipModal:false})}}>取消</Button>
+                    </div>
+                </Modal>
+                <Modal
+                    width="416px" title="请选择需要下载的格式" visible={this.state.downloadModal} className="downloadDialog" closable={true}
+                    footer={null} onCancel={()=>{this.setState({downloadModal:false})}}
+                >
+                    <div className="content">
+                        <div className="item" onClick={()=>{this.createDownload('txt')}}>
+                            <img className="fileIcon" src={coverTXT} alt="" />
+                            <span>TXT</span>
+                            {this.state.format === 'txt' ?<img className="iconFast" src={iconFast} alt="" /> :''}
+                        </div>
+                        <div className="item" onClick={()=>{this.createDownload('pdf')}}>
+                            <img className="fileIcon" src={coverPDF} alt="" />
+                            <span>PDF</span>
+                            {this.state.format === 'pdf' ?<img className="iconFast" src={iconFast} alt="" /> :''}
+                        </div>
+                        <div className="item" onClick={()=>{this.createDownload('mobi')}}>
+                            <img className="fileIcon" src={coverMOBI} alt="" />
+                            <span>MOBI</span>
+                            {this.state.format === 'mobi' ?<img className="iconFast" src={iconFast} alt="" /> :''}
+                        </div>
+                        <div className="item" onClick={()=>{this.createDownload('epub')}}>
+                            <img className="fileIcon" src={coverEPUB} alt="" />
+                            <span>EPUB</span>
+                            {this.state.format === 'epub' ?<img className="iconFast" src={iconFast} alt="" /> :''}
+                        </div>
+                        <div className="item" onClick={()=>{this.createDownload('azw3')}}>
+                            <img className="fileIcon" src={coverAZW3} alt="" />
+                            <span>AZW3</span>
+                            {this.state.format === 'azw3' ?<img className="iconFast" src={iconFast} alt="" /> :''}
+                        </div>
                     </div>
                 </Modal>
                 {this.state.showBottomTip?

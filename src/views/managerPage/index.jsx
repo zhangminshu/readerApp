@@ -5,12 +5,13 @@ import copy from 'copy-to-clipboard';
 import cookie from 'js-cookie';
 import EmptyComp from '../../componment/emptyPage/index.jsx'
 import './style.less'
-
+import iconFast from '../../img/icon_fast.svg'
 import coverPDF from '../../img/coverPDF.svg'
 import coverAZW3 from '../../img/coverAZW3.svg'
 import coverEPUB from '../../img/coverEPUB.svg'
 import coverMOBI from '../../img/coverMOBI.svg'
 import coverTXT from '../../img/coverTXT.svg'
+import iconDownload from '../../img/icon_download.svg'
 const { confirm } = Modal;
 const RadioGroup = Radio.Group;
 const SUCCESS_CODE = 0;
@@ -34,6 +35,7 @@ class ManagerPage extends React.Component {
             popoverPcVisible:'',
             popoverVisible:'',
             currBookUrl:'',
+            showPoint:false,
             showTipModal:false,
             showEmpty:false,
             userStatus:"",
@@ -79,9 +81,23 @@ class ManagerPage extends React.Component {
     componentDidMount() {
         this.activeMenu = sessionStorage.getItem('activeMenu') || '0'
         this.changeMenu(navList[this.activeMenu])
+        this.getDownloadCount()
     }
     componentWillUnmount(){
         
+    }
+    getDownloadCount=()=>{
+        const url ='/book/_download_count';
+        HTTP.get(url,{}).then((response)=>{
+            const res = response.data;
+            if(res.status === SUCCESS_CODE){
+                if(res.data > 0){
+                    this.setState({showPoint:true})
+                }else{
+                    this.setState({showPoint:false})
+                }
+            }
+        })
     }
     onClose = () => {
         this.setState({
@@ -494,6 +510,84 @@ class ManagerPage extends React.Component {
             }
         })
     }
+    showDownloadDialog =(type, item)=>{
+        let secondsToGo = 3;
+        const _this = this;
+        const bookId = item.id;
+        const fileSplit = item.title.split('.');
+        const format = fileSplit[fileSplit.length-1];
+        if(format === 'pdf'){
+            this.setState({currBookId:bookId},()=>{
+                this.createDownload(format)
+            })
+        }else{
+            _this.setState({
+                currBookId:bookId,
+                format,
+                downloadModal:true
+            })
+        }
+        // let timer = null;
+        // let timer2 = null;
+        // timer = setInterval(() => {
+        //     secondsToGo -= 1;
+        //     modal.update({
+        //         content: `${secondsToGo}秒后开始自动下载`,
+        //     });
+        //   }, 1000);
+        // const modal = confirm({
+        //     title: '下载文件',
+        //     content: `${secondsToGo}秒后开始自动下载`,
+        //     okText: '   直接下载',
+        //     className: 'confirmDialog',
+        //     cancelText: '转码下载',
+        //     onOk() {
+        //         clearInterval(timer);
+        //         clearTimeout(timer2);
+        //         _this.setState({
+        //             currBookId:bookId
+        //         },()=>{
+        //             _this.createDownload(format)
+        //         })
+        //     },
+        //     onCancel() { 
+        //         clearInterval(timer);
+        //         clearTimeout(timer2);
+        //         _this.setState({
+        //             currBookId:bookId,
+        //             format,
+        //             downloadModal:true
+        //         })
+        //     }
+        // });
+
+        // timer2 = setTimeout(() => {
+        //     clearInterval(timer);
+        //     _this.setState({
+        //         currBookId:bookId
+        //     },()=>{
+        //         _this.createDownload(format)
+        //     })
+        //     modal.destroy();
+        //   }, secondsToGo * 1000);
+    }
+    //创建下载
+    createDownload=(type)=>{
+        const currBookId = this.state.currBookId;
+        const url =`/book/${currBookId}/_download`
+        HTTP.post(url,{format:type}).then(response=>{
+            const res = response.data;
+            if(res.status === SUCCESS_CODE){
+                this.setState({downloadModal:false,showDownloadTip:true,showPoint:true})
+                setTimeout(()=>{this.setState({showDownloadTip:false})},3000)
+            }else{
+                message.error(res.error);
+            }
+        })
+    }
+    toDownloadCenter=()=>{
+        this.props.history.push('/downloadCenter')
+    }
     handleNameChange = (e) => {
         const bookName = e.target.value;
         this.setState({
@@ -894,7 +988,7 @@ class ManagerPage extends React.Component {
                 const optContent = (
                     <div onClick={()=>{this.setState({popoverVisible:''})}}>
                         <p className="optItem" onClick={() => { this.fileShare("row", record.id) }}>分享</p>
-                        <p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>
+                        <p className="optItem" onClick={() => { this.showDownloadDialog('single', record) }}>下载</p>
                         <p className="optItem" onClick={() => { this.renameDialog(record) }}>重命名</p>
                         <p className="optItem" onClick={() => { this.fileTypeChange('single', record) }}>文件类型</p>
                         <p className="optItem" style={{color:'#FF3B30'}} onClick={() => { this.showDeleteConfirm('single', record) }}>删除</p>
@@ -973,7 +1067,7 @@ class ManagerPage extends React.Component {
                     const optContent = (
                         <div onClick={()=>{this.setState({popoverPcVisible:''})}}>
                             <p className="optItem" onClick={() => { this.fileShare("row", record.id) }}>分享</p>
-                            <p className="optItem" onClick={() => { this.downloadEvent('single', record) }}>下载</p>
+                            <p className="optItem" onClick={() => { this.showDownloadDialog('single', record) }}>下载</p>
                             <p className="optItem" onClick={() => { this.renameDialog(record) }}>重命名</p>
                             <p className="optItem" onClick={() => { this.fileTypeChange('single', record) }}>文件类型</p>
                             <p className="optItem" style={{color:'#FF3B30'}} onClick={() => { this.showDeleteConfirm('single', record) }}>删除</p>
@@ -1018,6 +1112,7 @@ class ManagerPage extends React.Component {
         };
         this.activeMenu = sessionStorage.getItem('activeMenu') || '0'
         // const currRowSelection = this.state.activeMenu ==='0'?null:rowSelection;
+        const contentTip ='下载文件处理中，请点击查看详情'
         return (
             <Spin tip="正在下载请稍等" spinning={this.state.isLoading}>
             <div className="managerWarp">
@@ -1026,6 +1121,12 @@ class ManagerPage extends React.Component {
                         <div className="menuBtn showInBig"><Icon onClick={this.toggleCollapsed} type={this.state.collapsed ? 'menu' : 'arrow-left'} /></div>
                         <div className="menuBtn showInSmall"><Icon onClick={this.showDrawer} type="menu" /></div>
                         <div className="searchWarp"><Input allowClear placeholder="搜索" onClick={this.toResultPage} /> <span className="result"></span></div>
+                        {isLogin || hasPhoto?<div className="downloadMark" onClick={this.toDownloadCenter}>
+                        <Popover  placement="bottomRight" content={contentTip} visible={this.state.showDownloadTip}>
+                            <img className="iconDownload" src={iconDownload} alt=""/>
+                            {this.state.showPoint?<i className="point"></i>:""}
+                        </Popover>
+                        </div>:""}
                         <div className="loginInfo" > {hasPhoto ? <img className="userPhoto" onClick={this.toUserInfo} src={photo} alt="" /> : (!isLogin ? <span onClick={this.toLogin}>登录</span> : <span className="userName" onClick={this.toUserInfo}>{userName}</span>)} </div>
                     </Header>
 
@@ -1080,6 +1181,38 @@ class ManagerPage extends React.Component {
                         
                         <Button type="primary" className="ms_fr" onClick={this.handleOkTip}>确认</Button>
                         <Button type="default" className="ms_fr" style={{marginRight:"14px"}} onClick={()=>{this.setState({showTipModal:false})}}>取消</Button>
+                    </div>
+                </Modal>
+                <Modal
+                    width="416px" title="请选择需要下载的格式" visible={this.state.downloadModal} className="downloadDialog" closable={true}
+                    footer={null} onCancel={()=>{this.setState({downloadModal:false})}}
+                >
+                    <div className="content">
+                        <div className="item" onClick={()=>{this.createDownload('txt')}}>
+                            <img className="fileIcon" src={coverTXT} alt="" />
+                            <span>TXT</span>
+                            {this.state.format === 'txt' ?<img className="iconFast" src={iconFast} alt="" /> :''}
+                        </div>
+                        <div className="item" onClick={()=>{this.createDownload('pdf')}}>
+                            <img className="fileIcon" src={coverPDF} alt="" />
+                            <span>PDF</span>
+                            {this.state.format === 'pdf' ?<img className="iconFast" src={iconFast} alt="" /> :''}
+                        </div>
+                        <div className="item" onClick={()=>{this.createDownload('mobi')}}>
+                            <img className="fileIcon" src={coverMOBI} alt="" />
+                            <span>MOBI</span>
+                            {this.state.format === 'mobi' ?<img className="iconFast" src={iconFast} alt="" /> :''}
+                        </div>
+                        <div className="item" onClick={()=>{this.createDownload('epub')}}>
+                            <img className="fileIcon" src={coverEPUB} alt="" />
+                            <span>EPUB</span>
+                            {this.state.format === 'epub' ?<img className="iconFast" src={iconFast} alt="" /> :''}
+                        </div>
+                        <div className="item" onClick={()=>{this.createDownload('azw3')}}>
+                            <img className="fileIcon" src={coverAZW3} alt="" />
+                            <span>AZW3</span>
+                            {this.state.format === 'azw3' ?<img className="iconFast" src={iconFast} alt="" /> :''}
+                        </div>
                     </div>
                 </Modal>
             </div>

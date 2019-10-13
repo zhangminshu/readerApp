@@ -13,6 +13,7 @@ import coverEPUB from '../../img/coverEPUB.svg'
 import coverMOBI from '../../img/coverMOBI.svg'
 import coverTXT from '../../img/coverTXT.svg'
 import iconFast from '../../img/icon_fast.svg'
+import iconDownload from '../../img/icon_download.svg'
 const { confirm } = Modal;
 const RadioGroup = Radio.Group;
 const SUCCESS_CODE = 0;
@@ -25,6 +26,7 @@ class DeskPage extends React.Component {
             currBookUrl:'',
             popoverVisible:'',
             isOpenPop:false,
+            showPoint:false,
             downloadModal:false,
             showTipModal:false,
             showEmpty:false,
@@ -80,6 +82,20 @@ class DeskPage extends React.Component {
         this.getUserInfo();
         this.getCategory();
         this.getBookListById(currId)
+        this.getDownloadCount();
+    }
+    getDownloadCount=()=>{
+        const url ='/book/_download_count';
+        HTTP.get(url,{}).then((response)=>{
+            const res = response.data;
+            if(res.status === SUCCESS_CODE){
+                if(res.data > 0){
+                    this.setState({showPoint:true})
+                }else{
+                    this.setState({showPoint:false})
+                }
+            }
+        })
     }
     getUserInfo = () => {
         const url = '/user/_info';
@@ -438,23 +454,78 @@ class DeskPage extends React.Component {
         a.dispatchEvent(e); //给指定的元素，执行事件click事件
         this.setState({isLoading:false})
     }
+    
     showDownloadDialog =(type, item)=>{
+        let secondsToGo = 3;
+        const _this = this;
         const bookId = item.id;
         const format = item.extension;
-        this.setState({
-            currBookId:bookId,
-            format,
-            downloadModal:true
-        })
+        if(format === 'pdf'){
+            this.setState({currBookId:bookId},()=>{
+                this.createDownload(format)
+            })
+        }else{
+            _this.setState({
+                currBookId:bookId,
+                format,
+                downloadModal:true
+            })
+        }
+        // let timer = null;
+        // let timer2 = null;
+        // timer = setInterval(() => {
+        //     secondsToGo -= 1;
+        //     modal.update({
+        //         content: `${secondsToGo}秒后开始自动下载`,
+        //     });
+        //   }, 1000);
+        // const modal = confirm({
+        //     title: '下载文件',
+        //     content: `${secondsToGo}秒后开始自动下载`,
+        //     okText: '   直接下载',
+        //     className: 'confirmDialog',
+        //     cancelText: '转码下载',
+        //     onOk() {
+        //         clearInterval(timer);
+        //         clearTimeout(timer2);
+        //         _this.setState({
+        //             currBookId:bookId
+        //         },()=>{
+        //             _this.createDownload(format)
+        //         })
+        //     },
+        //     onCancel() { 
+        //         clearInterval(timer);
+        //         clearTimeout(timer2);
+        //         _this.setState({
+        //             currBookId:bookId,
+        //             format,
+        //             downloadModal:true
+        //         })
+        //     }
+        // });
+
+        // timer2 = setTimeout(() => {
+        //     clearInterval(timer);
+        //     _this.setState({
+        //         currBookId:bookId
+        //     },()=>{
+        //         _this.createDownload(format)
+        //     })
+        //     modal.destroy();
+        //   }, secondsToGo * 1000);
     }
+    //创建下载
     createDownload=(type)=>{
-        debugger
         const currBookId = this.state.currBookId;
         const url =`/book/${currBookId}/_download`
         HTTP.post(url,{format:type}).then(response=>{
             const res = response.data;
             if(res.status === SUCCESS_CODE){
-
+                this.setState({downloadModal:false,showDownloadTip:true,showPoint:true})
+                setTimeout(()=>{this.setState({showDownloadTip:false})},3000)
+            }else{
+                message.error(res.error);
             }
         })
     }
@@ -727,7 +798,11 @@ class DeskPage extends React.Component {
             this.setState({ popoverPcVisible });
         }
     };
+    toDownloadCenter=()=>{
+        this.props.history.push('/downloadCenter')
+    }
     render() {
+        const contentTip ='下载文件处理中，请点击查看详情'
         const _this = this;
         const currPagination = this.state.result>10?{
             total:this.state.result,
@@ -879,6 +954,13 @@ class DeskPage extends React.Component {
                         <div className="menuBtn showInBig"><Icon onClick={this.toggleCollapsed} type={this.state.collapsed ? 'menu' : 'arrow-left'} /></div>
                         <div className="menuBtn showInSmall"><Icon onClick={this.showDrawer} type="menu" /></div>
                         <div className="searchWarp"><Input allowClear placeholder="搜索" onClick={this.toResultPage} /> <span className="result"></span></div>
+                        {isLogin || hasPhoto?<div className="downloadMark" onClick={this.toDownloadCenter}>
+                        <Popover  placement="bottomRight" content={contentTip} visible={this.state.showDownloadTip}>
+                            <img className="iconDownload" src={iconDownload} alt=""/>
+                            {this.state.showPoint?<i className="point"></i>:""}
+                        </Popover>
+                            
+                        </div>:""}
                         <div className="loginInfo" > {hasPhoto ? <img className="userPhoto" onClick={this.toUserInfo} src={photo} alt="" /> : (!isLogin ? <span onClick={this.toLogin}>登录</span> : <span className="userName" onClick={this.toUserInfo}>{userName}</span>)} </div>
                     </Header>
 

@@ -10,22 +10,40 @@ import bannerBg from '../../img/banner.svg';
 import download from '../../img/download.svg'
 import kindle from '../../img/kindle.svg'
 import bookManager from '../../img/book_manager.svg'
+import iconDownload from '../../img/icon_download.svg'
 // import { debug } from 'util';
-
+const SUCCESS_CODE =0
 const { Header, Footer, Sider, Content } = Layout;
 class HomePage extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
             collapsed: true,
-            visible: false
+            visible: false,
+            showPoint:false
         }
     }
     componentDidMount(){
         document.title = '阅读链 - 找书就用阅读链'
         // this.getUserInfo();
+        const Authorization = cookie.get('Authorization')
+        if(Authorization){
+            this.getDownloadCount();
+        }
     }
-
+    getDownloadCount=()=>{
+        const url ='/book/_download_count';
+        HTTP.get(url,{}).then((response)=>{
+            const res = response.data;
+            if(res.status === SUCCESS_CODE){
+                if(res.data > 0){
+                    this.setState({showPoint:true})
+                }else{
+                    this.setState({showPoint:false})
+                }
+            }
+        })
+    }
     showDrawer = () => {
         this.setState({
             visible: true,
@@ -62,6 +80,9 @@ class HomePage extends React.Component {
     toUserInfo =()=>{
         this.props.history.push('/userInfo')
     }
+    toDownloadCenter=()=>{
+        this.props.history.push('/downloadCenter')
+    }
     render() {
         // const userInfo = this.state.userInfo;
         // const userInfo = JSON.parse(localStorage.getItem('userInfo'));
@@ -84,6 +105,10 @@ class HomePage extends React.Component {
                         <div className="menuBtn showInBig"><Icon onClick={this.toggleCollapsed} type={this.state.collapsed ? 'menu' : 'arrow-left'} /></div>
                         <div className="menuBtn showInSmall"><Icon onClick={this.showDrawer} type="menu"/></div>
                         <div className="searchWarp"><Input allowClear placeholder="搜索" onClick={this.toResultPage} /> <span className="result"></span></div>
+                        {isLogin || hasPhoto?<div className="downloadMark" onClick={this.toDownloadCenter}>
+                        <img className="iconDownload" src={iconDownload} alt=""/>
+                        {this.state.showPoint?<i className="point"></i>:""}
+                        </div>:""}
                         <div className="loginInfo" > {hasPhoto? <img className="userPhoto" onClick={this.toUserInfo} src={photo} alt=""/> : (!isLogin ? <span onClick={()=>{this.toLogin(false)}}>登录</span> : <span className="userName" onClick={this.toUserInfo}>{userName}</span>)} </div>
                     </Header>
 
