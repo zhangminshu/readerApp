@@ -122,7 +122,7 @@ class RederPage extends Component {
    * 加入最近阅读
    */
   joinTag=()=>{
-    const bookInfo = JSON.parse(sessionStorage.getItem('bookInfo'));
+    const bookInfo = JSON.parse(localStorage.getItem('bookInfo'));
     const url = `/book/${bookInfo.id}/_info`;
     // const requestJson={book_ids:bookInfo.id.toString(),category_ids:"-2"}
     HTTP.get(url,{}).then(response=>{
@@ -239,7 +239,7 @@ class RederPage extends Component {
   }
   onLocationChanged = location => {
     
-    const bookInfo = JSON.parse(sessionStorage.getItem('bookInfo'));
+    const bookInfo = JSON.parse(localStorage.getItem('bookInfo'));
     this.setState(
       {
         location
@@ -270,7 +270,7 @@ class RederPage extends Component {
   };
   saveRead=(type)=>{
     const _this = this;
-    const bookInfo = JSON.parse(sessionStorage.getItem('bookInfo'));
+    const bookInfo = JSON.parse(localStorage.getItem('bookInfo'));
     const currPer = sessionStorage.getItem('currPercent') *100;
     const url = `/book/${bookInfo.id}/_process`;
     window.removeEventListener('popstate', function () {_this.saveRead('leave')},false)
@@ -384,7 +384,7 @@ handlePcVisibleChange = popoverPcVisible => {
 };
   render() {
     const { fullscreen } = this.state;
-    const bookInfo = JSON.parse(sessionStorage.getItem('bookInfo'));
+    const bookInfo = JSON.parse(localStorage.getItem('bookInfo'));
     const locationPre = localStorage.getItem('bookLocation'+bookInfo.id)
     const bookUrl = "https://" + bookInfo.url.split("://")[1];
     const bookTitle = bookInfo.title;
@@ -393,8 +393,8 @@ handlePcVisibleChange = popoverPcVisible => {
     const optContent = (
       <div className="readerOptWarp" onClick={()=>{this.setState({popoverPcVisible:false})}}>
           <p className="optItem" onClick={() => { this.fileShare("row", bookInfo.id) }}>分享</p>
-          <p className="optItem" onClick={() => { this.saveRead() }}>保存进度</p>
-          <p className="optItem" onClick={() => { this.downloadBook(bookInfo.url) }}>下载</p>
+          {/* <p className="optItem" onClick={() => { this.saveRead() }}>保存进度</p> */}
+          {/* <p className="optItem" onClick={() => { this.downloadBook(bookInfo.url) }}>下载</p> */}
           <p className="optItem" onClick={() => { window.open("https://jinshuju.net/f/peZNo8","_blank")}}>用户反馈</p>
           {/* <p className="optItem" onClick={() => { window.open('https://jinshuju.net/f/1xfVB8',"_blank") }}>评价阅读链</p> */}
       </div>

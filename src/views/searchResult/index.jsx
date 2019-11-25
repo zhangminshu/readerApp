@@ -49,6 +49,7 @@ class SearchResult extends React.Component {
             showTable: false,
             tableData: [],
             fileType: 0,
+            selectedTag:[],//默认所在的标签
             searchBookName: '',
             searchText: '',
             totalNum: 0,
@@ -440,6 +441,7 @@ class SearchResult extends React.Component {
         this.props.history.push('/downloadCenter')
     }
     readerBook=(bookInfo)=>{
+        return message.info('暂不支持在线预览，请下载后查看')
         if (!bookInfo.url) return message.error('书本链接不存在！')
         const userAgent = navigator.userAgent;
         const unAllowOnline = ['txt','mobi','azw3']
@@ -462,6 +464,24 @@ class SearchResult extends React.Component {
             location.href = '#/reader?search='+JSON.stringify(this.state.searchBookName);
         }
     }
+    getBookC =(book_id,type)=>{
+
+        const bookId = book_id.toString();
+        const url =`/book/${bookId}/_category`;
+        
+        HTTP.get(url,{}).then(response=>{
+            const res = response.data;
+            if(res.status === 0){
+                const selectedTag = res.data === '' ? [] :res.data.split(',');
+                this.setState({
+                    tipType:type,
+                    selectedTag:selectedTag,
+                    selectBookId:bookId,
+                    showTagDialog:true
+                })
+            }
+        })
+    }
     fileClone = (type, item) => {
         const userInfo = localStorage.getItem('userInfo');
         if(!userInfo){
@@ -471,18 +491,21 @@ class SearchResult extends React.Component {
         const ids = [];
         let bookId = "";
         if (type === 'single' || type === 'singleTip') {
-            bookId = item.id.toString();
+            // bookId = item.id.toString();
+            this.getBookC(item.id,type)
+            
         } else {
             this.state.selectedRow.forEach(item => {
                 ids.push(item.id);
             })
             bookId = ids.join(',')
+            this.setState({
+                tipType:type,
+                selectBookId:bookId,
+                showTagDialog:true
+            })
         }
-        this.setState({
-            tipType:type,
-            selectBookId:bookId,
-            showTagDialog:true
-        })
+
     }
     unLoginTip=()=>{
         const _this = this;
@@ -504,17 +527,17 @@ class SearchResult extends React.Component {
     saveTagChange =()=>{
         const cloneType = this.state.tipType;
         const bookid = this.state.selectBookId;
-        const categoryList = this.state.categoryList;
-        const categoryIds =[];
+        const categoryList = this.state.selectedTag;
+        // const categoryIds =[];
         let url ='';
         let succText =''
-        categoryList.forEach(item=>{
-            if(item.isChecked){
-                categoryIds.push(item.id)
-            }
-        })
-        const category_id = categoryIds.join(',')
-        if(category_id ==='' && cloneType ==='singleTip')return message.error('标签不能为空！')
+        // categoryList.forEach(item=>{
+        //     if(item.isChecked){
+        //         categoryIds.push(item.id)
+        //     }
+        // })
+        const category_id = categoryList.join(',')
+        // if(category_id ==='' && cloneType ==='singleTip')return message.error('标签不能为空！')
         let requestJson ={};
         if(category_id === ''){
             requestJson={book_ids:bookid,is_public:'0'}
@@ -525,35 +548,64 @@ class SearchResult extends React.Component {
         if(cloneType !== 'singleTip'){
             url =`/book/_save`;
             succText ='克隆成功！'
+            HTTP.post(url,requestJson).then(response=>{
+                const res = response.data;
+                if(res.status === 0){
+                    this.setState({
+                        showTagDialog:false
+                    })
+                    message.success(succText)
+                }else{
+                    message.error(res.error);
+                }
+            })
         }else{
-            url = `/book/_shiftin`;
+            requestJson ={category_ids:category_id};
+            url = `/book/${bookid}/_category`;
             succText ='修改成功！'
+            HTTP.put(url,requestJson).then(response=>{
+                const res = response.data;
+                if(res.status === 0){
+                    this.setState({
+                        showTagDialog:false
+                    })
+                    message.success(succText)
+                }else{
+                    message.error(res.error);
+                }
+            })
         }
         
-        HTTP.post(url,requestJson).then(response=>{
-            const res = response.data;
-            if(res.status === 0){
-                this.setState({
-                    showTagDialog:false
-                })
-                message.success(succText)
-            }else{
-                message.error(res.error);
-            }
-        })
+
 
     }
+    // handleCheckBox(e,id) {
+    //     const isChecked = e.target.checked;
+    //     const newList =[]
+    //     this.state.categoryList.forEach(item=>{
+    //         if(item.id === id){
+    //             item.isChecked = isChecked
+    //         }
+    //         newList.push(item);
+    //     })
+    //     this.setState({
+    //         categoryList:newList
+    //     })
+    // }
     handleCheckBox(e,id) {
         const isChecked = e.target.checked;
-        const newList =[]
-        this.state.categoryList.forEach(item=>{
-            if(item.id === id){
-                item.isChecked = isChecked
-            }
-            newList.push(item);
-        })
+        const selectedTag = this.state.selectedTag;
+        let currSelectedTag = [];
+        if(isChecked){
+            selectedTag.push(id.toString());
+            currSelectedTag = selectedTag;
+        }else{
+            currSelectedTag = selectedTag.filter(item=>{
+                return item !== id.toString();
+            })
+        }
         this.setState({
-            categoryList:newList
+            selectedTag:currSelectedTag
         })
     }
     // fileDownload = (href) => {
@@ -1217,7 +1269,7 @@ class SearchResult extends React.Component {
                                             <div className="title ms_fl">全部文件</div>
                                             <div className={`${this.state.showCheckBox ? 'showBtnList' : ''} btn_list ms_fr`}>
                                                 {role === 2 && searchType === 'user'? <Button className="btn btn_fileType" onClick={this.userStatusChange.bind(this)}>状态</Button>:""}
-                                                {role !== 2 && searchType !== 'user'? <Button className="btn btn_clone" type="primary" onClick={this.fileClone}>克隆</Button> : ""}
+                                                {/* {role !== 2 && searchType !== 'user'? <Button className="btn btn_clone" type="primary" onClick={this.fileClone}>克隆</Button> : ""} */}
                                                 {/* {role !== 2 && searchType !== 'user'? <Button className="btn btn_download" onClick={this.showDownloadDialog}>下载</Button> : ""} */}
                                                 {role === 2 && searchType !== 'user'? <Button className="btn btn_fileType" onClick={this.fileTypeChange.bind(this)}>类型</Button> : ""}
                                                 {role === 2 && searchType !== 'user'? <Button className="btn btn_del" type="danger" onClick={this.showDeleteConfirm}>删除</Button> : ""}
@@ -1237,6 +1289,7 @@ class SearchResult extends React.Component {
                     </Layout>
 
                 </Layout>
+                {this.state.showTagDialog?
                 <Modal
                     width="416px" title="" visible={this.state.showTagDialog} className="tagDialog" closable={false}
                     cancelText="取消" okText="确定"
@@ -1253,7 +1306,7 @@ class SearchResult extends React.Component {
                         </div>
                         {this.state.tagList.map((item,index) => {
                             return <div key={`complete${item.id}${index}`} className={`${this.state.editTag === item.id ? 'tagAdding' :''} checkItem clearFix`}>
-                                <Checkbox className="checkItem" onChange={(value)=>{this.handleCheckBox(value,item.id)}}><span className="tagText">{item.title}</span></Checkbox>
+                                <Checkbox defaultChecked={this.state.selectedTag.includes(item.id.toString())} className="checkItem" onChange={(value)=>{this.handleCheckBox(value,item.id)}}><span className="tagText">{item.title}</span></Checkbox>
                                 <i className="icon icon_del" title="删除" onClick={() => { this.delTag(item.id) }}></i>
                                 <Input className="addTag tagInput" onChange={(value)=>{this.handleTagChange(value,'newTag')}} placeholder="" defaultValue={item.title} />
                                 <i className="icon icon_edit ms_fr" onClick={()=>{this.setState({editTag:item.id})}}></i>
@@ -1261,7 +1314,7 @@ class SearchResult extends React.Component {
                                 </div>
                         })}
                     </div>
-                </Modal>
+                </Modal>:""}
                 <Modal
                     width="416px" title="阅读提示" visible={this.state.showTipModal} className="tipDialog" closable={false}
                     footer={null}

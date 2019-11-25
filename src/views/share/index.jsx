@@ -8,6 +8,7 @@ import coverAZW3 from '../../img/coverAZW3.svg'
 import coverEPUB from '../../img/coverEPUB.svg'
 import coverMOBI from '../../img/coverMOBI.svg'
 import coverTXT from '../../img/coverTXT.svg'
+import iconDownload from '../../img/icon_download.svg'
 import iconFast from '../../img/icon_fast.svg'
 const { confirm } = Modal;
 const RadioGroup = Radio.Group;
@@ -17,6 +18,7 @@ class SharePage extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            showPoint:false,
             popoverVisible:'',
             popoverPcVisible:'',
             currBookUrl:'',
@@ -48,9 +50,23 @@ class SharePage extends React.Component {
         const Authorization = cookie.get('Authorization')
         // this.getUserInfo();
         if(Authorization){
+            this.getDownloadCount();
             this.getCategory()
         }
         
+    }
+    getDownloadCount=()=>{
+        const url ='/book/_download_count';
+        HTTP.get(url,{}).then((response)=>{
+            const res = response.data;
+            if(res.status === SUCCESS_CODE){
+                if(res.data > 0){
+                    this.setState({showPoint:true})
+                }else{
+                    this.setState({showPoint:false})
+                }
+            }
+        })
     }
     getCategory = () => {
         const url = '/category';
@@ -126,6 +142,7 @@ class SharePage extends React.Component {
         })
     }
     readerBook=(bookInfo)=>{
+        return message.info('暂不支持在线预览，请下载后查看')
         if (!bookInfo.url) return message.error('书本链接不存在！')
         const userAgent = navigator.userAgent;
         const unAllowOnline = ['txt','mobi','azw3']
@@ -262,6 +279,9 @@ class SharePage extends React.Component {
             this.setState({showCheckBox:false})
         }
     }
+    toDownloadCenter=()=>{
+        this.props.history.push('/downloadCenter')
+    }
     toLogin = () => {
         const Authorization = cookie.get('Authorization')
         if(Authorization){
@@ -347,7 +367,7 @@ class SharePage extends React.Component {
             const res = response.data;
             if(res.status === SUCCESS_CODE){
                 this.setState({downloadModal:false,showDownloadTip:true,showPoint:true})
-                message.success('下载文件处理中，请到下载中心查看详情')
+                setTimeout(()=>{this.setState({showDownloadTip:false})},3000)
             }else{
                 message.error(res.error);
             }
@@ -492,6 +512,19 @@ class SharePage extends React.Component {
         }
     };
     render() {
+        const cookUserInfo = cookie.get('userInfo') || null
+        const userInfo = JSON.parse(cookUserInfo)
+        let isLogin = false; let userName = ''; let photo = ''; let hasPhoto = false;let role=1;
+        if (userInfo) {
+            role = userInfo.role;
+            if (userInfo.photo && userInfo.photo.length > 0) {
+                photo = userInfo.photo;
+                hasPhoto = true;
+            } else {
+                userName = userInfo.nick_name[0];
+                isLogin = true;
+            }
+        }
         const columns = [
             {
                 title: '名称',
@@ -588,14 +621,21 @@ class SharePage extends React.Component {
             onSelectAll: this.handleSelectAll,
             selectedRowKeys:this.state.tableSelectedRowKeys
         };
-        console.log(this.state.tagList)
+        const contentTip ='下载文件处理中，请点击查看详情'
         return (
             <Spin tip="正在下载请稍等" spinning={this.state.isLoading}>
             <div className="deskWarp">
                 <Layout>
-                    <Header className="publicHeader">
-                        <div className="menuBtn"><Icon onClick={this.toLogin} type='arrow-left' /></div>                        
-                    </Header>
+                    <div className="publicHeader">
+                        <div className="menuBtn flexItem"><Icon onClick={this.toLogin} type='arrow-left' /></div>
+                        {isLogin || hasPhoto?<div className="downloadMark flexEnd" onClick={this.toDownloadCenter}>
+                        <Popover  placement="bottomRight" content={contentTip} visible={this.state.showDownloadTip}>
+                            <img className="iconDownload" src={iconDownload} alt=""/>
+                            {this.state.showPoint?<i className="point"></i>:""}
+                        </Popover>
+                        </div>:""}
+                        <div className="loginInfo flexEnd" > {hasPhoto ? <img className="userPhoto" onClick={this.toUserInfo} src={photo} alt="" /> : (!isLogin ? <span onClick={this.toLogin}>登录</span> : <span className="userName" onClick={this.toUserInfo}>{userName}</span>)} </div>                        
+                    </div>
 
                         <Layout>
                             <Content className="mainContent">

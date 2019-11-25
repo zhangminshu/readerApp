@@ -79,6 +79,8 @@ class DeskPage extends React.Component {
         document.title = '阅读链 - 我的文件'
         this.deskActiveMenu = sessionStorage.getItem('deskActiveMenu') || 'all';
         const currId = this.deskActiveMenu === 'all'?'':this.deskActiveMenu;
+        const currTitle = sessionStorage.getItem('currTitle') || '全部书籍'
+        this.setState({title:currTitle})
         this.getUserInfo();
         this.getCategory();
         this.getBookListById(currId)
@@ -240,6 +242,7 @@ class DeskPage extends React.Component {
         }
         this.deskActiveMenu = id.toString() || 'all';
         sessionStorage.setItem('deskActiveMenu',this.deskActiveMenu);
+        sessionStorage.setItem('currTitle',title)
 
         this.getBookListById(id,changeType)
     }
@@ -687,6 +690,7 @@ class DeskPage extends React.Component {
         })
     }
     readerBook=(bookInfo)=>{
+        return message.info('暂不支持在线预览，请下载后查看')
         const unAllowOnline = ['txt','mobi','azw3']
         if(bookInfo.encode_status !== 2){
             return message.error('书本正在转码中，请稍后再试')
@@ -709,8 +713,9 @@ class DeskPage extends React.Component {
         }else if(unAllowOnline.includes(bookInfo.extension)){
             return message.error('txt、mobi、azw3格式不支持在线查看，请下载后查看')
         } else {
-            sessionStorage.setItem('bookInfo', JSON.stringify(bookInfo));
-            location.href = '#/reader';
+            localStorage.setItem('bookInfo', JSON.stringify(bookInfo));
+            // location.href = '#/reader';
+            window.open('#/reader', "_blank")
         }
     }
     handleTagChange=(e,name)=>{
@@ -951,7 +956,7 @@ class DeskPage extends React.Component {
             <div className="deskWarp">
                 <Layout>
                     <Header className="publicHeader">
-                        <div className="menuBtn showInBig"><Icon onClick={this.toggleCollapsed} type={this.state.collapsed ? 'menu' : 'arrow-left'} /></div>
+                        <div className="menuBtn showInBig"><Icon onClick={this.toggleCollapsed} type={this.state.collapsed ? 'menu' : 'menu-fold'} /></div>
                         <div className="menuBtn showInSmall"><Icon onClick={this.showDrawer} type="menu" /></div>
                         <div className="searchWarp"><Input allowClear placeholder="搜索" onClick={this.toResultPage} /> <span className="result"></span></div>
                         {isLogin || hasPhoto?<div className="downloadMark" onClick={this.toDownloadCenter}>
@@ -979,7 +984,7 @@ class DeskPage extends React.Component {
                                             <div className="title ms_fl">{this.state.title}</div>
                                             <div className={`${this.state.showCheckBox ? 'showBtnList' : ''} btn_list ms_fr`}>
                                                 {role !== 2 ? <Button className="btn btn_share" type="primary" onClick={this.fileShare}>分享</Button> : ''}
-                                                {role !== 2 ? <Button className="btn btn_download" onClick={this.fileClone}>标签</Button> : ""}
+                                                {/* {role !== 2 ? <Button className="btn btn_download" onClick={this.fileClone}>标签</Button> : ""} */}
                                                 {/* {role !== 2 ? <Button className="btn btn_download" onClick={this.showDownloadDialog}>下载</Button> : ""} */}
                                                 {role === 2 ? <Button className="btn btn_fileType" onClick={this.fileTypeChange.bind(this)}>类型</Button> : ""}
                                                 {role === 2 ? <Button className="btn btn_del" type="danger" onClick={this.showDeleteConfirm}>删除</Button> : ""}
@@ -1033,7 +1038,7 @@ class DeskPage extends React.Component {
                     width="416px" title="阅读提示" visible={this.state.showTipModal} className="tipDialog" closable={false}
                     footer={null}
                 >
-                    <div className="tipContent">当前的浏览器可能无法阅读PDF文件，建议<br />使用谷歌浏览器</div>
+                    <div className="tipContent">当前的浏览器可能无法阅读PDF文件，建议使用谷歌浏览器</div>
                     <div className="footer">
                         <Checkbox className="tipCheck" onChange={(value)=>{this.handleTipCheckBox(value)}}>不再提示</Checkbox>
                         

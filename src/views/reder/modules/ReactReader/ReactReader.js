@@ -32,7 +32,7 @@ class ReactReader extends PureComponent {
     this.state = {
       expanedToc: false,
       toc: false,
-      readProcess:JSON.parse(sessionStorage.getItem('bookInfo')).process || 0.00
+      readProcess:JSON.parse(localStorage.getItem('bookInfo')).process || 0.00
     };
   }
   componentDidMount(){

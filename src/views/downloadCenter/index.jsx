@@ -57,6 +57,15 @@ class DownloadCenter extends React.Component {
             }
         })
     }
+    createDownload =(id)=>{
+        const url = '/book/_download_link';
+        HTTP.get(url,{params:{download_id:id}}).then(response=>{
+            const res = response.data;
+            if(res.status === SUCCESS_CODE){
+                window.open(res.data,'_self')
+            }
+        })
+    }
     pageChange =(current, pageSize)=>{
         this.setState({
             pageNum:current
@@ -170,7 +179,8 @@ class DownloadCenter extends React.Component {
                         if(record.status === 1){
                             displayText = <div style={{minWidth:'35px',display:'inlineBlock'}}><Icon style={{color: '#1890ff'}} className="" type="loading-3-quarters" spin  /></div>
                         }else if(record.status === 2){
-                            displayText =  <a style={{minWidth:'35px',display:'inlineBlock'}} download href={`/book/_download_link?download_id=${record.id}`}>保存</a>
+                            // displayText =  <a style={{minWidth:'35px',display:'inlineBlock'}} download href={`/book/_download_link?download_id=${record.id}`}>保存</a>
+                            displayText =  <div style={{minWidth:'35px',display:'inlineBlock' ,cursor:'pointer',color: '#1890ff'}} onClick={()=>{this.createDownload(record.id)}}>保存</div>
                         }else{
                             displayText = <span style={{color:'#FF3B30',cursor: 'pointer',minWidth:'35px',display:'inlineBlock'}} onClick={()=>{this.delDownload(record.id)}}>删除</span>
                         }

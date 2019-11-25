@@ -29,6 +29,12 @@ h1, h2, h3, h4, h5, h6{
 .ms-tc{
     text-align: center;
 }
+.flexItem{
+    flex: 1;
+}
+.flexEnd{
+    align-self: flex-end;
+}
 .ant-btn{
     padding: 0 20px;
 }
@@ -560,8 +566,9 @@ h1, h2, h3, h4, h5, h6{
     height: 64px;
     line-height: 64px;
     .menuBtn{
-        width: 69px;
-        padding-left: 8px;
+        // width: 69px;
+        line-height: 32px;
+        padding: 15px;
         font-size: 24px;
     }
     .searchWarp{
@@ -585,8 +592,7 @@ h1, h2, h3, h4, h5, h6{
         // width: 69px;
         
         text-align: right;
-        margin-left: 8px;
-        margin-right: 8px;
+        margin: 0 15px;
         color: #0070E0;
         cursor: pointer;
         .userName{
@@ -612,7 +618,7 @@ h1, h2, h3, h4, h5, h6{
         }
     }
     .downloadMark{
-        margin-left: 8px;
+        margin-left: 15px;
         position: relative;
         .iconDownload{
             display: inline-block;

@@ -640,6 +640,7 @@ class ManagerPage extends React.Component {
         })
     }
     readerBook=(bookInfo)=>{
+        return message.info('暂不支持在线预览，请下载后查看')
         if (!bookInfo.url) return message.error('书本链接不存在！')
         const userAgent = navigator.userAgent;
         const unAllowOnline = ['txt','mobi','azw3']
@@ -1118,7 +1119,7 @@ class ManagerPage extends React.Component {
             <div className="managerWarp">
                 <Layout>
                     <Header className="publicHeader">
-                        <div className="menuBtn showInBig"><Icon onClick={this.toggleCollapsed} type={this.state.collapsed ? 'menu' : 'arrow-left'} /></div>
+                        <div className="menuBtn showInBig"><Icon onClick={this.toggleCollapsed} type={this.state.collapsed ? 'menu' : 'menu-fold'} /></div>
                         <div className="menuBtn showInSmall"><Icon onClick={this.showDrawer} type="menu" /></div>
                         <div className="searchWarp"><Input allowClear placeholder="搜索" onClick={this.toResultPage} /> <span className="result"></span></div>
                         {isLogin || hasPhoto?<div className="downloadMark" onClick={this.toDownloadCenter}>

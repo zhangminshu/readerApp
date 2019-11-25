@@ -102,7 +102,7 @@ class HomePage extends React.Component {
             <div className="homeWarp">
                 <Layout>
                     <Header className="publicHeader">
-                        <div className="menuBtn showInBig"><Icon onClick={this.toggleCollapsed} type={this.state.collapsed ? 'menu' : 'arrow-left'} /></div>
+                        <div className="menuBtn showInBig"><Icon onClick={this.toggleCollapsed} type={this.state.collapsed ? 'menu' : 'menu-fold'} /></div>
                         <div className="menuBtn showInSmall"><Icon onClick={this.showDrawer} type="menu"/></div>
                         <div className="searchWarp"><Input allowClear placeholder="搜索" onClick={this.toResultPage} /> <span className="result"></span></div>
                         {isLogin || hasPhoto?<div className="downloadMark" onClick={this.toDownloadCenter}>
