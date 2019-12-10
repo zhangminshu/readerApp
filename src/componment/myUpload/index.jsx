@@ -4,13 +4,9 @@ import MD5 from 'browser-md5-file';
 import { Upload, Button, Icon, Modal, Table,message } from 'antd';
 import HTTP from '../../httpServer/axiosConfig.js'
 import './style.less'
+import util from '../../lib/util.js';
 import loading from '../../img/loading.gif';
 import success from '../../img/iconSuccess.svg'
-import coverPDF from '../../img/coverPDF.svg'
-import coverAZW3 from '../../img/coverAZW3.svg'
-import coverEPUB from '../../img/coverEPUB.svg'
-import coverMOBI from '../../img/coverMOBI.svg'
-import coverTXT from '../../img/coverTXT.svg'
 const { Dragger } = Upload;
 
 class MyUpload extends React.Component {
@@ -29,32 +25,8 @@ class MyUpload extends React.Component {
         this.uploadingList=[];
     }
 
-    getFileIcon = (type) => {
-        let fileIcon = coverPDF;
-        switch (type) {
-            case 'pdf':
-                fileIcon = coverPDF;
-                break;
-            case 'txt':
-                fileIcon = coverTXT;
-                break;
-            case 'azw3':
-                fileIcon = coverAZW3;
-                break;
-            case 'epub':
-                fileIcon = coverEPUB;
-                break;
-            case 'mobi':
-                fileIcon = coverMOBI;
-                break;
-            default:
-                fileIcon = coverPDF;
-                break;
-        }
-        return fileIcon;
-    }
     handleChange = info => {
-        debugger
+        
         let fileList = [...info.fileList];
         const newFileList = [];
         const newUploadingList =[];
@@ -80,7 +52,7 @@ class MyUpload extends React.Component {
         }        
     };
     beforeUpload = (file) => {
-        debugger
+        
         const fileName = file.name;
         console.log('beforeUpload:', file)
         const fileSplit = file.name.split('.');
@@ -110,10 +82,16 @@ class MyUpload extends React.Component {
                     const url ='/book/_repeat';
                     HTTP.post(url,{md5:md5}).then(response=>{
                         const res = response.data;
-                        if(res.status === 0 && res.data === 0){
-                            resolve(true)
+                        if(res.status === 0){
+                            if(res.data === 0){
+                                resolve(true)
+                            }else{
+                                message.error(`上传文件${fileName}已存在`)
+                                this.unVaildList.push(file.uid);
+                                reject(false)
+                            }
                         }else{
-                            message.error(`上传文件${fileName}已存在`)
+                            message.error(res.error)
                             this.unVaildList.push(file.uid);
                             reject(false)
                         }
@@ -188,7 +166,7 @@ class MyUpload extends React.Component {
                 render: (text, record) => {
                     const fileSplit = text.split('.');
                     const fileType = fileSplit[fileSplit.length-1];
-                    const fileIcon = this.getFileIcon(fileType);
+                    const fileIcon = util.getFileIcon(fileType);
                     let displayText = <div className="">
                         <img style={{width:'24px',height:'24px'}} className="fileIcon" src={fileIcon} alt="" />
                         <span className="fileName">{text}</span>

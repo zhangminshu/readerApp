@@ -17,6 +17,16 @@ const { confirm } = Modal;
 const RadioGroup = Radio.Group;
 const SUCCESS_CODE = 0;
 const { Header, Footer, Sider, Content } = Layout;
+//防抖方法
+function debounce(fn, ms = 500) {
+    let timeoutId
+    return function () {
+      clearTimeout(timeoutId)
+      timeoutId = setTimeout(() => {
+        fn.apply(this, arguments)
+      }, ms)
+    }
+  }
 class SearchResult extends React.Component {
     constructor(props) {
         super(props);
@@ -67,6 +77,7 @@ class SearchResult extends React.Component {
             showBottomTip:true//默认
         }
         this.unLogin = false;
+        this.changeThrottle = debounce(this.changeThrottle, 1000)//调用设定好的防抖方法
     }
     componentDidMount() {
         document.title = '阅读链 - 搜索'
@@ -145,7 +156,7 @@ class SearchResult extends React.Component {
         }
         location.href = newUrl
     }
-    searchBook = (e, type) => {
+    changeThrottle  = (bookName,type) => {
         const searchType = this.state.searchType;
         let url ='';
         if(searchType === 'user'){
@@ -153,8 +164,6 @@ class SearchResult extends React.Component {
         }else{
             url = '/book/_search';
         }
-        const bookName = type === 'search' ? e.target.value : e;
-        this.setState({searchBookName:bookName})
         sessionStorage.setItem('searchVal',bookName)
         let pageNum =1;
         if(type === 'search'){
@@ -194,10 +203,14 @@ class SearchResult extends React.Component {
                 } else {
                     message.error(res.error)
                 }
-
-
             })
         }
+    } 
+    searchBook = (e, type) => {
+        const bookName = type === 'search' ? e.target.value : e;
+        this.changeThrottle(bookName,type) // 对用户输入进行判断
+        this.setState({searchBookName:bookName})
+
     }
     sendToKindle = (bid,isOverLimit) => {
         if(this.unLogin){
@@ -624,8 +637,9 @@ class SearchResult extends React.Component {
         let secondsToGo = 3;
         const _this = this;
         const bookId = item.id;
-        const format = item.extension;
-        if(format === 'pdf'){
+        const format = item.extension || '';
+        
+        if(format.toLocaleLowerCase() === 'pdf'){
             this.setState({currBookId:bookId},()=>{
                 this.createDownload(format)
             })
@@ -724,30 +738,6 @@ class SearchResult extends React.Component {
     //         }
     //     })
     // }
-    getFileIcon = (type) => {
-        let fileIcon = coverPDF;
-        switch (type) {
-            case 'pdf':
-                fileIcon = coverPDF;
-                break;
-            case 'txt':
-                fileIcon = coverTXT;
-                break;
-            case 'azw3':
-                fileIcon = coverAZW3;
-                break;
-            case 'epub':
-                fileIcon = coverEPUB;
-                break;
-            case 'mobi':
-                fileIcon = coverMOBI;
-                break;
-            default:
-                fileIcon = coverPDF;
-                break;
-        }
-        return fileIcon;
-    }
     handleTagChange=(e,name)=>{
         const value = e.target.value;
         const newTagInfo = this.state.editTagInfo;
@@ -1038,7 +1028,7 @@ class SearchResult extends React.Component {
                 dataIndex: 'title',
                 key: 'title',
                 render: (text, record) => {
-                    const fileIcon = this.getFileIcon(record.extension);
+                    const fileIcon = util.getFileIcon(record.extension);
                     let displayText = <div className="fileName">
                         <img className="fileIcon" src={fileIcon} alt="" />
                         <span style={{cursor:'pointer'}} onClick={()=>{this.readerBook(record)}} className={`${record.is_owner === 1 ? 'isOwerFile' : ''}`}>{text}</span>
@@ -1106,7 +1096,7 @@ class SearchResult extends React.Component {
                 dataIndex: 'title',
                 key: 'title',
                 render: (text, record) => {
-                    const fileIcon = this.getFileIcon(record.extension);
+                    const fileIcon = util.getFileIcon(record.extension);
                     let displayText = <div className="fileName">
                         <img className="fileIcon" src={fileIcon} alt="" />
                         <span style={{cursor:'pointer'}} onClick={()=>{this.readerBook(record)}} className={`${record.is_owner === 1 ? 'isOwerFile' : ''} bookName`}>{text}</span>
@@ -1268,6 +1258,7 @@ class SearchResult extends React.Component {
                                         <div className="clearFix">
                                             <div className="title ms_fl">全部文件</div>
                                             <div className={`${this.state.showCheckBox ? 'showBtnList' : ''} btn_list ms_fr`}>
+                                                {role !== 2 ? <Button className="btn btn_share" type="primary" onClick={this.fileShare}>分享</Button> : ''}
                                                 {role === 2 && searchType === 'user'? <Button className="btn btn_fileType" onClick={this.userStatusChange.bind(this)}>状态</Button>:""}
                                                 {/* {role !== 2 && searchType !== 'user'? <Button className="btn btn_clone" type="primary" onClick={this.fileClone}>克隆</Button> : ""} */}
                                                 {/* {role !== 2 && searchType !== 'user'? <Button className="btn btn_download" onClick={this.showDownloadDialog}>下载</Button> : ""} */}

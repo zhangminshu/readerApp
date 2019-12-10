@@ -42,7 +42,7 @@ class DeskPage extends React.Component {
             collapsed:true,
             fileList: [],
             visible: false,
-            role: 1,
+            role: 1,//1为普通用户
             bookName: '',
             activeItem: '',
             showTable: false,
@@ -886,7 +886,7 @@ class DeskPage extends React.Component {
                             <p className="optItem" onClick={() => { this.showDownloadDialog('single', record) }}>下载</p>
                             <p className="optItem" onClick={() => { this.fileClone('single', record)}}>标签</p>
                             <p className="optItem" onClick={() => { this.renameDialog(record) }}>重命名</p>
-                            <p className="optItem" onClick={() => { this.fileTypeChange('single', record) }}>文件类型</p>
+                            {role !== 2 && record.is_public !== 0  ?<p className="optItem" onClick={() => { this.fileTypeChange('single', record) }}>文件类型</p>:""}
                             <p className="optItem" style={{color:'#FF3B30'}} onClick={() => { this.showDeleteConfirm('single', record) }}>删除</p>
                         </div>
                     );
@@ -928,7 +928,7 @@ class DeskPage extends React.Component {
                             <p className="optItem" onClick={() => { this.showDownloadDialog('single', record) }}>下载</p>
                             <p className="optItem" onClick={() => { this.fileClone('single', record)}}>标签</p>
                             <p className="optItem" onClick={() => { this.renameDialog(record) }}>重命名</p>
-                            <p className="optItem" onClick={() => { this.fileTypeChange('single', record) }}>文件类型</p>
+                            {role !== 2 && record.is_public !== 0  ?<p className="optItem" onClick={() => { this.fileTypeChange('single', record) }}>文件类型</p>:""}
                             <p className="optItem" style={{color:'#FF3B30'}} onClick={() => { this.showDeleteConfirm('single', record) }}>删除</p>
                         </div>
                     );

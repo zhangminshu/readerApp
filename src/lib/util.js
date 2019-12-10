@@ -1,5 +1,10 @@
 import React from 'react'
 import {  Modal,message } from 'antd';
+import coverPDF from '../img/coverPDF.svg'
+import coverAZW3 from '../img/coverAZW3.svg'
+import coverEPUB from '../img/coverEPUB.svg'
+import coverMOBI from '../img/coverMOBI.svg'
+import coverTXT from '../img/coverTXT.svg'
 import HTTP from '../httpServer/axiosConfig.js'
 const { confirm } = Modal;
 const util ={
@@ -40,6 +45,30 @@ const util ={
         //     location.href = '#/reader';
         // }
 
+    },
+    getFileIcon:function(type) {
+        let fileIcon = coverPDF;
+        switch (type) {
+            case 'pdf':
+                fileIcon = coverPDF;
+                break;
+            case 'txt':
+                fileIcon = coverTXT;
+                break;
+            case 'azw3':
+                fileIcon = coverAZW3;
+                break;
+            case 'epub':
+                fileIcon = coverEPUB;
+                break;
+            case 'mobi':
+                fileIcon = coverMOBI;
+                break;
+            default:
+                fileIcon = coverPDF;
+                break;
+        }
+        return fileIcon;
     }
 }
 
