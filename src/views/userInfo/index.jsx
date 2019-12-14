@@ -149,7 +149,7 @@ class UserInfo extends React.Component {
                 _this.props.history.push('/login');
             },
             onCancel() {
-                console.log('Cancel');
+                
             },
         });
 

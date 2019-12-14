@@ -303,7 +303,7 @@ class SearchResult extends React.Component {
                 _this.deleteBooks(bookIds, ids)
             },
             onCancel() {
-                console.log('Cancel');
+                
             },
         });
     }
@@ -345,7 +345,7 @@ class SearchResult extends React.Component {
                 message.success('复制成功')
             },
             onCancel() {
-                console.log('Cancel');
+                
             },
         });
     }

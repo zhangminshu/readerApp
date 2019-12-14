@@ -23,6 +23,8 @@ class MyUpload extends React.Component {
         }
         this.unVaildList=[];
         this.uploadingList=[];
+        this.limitStorage=5000;
+        this.usedStorage='';
     }
 
     handleChange = info => {
@@ -30,7 +32,6 @@ class MyUpload extends React.Component {
         let fileList = [...info.fileList];
         const newFileList = [];
         const newUploadingList =[];
-        console.log('info',info)
         fileList.forEach(file=>{
             if(!this.unVaildList.includes(file.uid)){
                 newFileList.push(file);
@@ -54,7 +55,6 @@ class MyUpload extends React.Component {
     beforeUpload = (file) => {
         
         const fileName = file.name;
-        console.log('beforeUpload:', file)
         const fileSplit = file.name.split('.');
         const fileType = fileSplit[fileSplit.length-1];
         const accpetType=['txt','epub','mobi','pdf','azw3'];
@@ -62,14 +62,20 @@ class MyUpload extends React.Component {
         if (!isValid) {
             message.error('请上传epub、pdf、txt、mobi、azw3格式的文件');
         }
-        const isLt200M = file.size / 1024 / 1024 < 200;
+        const fileSize = file.size / 1024 / 1024;
+        const isLt200M = fileSize < 200;
+        const isOverLimit = fileSize + this.usedStorage > this.limitStorage;
         if (!isLt200M) {
             message.error('文件大小不能超过200MB!');
         }
-        if(!isValid || !isLt200M){
+        if(!isValid || !isLt200M || isOverLimit){
             this.unVaildList.push(file.uid);
         }
-        if(isValid && isLt200M){
+        if(isOverLimit){
+            message.error(`你可使用的容量最大为${this.limitStorage}MB!`);
+            return false;
+        }
+        if(isValid && isLt200M && !isOverLimit){
             const bmf = new MD5();
             const p1 = new Promise((resolve,reject)=>{
                 bmf.md5(file, (err, md5) => {
@@ -99,7 +105,7 @@ class MyUpload extends React.Component {
                 })
             })
         }else{
-            let result = isValid && isLt200M
+            let result = isValid && isLt200M && !isOverLimit
             return  result;
         }
         
@@ -108,7 +114,6 @@ class MyUpload extends React.Component {
     checkMd5 = (file) => {
         return new Promise((resolve,reject)=>{
             bmf.md5(file, (err, md5) => {
-                console.log('md5 string:', md5); // 97027eb624f85892c69c4bcec8ab0f11
                 resolve(md5)
             }
             );
@@ -147,12 +152,22 @@ class MyUpload extends React.Component {
         }
 
     };
+    handldClickUpload=()=>{
+        const url = '/user/_info';
+        HTTP.get(url, {}).then(response => {
+            const res = response.data;
+            if (res.status === 0) {
+                this.limitStorage = res.data.storage_limit;
+                this.usedStorage = res.data.storage_used;
+            }
+        })
+    }
     render() {
         const props = {
             showUploadList: false,
             name: 'book',
             action: '/book',
-            beforeUpload: this.beforeUpload,
+            beforeUpload: this.beforeUpload.bind(this),
             onChange: this.handleChange,
             multiple: true,
             headers: { Authorization: cookie.get('Authorization') }
@@ -208,7 +223,7 @@ class MyUpload extends React.Component {
             <div>
                 <div className="myUpload">
                     <Upload {...props} className={`${this.state.visible ? 'hidden' : ''}`}>
-                        <Button className="btn_upload" type="primary"><Icon type="plus" /> </Button>
+                        <Button className="btn_upload" type="primary" onClick={this.handldClickUpload}><Icon type="plus" /> </Button>
                     </Upload>
                     {/* <Modal
                     mask={false}
