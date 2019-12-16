@@ -1247,7 +1247,7 @@ class SearchResult extends React.Component {
                             {this.state.showPoint?<i className="point"></i>:""}
                         </Popover>
                         </div>:""}
-                        <div className="loginInfo" > {hasPhoto ? <img className="userPhoto" onClick={this.toUserInfo} src={photo} alt="" /> : (!isLogin ? <span onClick={this.toLogin}>登录</span> : <span className="userName" onClick={this.toUserInfo}>{userName}</span>)} </div>
+                        <div className="loginInfo hideInPhone" > {hasPhoto ? <img className="userPhoto" onClick={this.toUserInfo} src={photo} alt="" /> : (!isLogin ? <span onClick={this.toLogin}>登录</span> : <span className="userName" onClick={this.toUserInfo}>{userName}</span>)} </div>
                     </div>
 
                     <Layout className="ant-layout-has-sider">
