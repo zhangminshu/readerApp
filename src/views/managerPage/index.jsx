@@ -1036,7 +1036,7 @@ class ManagerPage extends React.Component {
                     }
                     let displayText = <div className="fileName">
                         <img className="fileIcon" src={fileIcon} alt="" />
-                        <span style={{cursor:'pointer'}} onClick={()=>{this.readerBook(record)}} className={`${record.is_owner === 1 ? 'isOwerFile' : ''}`}>{text}</span>
+                        <span style={{cursor:'pointer',wordBreak:'break-all'}} onClick={()=>{this.readerBook(record)}} className={`${record.is_owner === 1 ? 'isOwerFile' : ''}`}>{text}</span>
                     </div>;
                     return displayText;
                 }

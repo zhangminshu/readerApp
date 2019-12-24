@@ -77,7 +77,7 @@ class SearchResult extends React.Component {
             showBottomTip:true//默认
         }
         this.unLogin = false;
-        this.changeThrottle = debounce(this.changeThrottle, 1000)//调用设定好的防抖方法
+        this.changeThrottle = debounce(this.changeThrottle, 800)//调用设定好的防抖方法
     }
     componentDidMount() {
         document.title = '阅读链 - 搜索'
@@ -212,12 +212,13 @@ class SearchResult extends React.Component {
         this.setState({searchBookName:bookName})
 
     }
-    sendToKindle = (bid,isOverLimit) => {
+    sendToKindle = (record,isOverLimit,hideKindle) => {
         if(this.unLogin){
             return this.unLoginTip();
         }
-        if(isOverLimit) return message.info('请选择10M以内的文件');
+        if(isOverLimit || hideKindle) return message.info('请选择10M内的TXT、PDF或MOBI文件');
         const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+        const bid = record.id;
         if(userInfo){
             const kindle_email = userInfo.kindle_email;
             if(!kindle_email)return message.info('请到设置页面添加您的kindle邮箱')
@@ -1066,12 +1067,15 @@ class SearchResult extends React.Component {
                 key: 'opt',
                 render: (text, record) => {
                     const isOver10M = record.size > 10;
-                    const isOwner = record.is_owner === 1
+                    const isOwner = record.is_owner === 1;
+                    const fileType = record.extension? record.extension.toLocaleLowerCase() :'';
+                    const limitType = ['azw3','epub'];
+                    const hideKindle = limitType.includes(fileType);
                     const optContent = (
                         <div onClick={()=>{this.setState({popoverPcVisible:''})}}>
                             {role !== 2 && !isOwner?<p className="optItem" onClick={() => { this.fileClone('single', record)}}>克隆</p>:""}
                             <p className="optItem" onClick={() => { this.fileShare("row", record.id) }}>分享</p>
-                            <p className={`${isOver10M ? 'overLimit':''} optItem`} onClick={() => { this.sendToKindle(record.id,isOver10M) }}>kindle</p>
+                            <p className={`${isOver10M || hideKindle ? 'overLimit':''} optItem`} onClick={() => { this.sendToKindle(record,isOver10M,hideKindle) }}>kindle</p>
                             {role !== 2 && !isOwner?<p className="optItem" onClick={() => { this.showDownloadDialog('single', record) }}>下载</p>:""}
                             {role === 2 || isOwner?<p className="optItem" onClick={() => { this.showDownloadDialog('single', record) }}>下载</p>:""}
                             {role === 2 || isOwner?<p className="optItem" onClick={() => { this.fileClone('singleTip', record)}}>标签</p>:""}
@@ -1111,12 +1115,15 @@ class SearchResult extends React.Component {
                 key: 'opt',
                 render: (text, record) => {
                     const isOver10M = record.size > 10;
-                    const isOwner = record.is_owner === 1
+                    const isOwner = record.is_owner === 1;
+                    const fileType = record.extension? record.extension.toLocaleLowerCase() :'';
+                    const limitType = ['azw3','epub'];
+                    const hideKindle = limitType.includes(fileType);
                     const optContent = (
                         <div onClick={()=>{this.setState({popoverVisible:''})}}>
                             {role !== 2 && !isOwner?<p className="optItem" onClick={() => { this.fileClone('single', record)}}>克隆</p>:""}
                             <p className="optItem" onClick={() => { this.fileShare("row", record.id) }}>分享</p>
-                            <p className={`${isOver10M ? 'overLimit':''} optItem`} onClick={() => { this.sendToKindle(record.id,isOver10M) }}>kindle</p>
+                            <p className={`${isOver10M || hideKindle ? 'overLimit':''} optItem`} onClick={() => { this.sendToKindle(record,isOver10M,hideKindle) }}>kindle</p>
                             {role !== 2 && !isOwner?<p className="optItem" onClick={() => { this.showDownloadDialog('single', record) }}>下载</p>:""}
                             {role === 2 || isOwner?<p className="optItem" onClick={() => { this.showDownloadDialog('single', record) }}>下载</p>:""}
                             {role === 2 || isOwner?<p className="optItem" onClick={() => { this.fileClone('singleTip', record)}}>标签</p>:""}
@@ -1215,7 +1222,7 @@ class SearchResult extends React.Component {
                         <p className="optItem" onClick={() => { this.edit(record, 'storage_limit', '修改存储空间') }}>存储空间</p>
                     </div>
                 );
-                const optHtml = <div className="optWarp" onClick={()=>{this.setState({popoverVisible:''})}}>
+                const optHtml = <div className="optWarp">
 
                     <Popover placement="rightTop" content={optContent} trigger="click" visible={this.state.popoverVisible == record.id} onVisibleChange={()=>{this.handleVisibleChange(record.id)}} >
                         <Button className="btn_more_opt"><Icon style={{ fontSize: '16px' }} type="ellipsis" /></Button>
@@ -1247,7 +1254,7 @@ class SearchResult extends React.Component {
                             {this.state.showPoint?<i className="point"></i>:""}
                         </Popover>
                         </div>:""}
-                        <div className="loginInfo hideInPhone" > {hasPhoto ? <img className="userPhoto" onClick={this.toUserInfo} src={photo} alt="" /> : (!isLogin ? <span onClick={this.toLogin}>登录</span> : <span className="userName" onClick={this.toUserInfo}>{userName}</span>)} </div>
+                        <div className={`${hasPhoto || isLogin ? 'hideInPhone':''} loginInfo`} > {hasPhoto ? <img className="userPhoto" onClick={this.toUserInfo} src={photo} alt="" /> : (!isLogin ? <span onClick={this.toLogin}>登录</span> : <span className="userName" onClick={this.toUserInfo}>{userName}</span>)} </div>
                     </div>
 
                     <Layout className="ant-layout-has-sider">

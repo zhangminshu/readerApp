@@ -163,10 +163,19 @@ class MyUpload extends React.Component {
         })
     }
     render() {
+        let baseUrl =''
+        const pathname =  location.href
+        if(pathname.indexOf('dev.yuedu.pro') > 0){
+            baseUrl ='//dev-api.yuedu.pro'
+        }else if(pathname.indexOf('yuedu.pro') > 0){
+            baseUrl = '//api.yuedu.pro'
+        }else{
+            baseUrl =''
+        }
         const props = {
             showUploadList: false,
             name: 'book',
-            action: '/book',
+            action: baseUrl + '/book',
             beforeUpload: this.beforeUpload.bind(this),
             onChange: this.handleChange,
             multiple: true,

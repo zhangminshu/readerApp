@@ -618,8 +618,8 @@ class DeskPage extends React.Component {
         }
         return fileIcon;
     }
-    sendToKindle = (bid,isOverLimit) => {
-        if(isOverLimit) return message.info('请选择10M以内的文件');
+    sendToKindle = (bid,isOverLimit,hideKindle) => {
+        if(isOverLimit || hideKindle) return message.info('请选择10M内的TXT、PDF或MOBI文件');
         const userInfo = JSON.parse(localStorage.getItem('userInfo'));
         if(userInfo){
             const kindle_email = userInfo.kindle_email;
@@ -847,7 +847,7 @@ class DeskPage extends React.Component {
                     const fileIcon = this.getFileIcon(record.extension);
                     let displayText = <div className="fileName">
                         <img className="fileIcon" src={fileIcon} alt="" />
-                        <span style={{cursor:'pointer'}} onClick={()=>{this.readerBook(record)}} className={`${record.is_owner === 1 ? 'isOwerFile' : ''}`}>{text}</span>
+                        <span style={{cursor:'pointer',wordBreak:'break-all'}} onClick={()=>{this.readerBook(record)}} className={`${record.is_owner === 1 ? 'isOwerFile' : ''}`}>{text}</span>
                     </div>;
                     return displayText;
                 }
@@ -879,10 +879,13 @@ class DeskPage extends React.Component {
                 key: 'opt',
                 render: (text, record) => {
                     const isOver10M = record.size > 10;
+                    const fileType = record.extension? record.extension.toLocaleLowerCase() :'';
+                    const limitType = ['azw3','epub'];
+                    const hideKindle = limitType.includes(fileType);
                     const optContent = (
                         <div onClick={()=>{this.setState({popoverPcVisible:''})}}>
                             <p className="optItem" onClick={() => { this.fileShare("row", record.id) }}>分享</p>
-                            <p className={`${isOver10M ? 'overLimit':''} optItem`} onClick={() => { this.sendToKindle(record.id,isOver10M) }}>kindle</p>
+                            <p className={`${isOver10M|| hideKindle ? 'overLimit':''} optItem`} onClick={() => { this.sendToKindle(record.id,isOver10M,hideKindle) }}>kindle</p>
                             <p className="optItem" onClick={() => { this.showDownloadDialog('single', record) }}>下载</p>
                             <p className="optItem" onClick={() => { this.fileClone('single', record)}}>标签</p>
                             <p className="optItem" onClick={() => { this.renameDialog(record) }}>重命名</p>
@@ -910,7 +913,7 @@ class DeskPage extends React.Component {
                     const fileIcon = this.getFileIcon(record.extension);
                     let displayText = <div className="fileName samllFileName">
                         <img  style={{width:'24px'}} className="fileIcon samllFileIcon" src={fileIcon} alt="" />
-                        <span style={{cursor:'pointer'}} onClick={()=>{this.readerBook(record)}} className={`${record.is_owner === 1 ? 'isOwerFile' : ''} textEll ms_fl`}>{text}</span>
+                        <span style={{cursor:'pointer',wordBreak:'break-all'}} onClick={()=>{this.readerBook(record)}} className={`${record.is_owner === 1 ? 'isOwerFile' : ''} textEll ms_fl`}>{text}</span>
                     </div>;
                     return displayText;
                 }
@@ -921,10 +924,13 @@ class DeskPage extends React.Component {
                 key: 'opt',
                 render: (text, record) => {
                     const isOver10M = record.size > 10;
+                    const fileType = record.extension? record.extension.toLocaleLowerCase() :'';
+                    const limitType = ['azw3','epub'];
+                    const hideKindle = limitType.includes(fileType);
                     const optContent = (
                         <div onClick={()=>{this.setState({popoverVisible:''})}}>
                             <p className="optItem" onClick={() => { this.fileShare("row", record.id) }}>分享</p>
-                            <p className={`${isOver10M ? 'overLimit':''} optItem`} onClick={() => { this.sendToKindle(record.id,isOver10M) }}>kindle</p>
+                            <p className={`${isOver10M || hideKindle ? 'overLimit':''} optItem`} onClick={() => { this.sendToKindle(record.id,isOver10M,hideKindle) }}>kindle</p>
                             <p className="optItem" onClick={() => { this.showDownloadDialog('single', record) }}>下载</p>
                             <p className="optItem" onClick={() => { this.fileClone('single', record)}}>标签</p>
                             <p className="optItem" onClick={() => { this.renameDialog(record) }}>重命名</p>

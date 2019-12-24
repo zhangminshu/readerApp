@@ -10,10 +10,18 @@ const HTTP = axios.create({
     headers:{},
     timeout:60000
 });
-
+let baseUrl =''
+const pathname =  location.href
+if(pathname.indexOf('dev.yuedu.pro') > 0){
+    baseUrl ='//dev-api.yuedu.pro'
+}else if(pathname.indexOf('yuedu.pro') > 0){
+    baseUrl = '//api.yuedu.pro'
+}else{
+    baseUrl =''
+}
 HTTP.interceptors.request.use(
     config =>{
-        // config.url = 'http://47.96.81.45:8080' + config.url
+        config.url = baseUrl + config.url
         if(!config.headers.Authorization && cookie.get('Authorization')){
             config.headers.Authorization = cookie.get('Authorization');
         }
