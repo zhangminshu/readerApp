@@ -28,6 +28,15 @@ const navList = [{
     name: '文件管理',
     key: '2'
 }]
+let baseUrl =''
+const pathname =  location.href
+if(pathname.indexOf('dev.yuedu.pro') > 0){
+    baseUrl ='//dev-api.yuedu.pro'
+}else if(pathname.indexOf('yuedu.pro') > 0){
+    baseUrl = '//api.yuedu.pro'
+}else{
+    baseUrl =''
+}
 class ManagerPage extends React.Component {
     constructor(props) {
         super(props);
@@ -516,17 +525,22 @@ class ManagerPage extends React.Component {
         const bookId = item.id;
         const fileSplit = item.title.split('.');
         const format = fileSplit[fileSplit.length-1];
-        if(format === 'pdf'){
-            this.setState({currBookId:bookId},()=>{
-                this.createDownload(format)
-            })
-        }else{
-            _this.setState({
-                currBookId:bookId,
-                format,
-                downloadModal:true
-            })
-        }
+        // if(format === 'pdf'){
+        //     this.setState({currBookId:bookId},()=>{
+        //         this.createDownload(format)
+        //     })
+        // }else{
+        //     _this.setState({
+        //         currBookId:bookId,
+        //         format,
+        //         downloadModal:true
+        //     })
+        // }
+
+        this.setState({currBookId:bookId},()=>{
+            this.createDownload(format)
+        })
+
         // let timer = null;
         // let timer2 = null;
         // timer = setInterval(() => {
@@ -745,7 +759,7 @@ class ManagerPage extends React.Component {
         const imageUrl = oldVal[fileName];
         const props = {
             name: 'photo',
-            action:`/user/${oldVal.id}/_info`,
+            action: baseUrl + `/user/${oldVal.id}/_info`,
             headers: {
                 authorization: cookie.get('Authorization'),
                 method:'put'
@@ -906,7 +920,7 @@ class ManagerPage extends React.Component {
             render: (text, record) => {
                 const props = {
                     name: 'photo',
-                    action:`/user/${record.id}/_info`,
+                    action:baseUrl+`/user/${record.id}/_info`,
                     headers: {
                         authorization: cookie.get('Authorization'),
                         method:'put'
@@ -947,7 +961,7 @@ class ManagerPage extends React.Component {
             render: (text, record) => {
                 const props = {
                     name: 'photo',
-                    action:`/user/${record.id}/_info`,
+                    action:baseUrl+`/user/${record.id}/_info`,
                     headers: {
                         authorization: cookie.get('Authorization'),
                         method:'put'

@@ -95,24 +95,37 @@ module.exports = {
         port: 8080,        // 开发服务器监听的端口
         proxy: {
             '/user': {
-              target: 'http://47.96.81.45:8080',
+              target: 'https://api.yuedu.pro',
+              changeOrigin: true,
+              secure: false
             },
             '/book': {
-                target: 'http://47.96.81.45:8080',
+                target: 'https://api.yuedu.pro',
+                changeOrigin: true,
+                secure: false
             },
             '/file': {
-                target: 'http://47.96.81.45:8080',
+                target: 'https://api.yuedu.pro',
+                changeOrigin: true,
+                secure: false
             },
             '/category': {
-                target: 'http://47.96.81.45:8080',
+                target: 'https://api.yuedu.pro',
+                changeOrigin: true,
+                secure: false
             },
             '/bookmark': {
-                target: 'http://47.96.81.45:8080',
+                target: 'https://api.yuedu.pro',
+                changeOrigin: true,
+                secure: false
             },
             '/file': {
-                target: 'http://47.96.81.45:8080',
+                target: 'https://api.yuedu.pro',
+                changeOrigin: true,
+                secure: false
             }
-          }
+            
+        }
     },
     // devtool:'source-map',
 }

@@ -76,6 +76,7 @@ class SearchResult extends React.Component {
             },
             showBottomTip:true//默认
         }
+        this.isExternalLink = false;
         this.unLogin = false;
         this.changeThrottle = debounce(this.changeThrottle, 800)//调用设定好的防抖方法
     }
@@ -83,10 +84,16 @@ class SearchResult extends React.Component {
         document.title = '阅读链 - 搜索'
         this.input.focus()
         const urlParams = location.href.split("?")[1];
-        const searchVal = sessionStorage.getItem('searchVal')
+        const searchVal = sessionStorage.getItem('searchVal');
+        this.isExternalLink = false;
         if(urlParams){
+            const type = urlParams.split("=")[0];
             const searchType = urlParams.split("=")[1];
-            if(searchType === 'user'){
+            if(type === 'search_text'){
+                this.isExternalLink = true;
+                const currSearchVal = searchType.split('&')[0]
+                this.searchBook(decodeURIComponent(currSearchVal))
+            }else if(type ==='type' && searchType === 'user'){
                 this.setState({searchType})
             }
         }else if(searchVal){
@@ -274,7 +281,12 @@ class SearchResult extends React.Component {
         this.props.history.push('/userInfo')
     }
     toIndex = () => {
-        this.props.history.go(-1)
+        if(this.isExternalLink){
+            location.href = location.origin;
+        }else{
+            this.props.history.go(-1)
+        }
+        
     }
     handleRadioChange = e => {
         this.setState({
@@ -632,6 +644,7 @@ class SearchResult extends React.Component {
     //     this.setState({isLoading:false})
     // }
     showDownloadDialog =(type, item)=>{
+        
         if(this.unLogin){
             return this.unLoginTip();
         }
@@ -639,18 +652,23 @@ class SearchResult extends React.Component {
         const _this = this;
         const bookId = item.id;
         const format = item.extension || '';
-        
-        if(format.toLocaleLowerCase() === 'pdf'){
-            this.setState({currBookId:bookId},()=>{
-                this.createDownload(format)
-            })
-        }else{
-            _this.setState({
-                currBookId:bookId,
-                format,
-                downloadModal:true
-            })
-        }
+        //去掉下载格式弹窗
+        // if(format.toLocaleLowerCase() === 'pdf'){
+        //     this.setState({currBookId:bookId},()=>{
+        //         this.createDownload(format)
+        //     })
+        // }else{
+        //     _this.setState({
+        //         currBookId:bookId,
+        //         format,
+        //         downloadModal:true
+        //     })
+        // }
+        this.setState({currBookId:bookId},()=>{
+            this.createDownload(format)
+        })
+
+
         // let timer = null;
         // let timer2 = null;
         // timer = setInterval(() => {

@@ -463,17 +463,21 @@ class DeskPage extends React.Component {
         const _this = this;
         const bookId = item.id;
         const format = item.extension;
-        if(format === 'pdf'){
-            this.setState({currBookId:bookId},()=>{
-                this.createDownload(format)
-            })
-        }else{
-            _this.setState({
-                currBookId:bookId,
-                format,
-                downloadModal:true
-            })
-        }
+        this.setState({currBookId:bookId},()=>{
+            this.createDownload(format)
+        })
+        // if(format === 'pdf'){
+        //     this.setState({currBookId:bookId},()=>{
+        //         this.createDownload(format)
+        //     })
+        // }else{
+        //     _this.setState({
+        //         currBookId:bookId,
+        //         format,
+        //         downloadModal:true
+        //     })
+        // }
+
         // let timer = null;
         // let timer2 = null;
         // timer = setInterval(() => {

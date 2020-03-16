@@ -194,6 +194,15 @@ class UserInfo extends React.Component {
         const nickName = userInfo.nick_name || "";
         const username = nickName[0];
         const photo = userInfo.photo || '';
+        let baseUrl =''
+        const pathname =  location.href
+        if(pathname.indexOf('dev.yuedu.pro') > 0){
+            baseUrl ='//dev-api.yuedu.pro'
+        }else if(pathname.indexOf('yuedu.pro') > 0){
+            baseUrl = '//api.yuedu.pro'
+        }else{
+            baseUrl =''
+        }
         return (
             <div className="userInfoWarp">
                 <div className="publicHeader"><div className="menuBtn"><Icon onClick={this.toIndex} type={'arrow-left'} /></div></div>
@@ -206,7 +215,7 @@ class UserInfo extends React.Component {
                             listType="picture-card"
                             className="avatar-uploader userImgUpload"
                             showUploadList={false}
-                            action={`/user/_photo?access_token=${cookie.get('Authorization')}`}
+                            action={baseUrl + `/user/_photo?access_token=${cookie.get('Authorization')}`}
                             beforeUpload={this.beforeUpload}
                             onChange={this.handleImgChange}
                         >
